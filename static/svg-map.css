@@ -1,0 +1,290 @@
+/* ==========================================================================
+   NSIP KM1 Layout Viewer — Production Styles
+   ========================================================================== */
+
+#svg-map-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+    height: 100%;
+}
+
+.svg-map-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.svg-map-header h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1a1d23;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.svg-map-header h2 i {
+    color: #f47217;
+    font-size: 18px;
+}
+
+.svg-map-subtitle {
+    font-size: 13px;
+    color: #5e6778;
+    margin-top: 2px;
+}
+
+.svg-map-stage {
+    width: 100%;
+    background: #ffffff;
+    border: 1px solid #eef0f4;
+    border-radius: 10px;
+    padding: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    overflow: hidden;
+    aspect-ratio: 16 / 9;
+}
+
+.svg-loading-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #5e6778;
+    font-size: 14px;
+    font-style: italic;
+}
+
+.svg-error-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #dc2626;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* ==========================================================================
+   MODAL — Perfectly centered
+   ========================================================================== */
+
+#layout-unit-modal {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+}
+
+.layout-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(4px);
+    z-index: 0;
+}
+
+.layout-modal {
+    position: relative;
+    z-index: 1;
+    width: 480px;
+    max-width: calc(100vw - 32px);
+    max-height: 85vh;
+    background: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.35), 0 0 0 1px rgba(0,0,0,0.06);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+.layout-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    border-bottom: 1px solid #eef0f4;
+}
+
+.layout-modal-title {
+    font-weight: 700;
+    font-size: 14px;
+    color: #0f2042;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+}
+
+.layout-modal-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid #eef0f4;
+    background: #ffffff;
+    color: #5e6778;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 120ms ease, color 120ms ease;
+}
+
+.layout-modal-close:hover {
+    background: #fee2e2;
+    color: #dc2626;
+    border-color: #fecaca;
+}
+
+.layout-modal-body {
+    padding: 16px 20px;
+    overflow-y: auto;
+}
+
+.modal-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 9px 0;
+    gap: 12px;
+}
+
+.modal-row + .modal-row {
+    border-top: 1px solid #f4f6fa;
+}
+
+.modal-label {
+    font-size: 12px;
+    color: #5e6778;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    flex-shrink: 0;
+    min-width: 120px;
+}
+
+.modal-value {
+    font-size: 13px;
+    color: #1a1d23;
+    font-weight: 500;
+    text-align: right;
+    word-break: break-word;
+}
+
+.modal-status-available {
+    color: #16a34a;
+    font-weight: 700;
+}
+
+.modal-status-not-available {
+    color: #dc2626;
+    font-weight: 700;
+}
+
+.modal-divider {
+    height: 1px;
+    background: #eef0f4;
+    margin: 10px 0;
+}
+
+.layout-modal-footer {
+    padding: 12px 20px;
+    border-top: 1px solid #eef0f4;
+    background: #f8fafc;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.layout-copy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 18px;
+    border-radius: 8px;
+    border: 1px solid #eef0f4;
+    background: #ffffff;
+    color: #0f2042;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 120ms ease, border-color 120ms ease;
+}
+
+.layout-copy-btn:hover {
+    background: #fff4ec;
+    border-color: #f4bf9f;
+}
+
+.layout-copy-btn i {
+    color: #f47217;
+    font-size: 12px;
+}
+
+#layout-copy-feedback {
+    position: fixed;
+    z-index: 100000;
+    background: #0f2042;
+    color: #ffffff;
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    pointer-events: none;
+    animation: popupFadeIn 150ms ease;
+}
+
+@keyframes popupFadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==========================================================================
+   UNIT HIGHLIGHTS — Brighter green for available, grey for unavailable
+   ========================================================================== */
+
+/* Available — brighter emerald green with semi-transparency */
+.available {
+    fill: #00F05A !important;
+    fill-opacity: 0.88 !important;
+    stroke: none !important;
+    cursor: pointer;
+    transition: fill-opacity 200ms ease, fill 200ms ease;
+}
+
+.available:hover {
+    fill: #39FF88 !important;
+    fill-opacity: 0.96 !important;
+}
+
+/* Not available — clean modern grey */
+.not-available {
+    fill: #A8B0B8 !important;
+    fill-opacity: 0.72 !important;
+    stroke: none !important;
+    cursor: pointer;
+    transition: fill-opacity 200ms ease, fill 200ms ease;
+}
+
+.not-available:hover {
+    fill: #C3CBD3 !important;
+    fill-opacity: 0.86 !important;
+}
+
+/* Background fallback — only for non-highlighted elements */
+#svg-map-stage svg path:not(.available):not(.not-available),
+#svg-map-stage svg polygon:not(.available):not(.not-available),
+#svg-map-stage svg rect:not(.available):not(.not-available),
+#svg-map-stage svg circle:not(.available):not(.not-available),
+#svg-map-stage svg ellipse:not(.available):not(.not-available) {
+    fill: #BDBDBD !important;
+    fill-opacity: 0.18 !important;
+}

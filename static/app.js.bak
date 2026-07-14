@@ -1,0 +1,728 @@
+/* ==========================================================================
+   NCT Stocks & Inventory V3 — Dashboard Application
+   New NSIP Layout.png — SVG viewBox Overlay Engine
+   ========================================================================== */
+
+/* ==========================================================================
+   PROJECT CONFIGURATION
+   ========================================================================== */
+var PROJECT_CONFIG = [
+  { slug: "grand-ion-delemen", name: "GRAND ION DELEMEN", icon: "fa-building", hasMap: false },
+  { slug: "grand-ion-majestic", name: "GRAND ION MAJESTIC", icon: "fa-city", hasMap: false },
+  { slug: "ion-belian-garden", name: "ION BELIAN GARDEN", icon: "fa-tree", hasMap: false },
+  { slug: "mahkota-kampar", name: "MAHKOTA KAMPAR", icon: "fa-landmark", hasMap: false },
+  { slug: "n-city", name: "N-CITY", icon: "fa-draw-polygon", hasMap: false },
+  { slug: "vortex", name: "VORTEX BUSINESS PARK", icon: "fa-store", hasMap: false },
+  { slug: "nsip", name: "NSIP", icon: "fa-map", hasMap: true }
+];
+
+var HOME_KPI_ORDER = [
+  "GRAND ION DELEMEN", "GRAND ION MAJESTIC", "ION BELIAN GARDEN",
+  "MAHKOTA KAMPAR", "N-CITY", "NSIP", "VORTEX BUSINESS PARK"
+];
+
+var PROJECT_SLUG_MAP = {
+  "GRAND ION DELEMEN": "grand-ion-delemen",
+  "GRAND ION MAJESTIC": "grand-ion-majestic",
+  "ION BELIAN GARDEN": "ion-belian-garden",
+  "MAHKOTA KAMPAR": "mahkota-kampar",
+  "N-CITY": "n-city",
+  "NSIP": "nsip",
+  "VORTEX BUSINESS PARK": "vortex"
+};
+
+/* ==========================================================================
+   NSIP UNIT COORDINATES — Pixel positions for New NSIP Layout.png
+   Matches native image resolution 1851 x 514.
+   Used directly with SVG viewBox for zero-drift overlay.
+   ========================================================================== */
+var NSIP_COORDS = {
+  "A23":   { x: 74,  y: 66,  w: 83, h: 44 },
+  "B19":   { x: 74,  y: 114, w: 83, h: 44 },
+  "C01":   { x: 268, y: 58,  w: 70, h: 64 },
+  "C02":   { x: 338, y: 58,  w: 70, h: 64 },
+  "C04":   { x: 408, y: 58,  w: 70, h: 64 },
+  "C06":   { x: 478, y: 58,  w: 70, h: 64 },
+  "C07":   { x: 548, y: 58,  w: 70, h: 64 },
+  "C08":   { x: 618, y: 58,  w: 70, h: 64 },
+  "C09":   { x: 688, y: 58,  w: 70, h: 64 },
+  "C10":   { x: 758, y: 58,  w: 70, h: 64 },
+  "C12":   { x: 828, y: 58,  w: 70, h: 64 },
+  "C17":   { x: 898, y: 58,  w: 70, h: 64 },
+  "C18":   { x: 968, y: 58,  w: 70, h: 64 },
+  "C27":   { x: 1038,y: 58,  w: 70, h: 64 },
+  "C28":   { x: 1108,y: 58,  w: 70, h: 64 },
+  "C45":   { x: 1178,y: 58,  w: 70, h: 64 },
+  "C61":   { x: 1248,y: 58,  w: 78, h: 64 },
+  "D07":   { x: 268, y: 120, w: 52, h: 41 },
+  "D08":   { x: 320, y: 120, w: 52, h: 41 },
+  "D09":   { x: 372, y: 120, w: 52, h: 41 },
+  "D10":   { x: 424, y: 120, w: 52, h: 41 },
+  "D11":   { x: 476, y: 120, w: 52, h: 41 },
+  "D13A":  { x: 528, y: 120, w: 52, h: 41 },
+  "D15":   { x: 580, y: 120, w: 52, h: 41 },
+  "D16":   { x: 632, y: 120, w: 52, h: 41 },
+  "D17":   { x: 684, y: 120, w: 52, h: 41 },
+  "D18":   { x: 736, y: 120, w: 52, h: 41 },
+  "D19":   { x: 788, y: 120, w: 52, h: 41 },
+  "D20":   { x: 840, y: 120, w: 52, h: 41 },
+  "D21":   { x: 892, y: 120, w: 52, h: 41 },
+  "D22":   { x: 944, y: 120, w: 52, h: 41 },
+  "D23":   { x: 996, y: 120, w: 52, h: 41 },
+  "D23A":  { x: 1048,y: 120, w: 52, h: 41 },
+  "D25":   { x: 1100,y: 120, w: 52, h: 41 },
+  "D27":   { x: 1152,y: 120, w: 52, h: 41 },
+  "D28":   { x: 1204,y: 120, w: 64, h: 41 },
+  "D33A":  { x: 268, y: 170, w: 52, h: 41 },
+  "D42":   { x: 320, y: 170, w: 52, h: 41 },
+  "D43":   { x: 372, y: 170, w: 52, h: 41 },
+  "D43A":  { x: 424, y: 170, w: 52, h: 41 },
+  "D46":   { x: 476, y: 170, w: 52, h: 41 },
+  "D47":   { x: 528, y: 170, w: 52, h: 41 },
+  "D48":   { x: 580, y: 170, w: 52, h: 41 },
+  "D50":   { x: 632, y: 170, w: 52, h: 41 },
+  "D52":   { x: 684, y: 170, w: 52, h: 41 },
+  "D56":   { x: 736, y: 170, w: 64, h: 41 },
+  "D70":   { x: 900, y: 170, w: 55, h: 41 },
+  "D83A":  { x: 955, y: 170, w: 55, h: 41 },
+  "D85":   { x: 1010,y: 170, w: 55, h: 41 },
+  "D93":   { x: 1065,y: 170, w: 55, h: 41 },
+  "D95":   { x: 1120,y: 170, w: 64, h: 41 },
+  "E03":   { x: 74,  y: 236, w: 101,h: 67 },
+  "G01":   { x: 1440,y: 52,  w: 55, h: 52 },
+  "G02":   { x: 1495,y: 52,  w: 55, h: 52 },
+  "G03":   { x: 1550,y: 52,  w: 55, h: 52 },
+  "G03A":  { x: 1605,y: 52,  w: 55, h: 52 },
+  "G05":   { x: 1660,y: 52,  w: 55, h: 52 },
+  "G06":   { x: 1440,y: 104, w: 55, h: 52 },
+  "G07":   { x: 1495,y: 104, w: 55, h: 52 },
+  "G08":   { x: 1550,y: 104, w: 55, h: 52 },
+  "G09":   { x: 1605,y: 104, w: 55, h: 52 },
+  "G16":   { x: 1660,y: 104, w: 55, h: 52 },
+  "H25":   { x: 1440,y: 170, w: 46, h: 31 },
+  "H26":   { x: 1486,y: 170, w: 46, h: 31 },
+  "2D-1":  { x: 50,  y: 326, w: 65, h: 16 },
+  "2D-3":  { x: 50,  y: 342, w: 65, h: 16 },
+  "2D-3A": { x: 50,  y: 358, w: 65, h: 16 },
+  "2D-5":  { x: 50,  y: 374, w: 65, h: 16 },
+  "2D-6":  { x: 50,  y: 390, w: 65, h: 16 },
+  "2D-7":  { x: 50,  y: 406, w: 65, h: 16 },
+  "2D-8":  { x: 50,  y: 422, w: 65, h: 16 },
+  "2D-9":  { x: 50,  y: 438, w: 65, h: 16 },
+  "2D-10": { x: 50,  y: 454, w: 65, h: 16 },
+  "2D-11": { x: 50,  y: 470, w: 65, h: 16 },
+  "2D-12": { x: 115, y: 326, w: 65, h: 16 },
+  "2D-13": { x: 115, y: 342, w: 65, h: 16 },
+  "2D-13A":{ x: 115, y: 358, w: 65, h: 16 },
+  "2D-15": { x: 115, y: 374, w: 65, h: 16 },
+  "2D-16": { x: 115, y: 390, w: 65, h: 16 },
+  "2D-17": { x: 115, y: 406, w: 65, h: 16 },
+  "2D-18": { x: 115, y: 422, w: 65, h: 16 },
+  "2D-19": { x: 115, y: 438, w: 65, h: 16 },
+  "2D-20": { x: 115, y: 454, w: 65, h: 16 },
+  "2D-21": { x: 180, y: 326, w: 65, h: 16 },
+  "2D-22": { x: 180, y: 342, w: 65, h: 16 },
+  "2D-23": { x: 180, y: 358, w: 65, h: 16 },
+  "2D-23A":{ x: 180, y: 374, w: 65, h: 16 },
+  "2D-25": { x: 180, y: 390, w: 65, h: 16 },
+  "2D-26": { x: 180, y: 406, w: 65, h: 16 },
+  "2D-27": { x: 180, y: 422, w: 65, h: 16 },
+  "2D-28": { x: 180, y: 438, w: 65, h: 16 },
+  "2D-30": { x: 180, y: 454, w: 65, h: 16 },
+  "2D-31": { x: 245, y: 326, w: 65, h: 16 },
+  "2D-32": { x: 245, y: 342, w: 65, h: 16 },
+  "2D-33": { x: 245, y: 358, w: 65, h: 16 },
+  "2D-33A":{ x: 245, y: 374, w: 65, h: 16 },
+  "2D-35": { x: 245, y: 390, w: 65, h: 16 },
+  "2D-36": { x: 245, y: 406, w: 65, h: 16 },
+  "2D-37": { x: 245, y: 422, w: 65, h: 16 },
+  "2D-38": { x: 245, y: 438, w: 65, h: 16 },
+  "2D-39": { x: 245, y: 454, w: 65, h: 16 },
+  "2D-40": { x: 310, y: 326, w: 65, h: 16 },
+  "2D-41": { x: 310, y: 342, w: 65, h: 16 }
+};
+
+function getProjectConfig(slug) {
+  for (var i = 0; i < PROJECT_CONFIG.length; i++) {
+    if (PROJECT_CONFIG[i].slug === slug) return PROJECT_CONFIG[i];
+  }
+  return null;
+}
+
+/* ==========================================================================
+   SIDEBAR & NAVIGATION
+   ========================================================================== */
+document.addEventListener("DOMContentLoaded", function() {
+  try { bindSidebarToggle(); } catch (e) { console.error("Sidebar toggle error:", e); }
+  try { bindSidebarNavigation(); } catch (e) { console.error("Sidebar nav error:", e); }
+  try { buildAllProjectPanelSkeletons(); } catch (e) { console.error("Panel skeleton error:", e); }
+});
+
+function bindSidebarToggle() {
+  var s = document.getElementById("sidebar");
+  var m = document.getElementById("mainContent");
+  var b = document.getElementById("sidebarToggle");
+  var i = document.getElementById("toggleIcon");
+  if (!b || !s || !m) return;
+  b.addEventListener("click", function() {
+    s.classList.toggle("collapsed");
+    m.classList.toggle("expanded");
+    if(i) i.className = s.classList.contains("collapsed") ? "fas fa-chevron-right" : "fas fa-chevron-left";
+    setTimeout(function() {
+      try { if(window.currentChart) window.currentChart.resize(); } catch(e) {}
+    }, 350);
+  });
+}
+
+function bindSidebarNavigation() {
+  var items = document.querySelectorAll(".nav-item");
+  var panels = document.querySelectorAll(".view-panel");
+  for (var i = 0; i < items.length; i++) {
+    (function(item) {
+      item.addEventListener("click", function() {
+        var view = item.getAttribute("data-view");
+        if (!view) return;
+        for (var j = 0; j < items.length; j++) items[j].classList.remove("active");
+        item.classList.add("active");
+        for (var k = 0; k < panels.length; k++) {
+          panels[k].classList.remove("active");
+          panels[k].style.display = "none";
+        }
+        var tp = document.getElementById("view-" + view);
+        if (tp) { tp.classList.add("active"); tp.style.display = "block"; }
+        if (view === "home") renderHomeDashboard();
+        else if (getProjectConfig(view)) renderProjectView(view);
+      });
+    })(items[i]);
+  }
+}
+
+/* ==========================================================================
+   UTILITIES
+   ========================================================================== */
+function esc(s) { return (s === undefined || s === null || s === "") ? "-" : String(s); }
+
+function formatPrice(val) {
+  try {
+    if (!val || Number(val) === 0) return "-";
+    return "RM " + Number(val).toLocaleString("en-MY", {minimumFractionDigits:0, maximumFractionDigits:0});
+  } catch(e) { return "-"; }
+}
+
+function computePrice(u) {
+  try {
+    var mode = (u.SaleOrSubSale || "").toString().trim().toLowerCase();
+    if (mode === "sale") return Number(u.Listing_Price) || 0;
+    if (mode === "sub-sale" || mode === "subsale" || mode === "sub sale") return Number(u.SPA_Signed_Price) || 0;
+    return Number(u.Price) || Number(u.Listing_Price) || Number(u.SPA_Signed_Price) || 0;
+  } catch(e) { return 0; }
+}
+
+function isAvailable(u) {
+  try { return (u.Status || "").toString().trim().toLowerCase() === "available"; } catch(e) { return false; }
+}
+
+/* ==========================================================================
+   DATA CACHE
+   ========================================================================== */
+function fetchAllUnitsCached() {
+  try {
+    if (window.__allUnitsPromise) return window.__allUnitsPromise;
+    window.__allUnitsPromise = fetch("/api/units/all")
+      .then(function(res) { if (!res.ok) throw new Error("HTTP " + res.status); return res.json(); })
+      .then(function(data) {
+        var arr = Array.isArray(data) ? data : [];
+        window.__allUnits = arr;
+        window.currentInventoryData = arr;
+        return arr;
+      })
+      .catch(function(err) {
+        console.error("fetchAllUnitsCached error:", err);
+        window.__allUnits = [];
+        window.currentInventoryData = [];
+        return [];
+      });
+    return window.__allUnitsPromise;
+  } catch(e) { return Promise.resolve([]); }
+}
+
+/* ==========================================================================
+   HOME DASHBOARD
+   ========================================================================== */
+function renderHomeDashboard() {
+  fetchAllUnitsCached().then(function(units) {
+    try { renderHomeKPIRow(units); } catch(e) { console.error("KPI row:", e); }
+    try { bindUnifiedKPICards(); } catch(e) { console.error("KPI cards:", e); }
+    try { renderProjectStockChart(units); } catch(e) { console.error("Chart:", e); }
+    try { populateProjectFilter(units); } catch(e) { console.error("Filter:", e); }
+    try { renderLedger(units); } catch(e) { console.error("Ledger:", e); }
+  });
+}
+
+function bindUnifiedKPICards() {
+  document.querySelectorAll(".kpi-card-unified").forEach(function(card) {
+    card.addEventListener("click", function() {
+      var view = this.dataset.view;
+      if (view) {
+        document.querySelectorAll(".nav-item").forEach(function(n) { n.classList.remove("active"); });
+        var an = document.querySelector('.nav-item[data-view="' + view + '"]');
+        if (an) an.classList.add("active");
+        document.querySelectorAll(".view-panel").forEach(function(p) { p.classList.remove("active"); p.style.display = "none"; });
+        var tp = document.getElementById("view-" + view);
+        if (tp) { tp.classList.add("active"); tp.style.display = "block"; }
+        if (getProjectConfig(view)) renderProjectView(view);
+      }
+    });
+  });
+}
+
+function renderHomeKPIRow(units) {
+  var row = document.getElementById("homeKpiRow");
+  if (!row) return;
+  row.innerHTML = "";
+  HOME_KPI_ORDER.forEach(function(projName) {
+    var slug = PROJECT_SLUG_MAP[projName] || "";
+    var count = units.filter(function(u) {
+      return (u.Project || "").toString().trim().toUpperCase() === projName && isAvailable(u);
+    }).length;
+    var totalPrice = units.filter(function(u) {
+      return (u.Project || "").toString().trim().toUpperCase() === projName;
+    }).reduce(function(acc, u) { return acc + (Number(u.Listing_Price) || 0); }, 0);
+    var card = document.createElement("div");
+    card.className = "kpi-card-unified";
+    card.dataset.view = slug;
+    card.innerHTML = '<div class="kpi-project-name">' + esc(projName) + '</div>' +
+      '<div class="kpi-metrics"><div class="kpi-metric kpi-metric-left">' +
+      '<div class="kpi-value">' + count + '</div><div class="kpi-sub">Available Units</div></div>' +
+      '<div class="kpi-metric kpi-metric-right"><div class="kpi-value">' + formatPrice(totalPrice) +
+      '</div><div class="kpi-sub">List Price</div></div></div>';
+    row.appendChild(card);
+  });
+}
+
+function renderProjectStockChart(units) {
+  var canvas = document.getElementById("chartCanvas");
+  if (!canvas || !units.length) return;
+  var pmap = {};
+  units.forEach(function(u) { var p = u.Project || "Unknown"; pmap[p] = (pmap[p] || 0) + 1; });
+  var keys = Object.keys(pmap).sort();
+  var labels = keys.map(function(k) { return k.length > 20 ? k.replace(/^GRAND\s+/i,"G.").replace(/^ION\s+/i,"Ion ").trim() : k; });
+  var totals = keys.map(function(k) { return pmap[k]; });
+  if (window.currentChart) { try { window.currentChart.destroy(); } catch(e) {} }
+  var ctx = canvas.getContext("2d");
+  window.currentChart = new Chart(ctx, {
+    type: "bar",
+    data: { labels: labels, datasets: [{ label: "Total Stock", data: totals, backgroundColor: "rgba(244,114,23,0.85)", borderColor: "#f47217", borderWidth: 1, borderRadius: 6, barPercentage: 0.6 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { enabled: true } },
+      scales: { x: { ticks: { color: "#9ca3af", maxRotation: 30, font: { size: 11 } }, grid: { display: false } }, y: { beginAtZero: true, grace: "15%", ticks: { color: "#9ca3af", stepSize: 1, precision: 0 }, grid: { color: "rgba(0,0,0,0.06)" } } },
+      layout: { padding: { top: 24 } }
+    },
+    plugins: [{
+      id: "labels", afterDraw: function(chart) {
+        var cx = chart.ctx, meta = chart.getDatasetMeta(0);
+        meta.data.forEach(function(bar, idx) {
+          var val = chart.data.datasets[0].data[idx];
+          if (!val) return;
+          cx.save(); cx.fillStyle = "#1a1d23"; cx.font = "bold 12px Inter, sans-serif";
+          cx.textAlign = "center"; cx.textBaseline = "bottom";
+          cx.fillText(val, bar.x, bar.y - 6); cx.restore();
+        });
+      }
+    }]
+  });
+}
+
+function populateProjectFilter(units) {
+  var select = document.getElementById("ledgerProjectFilter");
+  if (!select || select.getAttribute("data-populated") === "1") return;
+  var projects = Array.from(new Set(units.map(function(u) { return u.Project || "Unknown"; }))).sort();
+  projects.forEach(function(p) { var o = document.createElement("option"); o.value = p; o.textContent = p; select.appendChild(o); });
+  select.setAttribute("data-populated", "1");
+}
+
+function renderLedger(units) {
+  var tbody = document.getElementById("ledgerBody"), pagEl = document.getElementById("ledgerPagination");
+  if (!tbody) return;
+  var perPage = 30, totalPages = Math.ceil(units.length / perPage) || 1;
+  function drawPage(p) {
+    p = Math.min(Math.max(1, p), totalPages);
+    var start = (p - 1) * perPage, slice = units.slice(start, start + perPage);
+    tbody.innerHTML = slice.length ? "" : '<tr><td colspan="7" style="text-align:center;padding:24px;">No records</td></tr>';
+    slice.forEach(function(u, i) {
+      var tr = document.createElement("tr");
+      tr.innerHTML = "<td>" + (start + i + 1) + "</td><td>" + esc(u.Unit_No) + "</td><td>" + esc(u.Property_Type) +
+        "</td><td>" + esc(u.Property_Ownership) + "</td><td>" + esc(u.Built_Up) + "</td><td>" + esc(u.Land_Area) +
+        "</td><td>" + formatPrice(computePrice(u)) + "</td>";
+      tbody.appendChild(tr);
+    });
+    drawPagination(pagEl, p, totalPages, drawPage);
+  }
+  drawPage(1);
+  var searchInput = document.getElementById("ledgerSearch"), projFilter = document.getElementById("ledgerProjectFilter");
+  function applyFilters() {
+    var term = searchInput ? searchInput.value.toLowerCase() : "";
+    var proj = projFilter ? projFilter.value : "";
+    var filtered = (window.__allUnits || []).filter(function(u) {
+      return (!term || (u.Unit_No||"").toLowerCase().indexOf(term) > -1 || (u.Property_Type||"").toLowerCase().indexOf(term) > -1 || (u.Status||"").toLowerCase().indexOf(term) > -1) && (!proj || u.Project === proj);
+    });
+    renderLedger(filtered);
+  }
+  if (searchInput && !searchInput.getAttribute("data-bound")) { searchInput.addEventListener("input", applyFilters); searchInput.setAttribute("data-bound","1"); }
+  if (projFilter && !projFilter.getAttribute("data-bound")) { projFilter.addEventListener("change", applyFilters); projFilter.setAttribute("data-bound","1"); }
+}
+
+function drawPagination(container, current, total, onPage) {
+  if (!container) return;
+  container.innerHTML = "";
+  if (total <= 1) return;
+  var prev = document.createElement("button"); prev.textContent = "\u2039"; prev.disabled = current <= 1;
+  prev.addEventListener("click", function() { onPage(current - 1); }); container.appendChild(prev);
+  var info = document.createElement("span"); info.className = "page-info"; info.textContent = "Page " + current + " of " + total; container.appendChild(info);
+  var next = document.createElement("button"); next.textContent = "\u203a"; next.disabled = current >= total;
+  next.addEventListener("click", function() { onPage(current + 1); }); container.appendChild(next);
+}
+
+/* ==========================================================================
+   PROJECT PANEL SKELETONS
+   ========================================================================== */
+function buildAllProjectPanelSkeletons() {
+  PROJECT_CONFIG.forEach(function(cfg) {
+    try { buildProjectPanelSkeleton(cfg); } catch(e) { console.error("Skeleton error for " + cfg.slug + ":", e); }
+  });
+}
+
+function buildProjectPanelSkeleton(cfg) {
+  var panel = document.getElementById("view-" + cfg.slug);
+  if (!panel) return;
+  var html = "";
+  html += '<div class="page-header">';
+  html += '  <img src="/static/NCTLogo.png" alt="NCT" class="header-logo">';
+  html += '  <div><h1>' + esc(cfg.name) + '</h1><div class="header-sub">Project inventory dashboard' + (cfg.hasMap ? " — interactive availability engine" : " under staging layout preparation") + '</div></div>';
+  html += '</div>';
+  html += '<div class="project-kpi-container">';
+  html += '  <div class="card project-kpi-box"><div class="project-kpi-label"><i class="fas fa-check-circle" style="color:var(--corporate-orange);margin-right:8px;"></i>Available Units</div><div class="project-kpi-value" id="kpi-' + cfg.slug + '">0</div></div>';
+  html += '  <div class="card project-kpi-price-box"><div class="project-kpi-label"><i class="fas fa-coins" style="color:#0f2042;margin-right:8px;"></i>Grand Total Listing Price</div><div class="project-kpi-value" id="kpi-price-' + cfg.slug + '">RM 0</div></div>';
+  html += '</div>';
+  if (cfg.hasMap) {
+    html += '<div class="card clean-image-card">';
+    html += '  <div class="card-header"><span class="card-title"><i class="fas fa-image"></i> Layout Reference — NSIP</span></div>';
+    html += '  <div id="layout-container" style="position:relative;width:100%;max-width:100%;display:inline-block;">';
+    html += '    <img id="siteplan" src="/static/New NSIP Layout.png" style="display:block;width:100%;height:auto;" />';
+    html += '    <svg id="overlay" viewBox="0 0 1851 514" preserveAspectRatio="xMidYMid meet" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:auto;z-index:20;"></svg>';
+    html += '  </div>';
+    html += '</div>';
+  } else {
+    html += '<div class="card staging-placeholder"><i class="fas ' + cfg.icon + '"></i><h3>' + esc(cfg.name) + '</h3><p>Project Interactive Layout Staging&hellip;</p></div>';
+  }
+  html += '<div class="card"><div class="card-header"><span class="card-title"><i class="fas fa-list"></i> ' + esc(cfg.name) + ' Asset List</span>';
+  html += '<div class="table-controls"><input type="text" id="search-' + cfg.slug + '" placeholder="Search Unit No..." />';
+  html += '<select id="filterType-' + cfg.slug + '"><option value="">All Types</option></select>';
+  html += '<select id="filterOwn-' + cfg.slug + '"><option value="">All Ownership</option></select></div></div>';
+  html += '<div class="table-wrapper"><table><thead><tr><th>No</th><th>Unit No</th><th>Property Type</th><th>Property Ownership</th><th>Built-Up</th><th>Land-Area</th><th>Price</th></tr></thead>';
+  html += '<tbody id="ledgerBody-' + cfg.slug + '"></tbody></table></div><div class="pagination" id="ledgerPagination-' + cfg.slug + '"></div></div>';
+  panel.innerHTML = html;
+  if (cfg.hasMap) {
+    setTimeout(function() {
+      try { bindCoordinateEditor(); drawLayoutHighlights(); } catch(e) { console.error("Layout init:", e); }
+    }, 300);
+  }
+}
+
+/* ==========================================================================
+   SVG OVERLAY ENGINE — Native Browser Scaling via viewBox
+   ========================================================================== */
+function debugLayoutRender() {
+  try {
+    var overlay = document.getElementById("overlay");
+    var img = document.getElementById("siteplan");
+    console.log("%c LAYOUT DEBUG %c", "background:#f47217;color:#fff;padding:4px;font-weight:bold;", "background:transparent;");
+    console.log("overlay exists:", !!overlay);
+    if (overlay) {
+      var rect = overlay.getBoundingClientRect();
+      console.log("overlay size:", rect.width + "x" + rect.height);
+      console.log("overlay viewBox:", overlay.getAttribute("viewBox"));
+      console.log("rect count:", overlay.querySelectorAll("rect").length);
+    }
+    if (img) {
+      console.log("img natural size:", img.naturalWidth + "x" + img.naturalHeight);
+    }
+    var data = window.__allUnits || window.currentInventoryData || [];
+    var avail = [];
+    data.forEach(function(u) {
+      if ((getUnitStatus(u) || "").toLowerCase() === "available") avail.push(getUnitId(u));
+    });
+    console.log("available units:", avail.length, avail.slice(0,10));
+    var coordKeys = Object.keys(NSIP_COORDS);
+    console.log("coord keys:", coordKeys.length, coordKeys.slice(0,10));
+    var missing = [];
+    avail.forEach(function(id) {
+      if (!NSIP_COORDS[id]) missing.push(id);
+    });
+    console.log("missing coords:", missing.length, missing.slice(0,20));
+    missing.forEach(function(id) { console.warn("Missing coord:", id); });
+  } catch(e) { console.error("debug error:", e); }
+}
+
+  — Native Browser Scaling via viewBox
+   ========================================================================== */
+function getUnitId(unit) {
+  return (unit.Unit_No || unit.id || unit.unit_id || unit.unit || "").toString().trim();
+}
+
+function getUnitStatus(unit) {
+  return (unit.Status || unit.status || "").toString().trim();
+}
+
+function drawLayoutHighlights(force) {
+  if (!force) { debugLayoutRender(); }
+  try {
+    var overlay = document.getElementById("overlay");
+    if (!overlay) return;
+
+    overlay.innerHTML = "";
+    var fragment = document.createDocumentFragment();
+
+    var data = window.__allUnits || window.currentInventoryData || [];
+    if (!data.length) return;
+
+    data.forEach(function(unit) {
+      var unitId = getUnitId(unit);
+      var coord = NSIP_COORDS[unitId];
+      var status = getUnitStatus(unit);
+
+      if (coord && status === "Available") {
+        var ns = "http://www.w3.org/2000/svg";
+        var rect = document.createElementNS(ns, "rect");
+        rect.setAttribute("x", coord.x);
+        rect.setAttribute("y", coord.y);
+        rect.setAttribute("width", coord.w);
+        rect.setAttribute("height", coord.h);
+        rect.setAttribute("fill", "rgba(46, 204, 113, 0.45)");
+        rect.setAttribute("stroke", "#27ae60");
+        rect.setAttribute("stroke-width", "1.5");
+        rect.style.cursor = "pointer";
+        rect.setAttribute("data-unit", unitId);
+        rect.addEventListener('mouseenter', function(e) { showTooltip(e, unit); });
+        rect.addEventListener('mouseleave', hideTooltip);
+        fragment.appendChild(rect);
+      }
+    });
+
+    overlay.appendChild(fragment);
+    debugLayoutRender();
+    console.log("SVG Overlay rendered with native viewBox scaling.");
+  } catch(e) {
+    console.error("drawLayoutHighlights error:", e);
+  }
+}
+
+/* ==========================================================================
+   COORDINATE EDITOR MODE — Click-and-drag calibration helper
+   ========================================================================== */
+function bindCoordinateEditor() {
+  var svg = document.getElementById("overlay");
+  if (!svg || svg.getAttribute("data-editor-bound") === "1") return;
+  svg.setAttribute("data-editor-bound", "1");
+
+  var drawing = false;
+  var startX = 0, startY = 0;
+  var tempRect = null;
+  var editorMode = false;
+
+  // Toggle editor mode with Ctrl+Shift+C
+  document.addEventListener("keydown", function(e) {
+    if (e.ctrlKey && e.shiftKey && e.key === "C") {
+      editorMode = !editorMode;
+      console.log("%c COORDINATE EDITOR " + (editorMode ? "ON" : "OFF"), "background:#f47217;color:#fff;padding:6px;font-weight:bold;");
+      svg.style.cursor = editorMode ? "crosshair" : "default";
+    }
+  });
+
+  svg.addEventListener("mousedown", function(e) {
+    if (!editorMode) return;
+    var pt = svgPoint(svg, e);
+    startX = pt.x; startY = pt.y;
+    drawing = true;
+    tempRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    tempRect.setAttribute("x", startX);
+    tempRect.setAttribute("y", startY);
+    tempRect.setAttribute("width", 0);
+    tempRect.setAttribute("height", 0);
+    tempRect.setAttribute("fill", "rgba(244,114,23,0.3)");
+    tempRect.setAttribute("stroke", "#f47217");
+    tempRect.setAttribute("stroke-width", "1");
+    svg.appendChild(tempRect);
+  });
+
+  svg.addEventListener("mousemove", function(e) {
+    if (!drawing || !tempRect) return;
+    var pt = svgPoint(svg, e);
+    var x = Math.min(startX, pt.x);
+    var y = Math.min(startY, pt.y);
+    var w = Math.abs(pt.x - startX);
+    var h = Math.abs(pt.y - startY);
+    tempRect.setAttribute("x", x);
+    tempRect.setAttribute("y", y);
+    tempRect.setAttribute("width", w);
+    tempRect.setAttribute("height", h);
+  });
+
+  svg.addEventListener("mouseup", function(e) {
+    if (!drawing) return;
+    drawing = false;
+    var pt = svgPoint(svg, e);
+    var x = Math.min(startX, pt.x);
+    var y = Math.min(startY, pt.y);
+    var w = Math.abs(pt.x - startX);
+    var h = Math.abs(pt.y - startY);
+    if (tempRect && tempRect.parentNode) tempRect.parentNode.removeChild(tempRect);
+    tempRect = null;
+    var unitId = prompt("Enter Unit ID for selected box:", "C");
+    if (!unitId) return;
+    console.log("%c COORDINATES CAPTURED:", "background:#2ecc71;color:#fff;padding:5px;font-weight:bold;");
+    console.log(JSON.stringify({ x: Math.round(x), y: Math.round(y), w: Math.round(w), h: Math.round(h) }));
+    alert("Coordinates captured! Check browser console for JSON output.");
+  });
+}
+
+function svgPoint(svg, evt) {
+  var pt = svg.createSVGPoint();
+  pt.x = evt.clientX;
+  pt.y = evt.clientY;
+  var ctm = svg.getScreenCTM();
+  if (!ctm) return { x: 0, y: 0 };
+  var svgP = pt.matrixTransform(ctm.inverse());
+  return { x: svgP.x, y: svgP.y };
+}
+
+/* ==========================================================================
+   TOOLTIP HANDLERS
+   ========================================================================== */
+function showTooltip(e, u) {
+  try {
+    var tooltip = document.getElementById("unitTooltip");
+    if (!tooltip || !u) return;
+    tooltip.classList.add("visible");
+    var price = computePrice(u);
+    var avail = isAvailable(u);
+    var html = '<div class="tt-title">' + esc(u.Unit_No) + '</div>';
+    html += '<div class="tt-row"><span class="tt-label">Property Type</span><span class="tt-value">' + esc(u.Property_Type) + '</span></div>';
+    html += '<div class="tt-row"><span class="tt-label">Ownership</span><span class="tt-value">' + esc(u.Property_Ownership) + '</span></div>';
+    html += '<div class="tt-row"><span class="tt-label">Built-Up</span><span class="tt-value">' + esc(u.Built_Up) + '</span></div>';
+    html += '<div class="tt-row"><span class="tt-label">Land-Area</span><span class="tt-value">' + esc(u.Land_Area) + '</span></div>';
+    html += '<div class="tt-row"><span class="tt-label">Price</span><span class="tt-value">' + formatPrice(price) + '</span></div>';
+    html += '<div class="tt-row"><span class="tt-label">Status</span><span class="tt-value" style="color:' + (avail ? "#10b981" : "#e74c3c") + '">' + esc(u.Status) + '</span></div>';
+    tooltip.innerHTML = html;
+    positionTooltip(e);
+  } catch (error) { console.error("showTooltip error:", error); }
+}
+
+function positionTooltip(e) {
+  try {
+    var tooltip = document.getElementById("unitTooltip");
+    if (!tooltip) return;
+    var x = e.clientX + 16, y = e.clientY + 16;
+    if (x + tooltip.offsetWidth > window.innerWidth - 10) x = e.clientX - tooltip.offsetWidth - 16;
+    if (y + tooltip.offsetHeight > window.innerHeight - 10) y = e.clientY - tooltip.offsetHeight - 16;
+    tooltip.style.left = x + "px";
+    tooltip.style.top = y + "px";
+  } catch (error) { console.error("positionTooltip error:", error); }
+}
+
+function hideTooltip() {
+  try {
+    var tooltip = document.getElementById("unitTooltip");
+    if (tooltip) tooltip.classList.remove("visible");
+  } catch (error) {}
+}
+
+/* ==========================================================================
+   PROJECT VIEW RENDERER
+   ========================================================================== */
+function renderProjectView(slug) {
+  var cfg = getProjectConfig(slug);
+  if (!cfg) return;
+  fetchAllUnitsCached().then(function(allUnits) {
+    var projectUnits = allUnits.filter(function(u) {
+      return (u.Project || "").toString().trim().toUpperCase() === cfg.name;
+    });
+    try { renderProjectKPI(cfg, projectUnits); } catch(e) { console.error("KPI:", e); }
+    try { renderProjectTotalPriceKPI(cfg, projectUnits); } catch(e) { console.error("Price KPI:", e); }
+    try { renderProjectLedger(cfg, projectUnits); } catch(e) { console.error("Ledger:", e); }
+  });
+}
+
+function renderProjectLedger(cfg, projectUnits) {
+  var tbody = document.getElementById("ledgerBody-" + cfg.slug);
+  var pagEl = document.getElementById("ledgerPagination-" + cfg.slug);
+  var searchInput = document.getElementById("search-" + cfg.slug);
+  var typeSelect = document.getElementById("filterType-" + cfg.slug);
+  var ownSelect = document.getElementById("filterOwn-" + cfg.slug);
+  if (!tbody) return;
+  try {
+    if (typeSelect && typeSelect.getAttribute("data-populated") !== "1") {
+      var types = Array.from(new Set(projectUnits.map(function(u) { return u.Property_Type || "N/A"; }))).sort();
+      types.forEach(function(t) { var o = document.createElement("option"); o.value = t; o.textContent = t; typeSelect.appendChild(o); });
+      typeSelect.setAttribute("data-populated", "1");
+    }
+    if (ownSelect && ownSelect.getAttribute("data-populated") !== "1") {
+      var owns = Array.from(new Set(projectUnits.map(function(u) { return u.Property_Ownership || "N/A"; }))).sort();
+      owns.forEach(function(o) { var op = document.createElement("option"); op.value = o; op.textContent = o; ownSelect.appendChild(op); });
+      ownSelect.setAttribute("data-populated", "1");
+    }
+  } catch(e) {}
+  var perPage = 30;
+  function drawPage(dataset, p) {
+    var totalPages = Math.ceil(dataset.length / perPage) || 1;
+    p = Math.min(Math.max(1, p), totalPages);
+    var start = (p - 1) * perPage, slice = dataset.slice(start, start + perPage);
+    tbody.innerHTML = slice.length ? "" : '<tr><td colspan="7" style="text-align:center;padding:24px;">No records</td></tr>';
+    slice.forEach(function(u, i) {
+      var tr = document.createElement("tr");
+      tr.innerHTML = "<td>" + (start + i + 1) + "</td><td>" + esc(u.Unit_No) + "</td><td>" + esc(u.Property_Type) +
+        "</td><td>" + esc(u.Property_Ownership) + "</td><td>" + esc(u.Built_Up) + "</td><td>" + esc(u.Land_Area) +
+        "</td><td>" + formatPrice(computePrice(u)) + "</td>";
+      tbody.appendChild(tr);
+    });
+    drawPagination(pagEl, p, totalPages, function(pn) { drawPage(dataset, pn); });
+  }
+  drawPage(projectUnits, 1);
+  function applyFilters() {
+    var term = searchInput ? searchInput.value.toLowerCase().trim() : "";
+    var typeVal = typeSelect ? typeSelect.value : "";
+    var ownVal = ownSelect ? ownSelect.value : "";
+    var filtered = projectUnits.filter(function(u) {
+      return (!term || (u.Unit_No||"").toLowerCase().indexOf(term) > -1) && (!typeVal || u.Property_Type === typeVal) && (!ownVal || u.Property_Ownership === ownVal);
+    });
+    drawPage(filtered, 1);
+  }
+  if (searchInput && !searchInput.getAttribute("data-bound")) { searchInput.addEventListener("input", applyFilters); searchInput.setAttribute("data-bound","1"); }
+  if (typeSelect && !typeSelect.getAttribute("data-bound")) { typeSelect.addEventListener("change", applyFilters); typeSelect.setAttribute("data-bound","1"); }
+  if (ownSelect && !ownSelect.getAttribute("data-bound")) { ownSelect.addEventListener("change", applyFilters); ownSelect.setAttribute("data-bound","1"); }
+}
+
+function renderProjectTotalPriceKPI(cfg, projectUnits) {
+  var el = document.getElementById("kpi-price-" + cfg.slug);
+  if (!el) return;
+  var total = projectUnits.reduce(function(acc, u) { return acc + (Number(u.Listing_Price) || 0); }, 0);
+  el.textContent = formatPrice(total);
+}
+
+function renderProjectKPI(cfg, projectUnits) {
+  var el = document.getElementById("kpi-" + cfg.slug);
+  if (!el) return;
+  el.textContent = projectUnits.filter(function(u) { return isAvailable(u); }).length;
+}
+
+/* ==========================================================================
+   APP ENTRY POINT
+   ========================================================================== */
+window.initApp = function() {
+  try {
+    console.log("NCT V3 - initApp starting...");
+    renderHomeDashboard();
+    console.log("NCT V3 - initApp loaded");
+  } catch(e) { console.error("initApp fatal:", e); }
+};
