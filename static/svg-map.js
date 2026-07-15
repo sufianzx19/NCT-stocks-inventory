@@ -145,7 +145,14 @@
             }
             if (poly) {
                 poly._unitData = unit;
-                if (String(unit.Status).trim().toLowerCase() === 'available') {
+                // Override D42 to not-available regardless of DB status
+                var unitNo = String(unit.Unit_No || '').trim().toUpperCase();
+                if (unitNo === 'D42') {
+                    poly.classList.remove('available');
+                    poly.classList.add('not-available');
+                    // Override the unit data status for display
+                    poly._unitData.Status = 'Sold';
+                } else if (String(unit.Status).trim().toLowerCase() === 'available') {
                     poly.classList.remove('not-available');
                     poly.classList.add('available');
                     availableCount++;

@@ -18643,3 +18643,162 @@ INFO:     127.0.0.1:54016 - "POST /api/auth/login HTTP/1.1" 200 OK
 INFO:     127.0.0.1:54016 - "GET /api/units/all HTTP/1.1" 200 OK
 INFO:     127.0.0.1:58248 - "GET /api/layout/nsip HTTP/1.1" 200 OK
 INFO:     127.0.0.1:58248 - "GET /NSIP_Master.svg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35484 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35496 - "GET /app.js?v=8.0.7 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:35484 - "GET /svg-map.css?v=1.0.5 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:35508 - "GET /svg-map.js?v=1.0.5 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:35484 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35496 - "GET /api/units/all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35538 - "GET /api/gallery/folders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35538 - "GET /api/gallery/images?path=NCT%20INNOSPHERE&subfolder=Project%20Photos HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35538 - "GET /NCT%20INNOSPHERE/Project%20Photos/NCT%20Innosphere%201.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35538 - "GET /NCT%20INNOSPHERE/Project%20Photos/NCT%20Innosphere%202.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35538 - "GET /NCT%20INNOSPHERE/Project%20Photos/NCT%20Innosphere%203.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35538 - "GET /NCT%20INNOSPHERE/Project%20Photos/NCT%20Innosphere%204.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35538 - "GET /NCT%20INNOSPHERE/Project%20Photos/NCT%20Innosphere%205.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35538 - "GET /NCT%20INNOSPHERE/Project%20Photos/NCT%20Innosphere%206.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35538 - "GET /NCT%20INNOSPHERE/Project%20Photos/NCT%20Innosphere%20Layout.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42810 - "GET /api/gallery/images?path=VORTEX%20BUSINESS%20PARK&subfolder=Project%20Photos HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42810 - "GET /VORTEX%20BUSINESS%20PARK/Project%20Photos/Vortex%20Business%20Park%201.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42810 - "GET /VORTEX%20BUSINESS%20PARK/Project%20Photos/Vortex%20Business%20Park%20Layout.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55590 - "GET /api/layout/nsip HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55590 - "GET /NSIP_Master.svg HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:36162 - "GET /api/layout/nsip HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41720 - "GET /api/gallery/folders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41720 - "GET /api/gallery/images?path=VORTEX%20BUSINESS%20PARK&subfolder=Project%20Photos HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [288684]
+INFO:     Started server process [2136]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:46554 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46554 - "GET /style.css?v=8.0.0 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:46558 - "GET /svg-map.css?v=1.0.5 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:46566 - "GET /app.js?v=8.0.7 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:46570 - "GET /svg-map.js?v=1.0.5 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:47454 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47454 - "GET /api/units/all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48260 - "GET /api/gallery/folders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41512 - "GET /api/gallery/images?path=NCT%20INNOSPHERE&subfolder=Project%20Photos HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41512 - "GET /NCT%20INNOSPHERE/Project%20Photos/NCT%20Innosphere%201.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41524 - "GET /NCT%20INNOSPHERE/Project%20Photos/NCT%20Innosphere%202.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41524 - "GET /NCT%20INNOSPHERE/Project%20Photos/NCT%20Innosphere%203.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41524 - "GET /NCT%20INNOSPHERE/Project%20Photos/NCT%20Innosphere%204.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41524 - "GET /NCT%20INNOSPHERE/Project%20Photos/NCT%20Innosphere%205.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52974 - "GET /NSIP_Plain_Layout.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48140 - "GET /api/layout/nsip HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48140 - "GET /NSIP_Master.svg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42262 - "GET /api/gallery/folders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42262 - "GET /api/gallery/images?path=GRAND%20ION%20DELEMEN&subfolder=Site%20Photos HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35830 - "GET /api/layout/nsip HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50604 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50604 - "GET /style.css?v=8.0.0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50604 - "GET /svg-map.css?v=1.0.5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50632 - "GET /svg-map.js?v=1.0.5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50616 - "GET /app.js?v=8.0.7 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50616 - "GET /NCTLogo.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50616 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:50616 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50616 - "GET /api/units/all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53312 - "GET /NSIP_Plain_Layout.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40316 - "GET /api/gallery/folders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48054 - "GET /api/gallery/folders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48054 - "GET /api/gallery/images?path=NCT%20INNOSPHERE&subfolder=Project%20Photos HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48054 - "GET /NCT%20INNOSPHERE/Project%20Photos/NCT%20Innosphere%201.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48054 - "GET /NCT%20INNOSPHERE/Project%20Photos/NCT%20Innosphere%202.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48054 - "GET /NCT%20INNOSPHERE/Project%20Photos/NCT%20Innosphere%203.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48054 - "GET /NCT%20INNOSPHERE/Project%20Photos/NCT%20Innosphere%204.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48054 - "GET /NCT%20INNOSPHERE/Project%20Photos/NCT%20Innosphere%205.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48054 - "GET /NCT%20INNOSPHERE/Project%20Photos/NCT%20Innosphere%206.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48054 - "GET /NCT%20INNOSPHERE/Project%20Photos/NCT%20Innosphere%20Layout.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48054 - "GET /api/layout/nsip HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48054 - "GET /NSIP_Master.svg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52846 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52846 - "GET /app.js?v=8.0.7 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52856 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:52846 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52856 - "GET /api/units/all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41766 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41766 - "GET /app.js?v=8.0.7 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41772 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:41766 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41772 - "GET /api/units/all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34242 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34242 - "GET /style.css?v=8.0.0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34242 - "GET /svg-map.css?v=1.0.5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34274 - "GET /svg-map.js?v=1.0.5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34258 - "GET /app.js?v=8.0.7 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34258 - "GET /NCTLogo.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34258 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34258 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34258 - "GET /api/units/all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57510 - "GET /api/gallery/folders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50616 - "GET /api/gallery/images?path=NCT%20INNOSPHERE&subfolder=Project%20Photos HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50616 - "GET /NCT%20INNOSPHERE/Project%20Photos/NCT%20Innosphere%201.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55966 - "GET /NCT%20INNOSPHERE/Project%20Photos/NCT%20Innosphere%202.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55966 - "GET /NCT%20INNOSPHERE/Project%20Photos/NCT%20Innosphere%203.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55966 - "GET /NCT%20INNOSPHERE/Project%20Photos/NCT%20Innosphere%204.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38968 - "GET /NSIP_Plain_Layout.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48048 - "GET /api/layout/nsip HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48048 - "GET /NSIP_Master.svg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35378 - "GET /api/layout/nsip HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37696 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37696 - "GET /app.js?v=8.0.7 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:37710 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:58558 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58558 - "GET /api/units/all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49592 - "GET /api/gallery/folders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47992 - "GET /api/gallery/folders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41648 - "GET /app.js?v=8.0.7 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:41662 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51414 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51414 - "GET /api/units/all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33008 - "GET /api/layout/nsip HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36372 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36372 - "GET /app.js?v=8.0.7 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:36386 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:36372 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36386 - "GET /api/units/all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36386 - "GET /api/layout/nsip HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33870 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33870 - "GET /style.css?v=8.0.0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33870 - "GET /svg-map.css?v=1.0.5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33882 - "GET /svg-map.js?v=1.0.5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33878 - "GET /app.js?v=8.0.7 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33878 - "GET /NCTLogo.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33878 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:33878 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33878 - "GET /api/units/all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33878 - "GET /api/layout/nsip HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33878 - "GET /NSIP_Master.svg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59600 - "GET /api/gallery/folders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59604 - "GET /api/gallery/images?path=VORTEX%20BUSINESS%20PARK&subfolder=Project%20Photos HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59604 - "GET /VORTEX%20BUSINESS%20PARK/Project%20Photos/Vortex%20Business%20Park%201.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59604 - "GET /VORTEX%20BUSINESS%20PARK/Project%20Photos/Vortex%20Business%20Park%20Layout.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40118 - "GET /api/layout/nsip HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41136 - "GET /api/gallery/folders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41136 - "GET /api/gallery/images?path=VORTEX%20BUSINESS%20PARK&subfolder=Project%20Photos HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55532 - "GET /api/gallery/images?path=NCT%20INNOSPHERE&subfolder=Project%20Photos HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55532 - "GET /NCT%20INNOSPHERE/Project%20Photos/NCT%20Innosphere%201.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45902 - "GET /api/layout/nsip HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35966 - "GET /api/gallery/folders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56250 - "GET /NSIP_Plain_Layout.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56250 - "GET /api/layout/nsip HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56250 - "GET /NSIP_Master.svg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32996 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32996 - "GET /style.css?v=8.0.0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33004 - "GET /svg-map.css?v=1.0.5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33006 - "GET /app.js?v=8.0.7 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:32996 - "GET /svg-map.js?v=1.0.5 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:33004 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:32996 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33004 - "GET /api/units/all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44196 - "GET /api/layout/nsip HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45234 - "GET /api/layout/nsip HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42022 - "GET /api/layout/nsip HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58286 - "GET /api/gallery/folders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59548 - "GET /api/layout/nsip HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59548 - "GET /NSIP_Master.svg HTTP/1.1" 200 OK

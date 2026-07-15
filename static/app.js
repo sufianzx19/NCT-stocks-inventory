@@ -14,7 +14,65 @@ var SIDEBAR_ITEMS = [
   { view: "vortex-business-park",display: "Vortex Business Park",     dbProject: "VORTEX BUSINESS PARK" },
   { view: "salak-perdana",       display: "Salak Perdana Business Park", dbProject: "SALAK PERDANA BUSINESS PARK" },
   { view: "nsip",                display: "NSIP",                     dbProject: "NSIP" },
+  { view: "nct-innosphere",      display: "NCT Innosphere",           dbProject: "NCT INNOSPHERE" },
 ];
+
+/* ==========================================================================
+   PROJECT STATUS SYSTEM
+   ========================================================================== */
+var PROJECT_STATUS = {};
+var PROJECT_STATUS_COLORS = {
+  "Completed": { color: "#10b981", label: "Completed" },
+  "Ongoing":   { color: "#fbbf24", label: "Ongoing" }
+};
+
+function getProjectStatus(projectName) {
+  if (!projectName) return null;
+  var normalized = projectName.toString().trim().toUpperCase();
+  if (PROJECT_STATUS[normalized]) return PROJECT_STATUS[normalized];
+  if (normalized.indexOf("NSIP") > -1 && normalized === "NSIP") return "Ongoing";
+  if (normalized.indexOf("INNOSPHERE") > -1) return "Ongoing";
+  return "Completed";
+}
+
+function getStatusColor(status) {
+  if (!status) return "#9ca3af";
+  return (PROJECT_STATUS_COLORS[status] || {}).color || "#9ca3af";
+}
+
+function getStatusLabel(status) {
+  if (!status) return "Unknown";
+  return (PROJECT_STATUS_COLORS[status] || {}).label || "Unknown";
+}
+
+function isProjectOngoing(projectName) {
+  return getProjectStatus(projectName) === "Ongoing";
+}
+
+function createStatusIndicator(status, showLabel) {
+  var dot = document.createElement("span");
+  dot.className = "project-status-indicator";
+  dot.style.display = "inline-flex";
+  dot.style.alignItems = "center";
+  dot.style.gap = "6px";
+  dot.style.flexShrink = "0";
+  dot.style.whiteSpace = "nowrap";
+  var color = getStatusColor(status);
+  var label = showLabel ? '<span style="font-size:11px;font-weight:600;color:' + color + ';text-transform:capitalize;">' + getStatusLabel(status) + '</span>' : '';
+  dot.innerHTML =
+    '<span style="width:10px;height:10px;border-radius:50%;background:' + color + ';display:inline-block;box-shadow:0 0 0 2px ' + color + '33;"></span>' +
+    label;
+  return dot;
+}
+
+function appendStatusToNavItem(item, status) {
+  var label = item.querySelector(".nav-label");
+  if (!label) return;
+  var existing = item.querySelector(".project-status-indicator");
+  if (existing) existing.remove();
+  var indicator = createStatusIndicator(status, false);
+  item.appendChild(indicator);
+}
 
 var VIEW_TO_DB = {};
 var DB_TO_VIEW = {};
@@ -113,7 +171,26 @@ function collapseNsipSubmenu() {
   }
 }
 
+function bindHeadOfficeNavigation() {
+  var hoItem = document.querySelector('.nav-item[data-view="head-office"]');
+  if (!hoItem) return;
+  hoItem.addEventListener("click", function() {
+    activateSidebarItem("head-office");
+    renderHeadOffice();
+  });
+}
+
+function updateSidebarStatusIndicators() {
+  SIDEBAR_ITEMS.forEach(function(item) {
+    if (!item.dbProject || item.view === "nsip") return;
+    var el = document.querySelector('.nav-item[data-view="' + item.view + '"]');
+    if (el) appendStatusToNavItem(el, getProjectStatus(item.dbProject));
+  });
+  var nsipItem = document.querySelector('.nav-item[data-view="nsip"]');
+  if (nsipItem) appendStatusToNavItem(nsipItem, getProjectStatus("NSIP"));
+}
 function bindSidebarNavigation() {
+  try { bindHeadOfficeNavigation(); } catch(e) { console.error("Head Office nav error:", e); }
   var parents = document.querySelectorAll(".nav-parent");
   for (var p = 0; p < parents.length; p++) {
     (function(parent) {
@@ -138,6 +215,7 @@ function bindSidebarNavigation() {
         if (!view) return;
         if (item.classList.contains("nav-parent")) return;
 
+        if (view === "head-office") { activateSidebarItem("head-office"); renderHeadOffice(); return; }
         if (view === "nsip-km1") { activateSidebarItem("nsip-km1"); collapseNsipSubmenu(); renderNsipKm1View(); return; }
         if (view === "nsip-km2" || view === "nsip-km3" || view === "nsip-km4" || view === "nsip-km5" || view === "nsip-km6") {
           activateSidebarItem(view); collapseNsipSubmenu(); renderComingSoon(view); return;
@@ -172,9 +250,16 @@ function renderComingSoon(view) {
   if (!panel) return;
   var label = view.split("-").map(function(w) { return w.charAt(0).toUpperCase() + w.slice(1); }).join(" ");
   var dateText = view === "salak-perdana" ? "13 July 2026" : "2 July 2026";
+  var status = view === "nct-innosphere" ? getProjectStatus("NCT INNOSPHERE") : null;
+  var statusHtml = status ? renderStatusDot(status) : '';
   panel.innerHTML =
-    '<div class="page-header"><div><h1>' + label + '</h1><div class="header-sub">Project Dashboard</div></div>' +
-    '  <div class="data-extracted-box"><div class="de-label">Data Extracted</div><div class="de-date">' + dateText + '</div></div></div>' +
+    '<div class="page-header">' +
+    '  <div style="display:flex;justify-content:space-between;align-items:center;flex:1;">' +
+    '    <div><h1 style="margin-right:12px;">' + label + '</h1><div class="header-sub">Project Dashboard</div></div>' +
+    '    <div style="flex-shrink:0;">' + statusHtml + '</div>' +
+    '  </div>' +
+    '  <div class="data-extracted-box"><div class="de-label">Data Extracted</div><div class="de-date">' + dateText + '</div></div>' +
+    '</div>' +
     '<div class="card staging-placeholder" style="text-align:center;padding:80px 20px;">' +
     '  <i class="fas fa-hourglass-half" style="font-size:64px;color:var(--corporate-orange);margin-bottom:20px;display:block;"></i>' +
     '  <h3 style="font-size:24px;margin-bottom:12px;">Waiting for Data</h3>' +
@@ -253,6 +338,47 @@ function getOrInitState(key) {
 function toggleLevel(state, key) {
   state[key] = !state[key];
   return state[key];
+}
+
+/* ==========================================================================
+   NCT HEADQUARTER MODULE
+   ========================================================================== */
+function renderHeadOffice() {
+  var panel = document.getElementById("view-head-office");
+  if (!panel) return;
+  panel.innerHTML =
+    '<div class="page-header"><div><h1>Head Office</h1><div class="header-sub">NCT Alliance Berhad</div></div>' +
+    '  <div class="data-extracted-box"><div class="de-label">Data Extracted</div><div class="de-date">2 July 2026</div></div></div>' +
+    '<div class="gallery-folder-grid">' +
+    '  <div class="gallery-folder-card" data-folder="location">' +
+    '    <div class="folder-icon"><i class="fas fa-map-marker-alt"></i></div>' +
+    '    <div class="folder-name">Location</div>' +
+    '  </div>' +
+    '  <div class="gallery-folder-card" data-folder="floor">' +
+    '    <div class="folder-icon"><i class="fas fa-layer-group"></i></div>' +
+    '    <div class="folder-name">Floor</div>' +
+    '  </div>' +
+    '  <div class="gallery-folder-card" data-folder="layout">' +
+    '    <div class="folder-icon"><i class="fas fa-project-diagram"></i></div>' +
+    '    <div class="folder-name">Layout</div>' +
+    '  </div>' +
+    '</div>' +
+    '<div id="headOfficeContent"></div>';
+
+  var cards = panel.querySelectorAll(".gallery-folder-card");
+  cards.forEach(function(card) {
+    card.addEventListener("click", function() {
+      var type = this.dataset.folder;
+      var container = document.getElementById("headOfficeContent");
+      if (!container) return;
+      var title = type.charAt(0).toUpperCase() + type.slice(1);
+      container.innerHTML =
+        '<div class="card staging-placeholder" style="text-align:center;padding:80px 20px;">' +
+        '  <i class="fas fa-hourglass-half" style="font-size:64px;color:var(--corporate-orange);margin-bottom:20px;display:block;"></i>' +
+        '  <h3 style="font-size:24px;margin-bottom:12px;">Waiting for data</h3>' +
+        '  <p style="color:var(--text-secondary);font-size:15px;">' + esc(title) + ' data will be available once uploaded.</p></div>';
+    });
+  });
 }
 
 function createGroupHeader(title, availableCount, isExpanded, levelClass, categoryLabel) {
@@ -397,7 +523,8 @@ function renderHierarchy(container, units, stateKey) {
     if (state[projKey] === undefined) state[projKey] = false;
     var expanded = state[projKey];
 
-    var header = createGroupHeader(proj, computeAvailableUnits(projUnits), expanded, "group-header-project", "Project");
+    var displayTitle = (stateKey === "home" && proj === "NSIP") ? "NSIP KM1" : proj;
+    var header = createGroupHeader(displayTitle, computeAvailableUnits(projUnits), expanded, "group-header-project", "Project");
     container.appendChild(header);
 
     var content = document.createElement("div");
@@ -591,18 +718,31 @@ function renderHomeKPIRow(units) {
     var slug = cfg.slug;
     var count = units.filter(function(u) { return (u.Project || "").toString().trim() === dbProjectName && isAvailable(u); }).length;
     var totalPrice = units.filter(function(u) { return (u.Project || "").toString().trim() === dbProjectName; }).reduce(function(acc, u) { return acc + computePrice(u); }, 0);
+    var status = getProjectStatus(dbProjectName);
     var card = document.createElement("div");
     card.className = "kpi-card-unified";
     card.dataset.view = slug;
     var displayName = dbProjectName === "NSIP" ? "NSIP KM1" : dbProjectName;
     card.innerHTML =
-      '<div class="kpi-project-name">' + esc(displayName) + '</div>' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">' +
+      '  <div class="kpi-project-name" style="margin-bottom:0;">' + esc(displayName) + '</div>' +
+      '  <div style="flex-shrink:0;margin-left:10px;">' + renderStatusDot(status) + '</div>' +
+      '</div>' +
       '<div class="kpi-metrics">' +
       '  <div class="kpi-metric kpi-metric-left"><div class="kpi-value">' + count + '</div><div class="kpi-sub">Available Units</div></div>' +
       '  <div class="kpi-metric kpi-metric-right"><div class="kpi-value">' + formatPrice(totalPrice) + '</div><div class="kpi-sub">Total Price</div></div>' +
       '</div>';
     row.appendChild(card);
   });
+}
+
+function renderStatusDot(status) {
+  var color = getStatusColor(status);
+  var label = getStatusLabel(status);
+  return '<span style="display:inline-flex;align-items:center;gap:6px;white-space:nowrap;">' +
+         '<span style="width:10px;height:10px;border-radius:50%;background:' + color + ';display:inline-block;box-shadow:0 0 0 2px ' + color + '33;"></span>' +
+         '<span style="font-size:11px;font-weight:600;color:' + color + ';text-transform:capitalize;">' + label + '</span>' +
+         '</span>';
 }
 
 function renderHomeHierarchy(units) {
@@ -639,12 +779,16 @@ function renderProjectView(slug) {
   var panel = document.getElementById("view-" + slug);
   if (!panel) return;
   var pageTitle = cfg.name;
+  var status = getProjectStatus(cfg.name);
 
   var dateText = slug === "salak-perdana" ? "13 July 2026" : "2 July 2026";
 
   panel.innerHTML =
     '<div class="page-header">' +
-    '  <div><h1>' + pageTitle + '</h1><div class="header-sub">Project Dashboard</div></div>' +
+    '  <div style="display:flex;justify-content:space-between;align-items:center;flex:1;">' +
+    '    <div><h1 style="margin-right:12px;">' + pageTitle + '</h1><div class="header-sub">Project Dashboard</div></div>' +
+    '    <div style="flex-shrink:0;">' + renderStatusDot(status) + '</div>' +
+    '  </div>' +
     '  <div class="data-extracted-box"><div class="de-label">Data Extracted</div><div class="de-date">' + dateText + '</div></div>' +
     '</div>' +
     '<div class="project-kpi-container">' +
@@ -722,10 +866,16 @@ function renderProjectKPI(slug, projectUnits) {
 function renderNsipKm1View() {
   var panel = document.getElementById("view-nsip-km1");
   if (!panel) return;
+  var status = getProjectStatus("NSIP");
 
   panel.innerHTML =
-    '<div class="page-header"><div><h1>NSIP KM1</h1><div class="header-sub">Project Dashboard</div></div>' +
-    '  <div class="data-extracted-box"><div class="de-label">Data Extracted</div><div class="de-date">2 July 2026</div></div></div>' +
+    '<div class="page-header">' +
+    '  <div style="display:flex;justify-content:space-between;align-items:center;flex:1;">' +
+    '    <div><h1 style="margin-right:12px;">NSIP KM1</h1><div class="header-sub">Project Dashboard</div></div>' +
+    '    <div style="flex-shrink:0;">' + renderStatusDot(status) + '</div>' +
+    '  </div>' +
+    '  <div class="data-extracted-box"><div class="de-label">Data Extracted</div><div class="de-date">2 July 2026</div></div>' +
+    '</div>' +
     '<div class="project-kpi-container">' +
     '  <div class="card project-kpi-box"><div class="project-kpi-label"><i class="fas fa-check-circle" style="color:var(--corporate-orange);margin-right:8px;"></i>Available Units</div><div class="project-kpi-value" id="kpi-nsip">0</div></div>' +
     '  <div class="card project-kpi-price-box"><div class="project-kpi-label"><i class="fas fa-coins" style="color:#0f2042;margin-right:8px;"></i>Grand Total Price</div><div class="project-kpi-value" id="kpi-price-nsip">RM 0</div></div>' +
@@ -777,6 +927,7 @@ window.initApp = function() {
   try {
     console.log("NCT V3 - initApp starting...");
     renderHomeDashboard();
+    try { updateSidebarStatusIndicators(); } catch(e) { console.error("Status indicators:", e); }
     console.log("NCT V3 - initApp loaded");
   } catch(e) { console.error("initApp fatal:", e); }
 };
