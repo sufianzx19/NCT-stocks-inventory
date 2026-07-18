@@ -1,30 +1,10 @@
-# UI Refinement Patch V2
+# PHASE 5 — Asset List Filter Enhancement + KPI Card Theme Restoration
 
-## A) Sidebar - NSIP parent expand/collapse only (no navigation)
-- [ ] NSIP parent click: expand/collapse only, no navigation
-- [ ] Add icons to NSIP KM1 and NSIP KM2 children
-- [ ] Smooth animation 200-300ms
-- [ ] Chevron rotation: ▶ collapsed, ▼ expanded
-
-## B) NSIP KM1 Image Viewer - Restore original lightbox
-- [ ] Restore lightbox modal (nsip-image-lightbox, close btn, target img)
-- [ ] Remove browser Fullscreen API approach
-- [ ] Double-click image opens lightbox
-- [ ] Fullscreen button remains removed
-
-## C) Property Type Groups - Accordion
-- [ ] Entire header clickable
-- [ ] Chevron: ▶ collapsed, ▼ expanded, smooth rotation
-- [ ] Animate height 200-300ms
-- [ ] Available Units always visible
-- [ ] Default: ALL expanded
-- [ ] Collapse state retained during search/filter
-
-## D) Collapse State - Remember expanded/collapsed while on page
-
-## E) Header UX - Improved appearance
-
-## F) Sidebar UX - Auto-expand NSIP parent when child active
-
-## Verification
-- [ ] Test all changes
+- [ ] 1. Update repository.py with unit_type filter support
+- [ ] 2. Update main.py /api/units endpoint for unit_type filter
+- [ ] 3. Update services.py pass unit_type filter through
+- [ ] 4. Update app.js: add Project Status filter dropdown
+- [ ] 5. Update app.js: add Unit Type filter dropdown (dynamic)
+- [ ] 6. Update app.js: rename table headers to Project/Phase/Unit Type
+- [ ] 7. Restore KPI card CSS theme (white + orange)
+- [ ] 8. Test all filters and verify KPI theme

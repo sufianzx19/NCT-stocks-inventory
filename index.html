@@ -27,6 +27,9 @@ window.handleFormLogin = async function() {
         });
         var data = await resp.json();
         if (data.success) {
+            localStorage.setItem("nct_login_data", JSON.stringify(data));
+            localStorage.setItem("nct_user_email", email);
+            sessionStorage.setItem("nct_user_email", email);
             unlockDashboard();
         } else {
             document.getElementById("loginError").innerText = "Invalid Corporate Credentials.";
@@ -34,11 +37,6 @@ window.handleFormLogin = async function() {
     } catch(e) {
         document.getElementById("loginError").innerText = "Connection error. Try again.";
     }
-};
-
-window.forceEmergencyBypass = function() {
-    console.log("Emergency bypass activated.");
-    unlockDashboard();
 };
 
 function unlockDashboard() {
@@ -61,121 +59,139 @@ if (sessionStorage.getItem("nct_authenticated") === "true") {
 
   <!-- LOGIN OVERLAY (fully inline-styled — zero CSS dependency) -->
   <div id="loginOverlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#f4f6fa;z-index:999999;display:flex;align-items:center;justify-content:center;">
-    <div style="background:#ffffff;padding:40px;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.08);width:100%;max-width:400px;text-align:center;border-top:4px solid #f47217;font-family:sans-serif;">
-      <img src="/static/NCTLogo.png" alt="NCT Logo" style="height:60px;margin-bottom:20px;display:block;margin-left:auto;margin-right:auto;">
-      <h2 style="color:#1a1d23;margin:0 0 5px 0;font-size:24px;">NCT Stocks & Inventory</h2>
-      <p style="color:#718096;margin:0 0 24px 0;font-size:14px;">Company: NCT Alliance Berhad</p>
+    <div style="background:#ffffff;padding:48px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.08);width:100%;max-width:420px;text-align:left;border-top:4px solid #f47217;font-family:Inter,system-ui,-apple-system,sans-serif;">
+      <img src="/static/NCTLogo.png" alt="NCT Logo" style="height:56px;margin-bottom:24px;display:block;">
+      <h1 style="color:#1a1d23;margin:0 0 4px 0;font-size:22px;font-weight:600;letter-spacing:-0.3px;">NCT Stocks & Inventory</h1>
+      <p style="color:#5e6778;margin:0 0 32px 0;font-size:13px;font-weight:400;">Company: NCT Alliance Berhad</p>
 
-      <input type="email" id="loginEmail" value="m.sufian@nctalliance.com" onkeypress="if(event.key==='Enter')window.handleFormLogin()" style="width:100%;padding:12px;margin-bottom:16px;border:1px solid #e2e8f0;border-radius:4px;box-sizing:border-box;font-size:14px;">
-      <input type="password" id="loginPassword" value="Azrin@0019" onkeypress="if(event.key==='Enter')window.handleFormLogin()" style="width:100%;padding:12px;margin-bottom:20px;border:1px solid #e2e8f0;border-radius:4px;box-sizing:border-box;font-size:14px;">
-
-      <button type="button" onclick="window.handleFormLogin()" style="width:100%;padding:12px;background:#f47217;color:white;border:none;border-radius:4px;font-weight:bold;cursor:pointer;font-size:16px;">Sign In</button>
-      <div id="loginError" style="color:#f47217;margin-top:12px;font-size:14px;min-height:20px;"></div>
-
-      <hr style="border:0;border-top:1px solid #e2e8f0;margin:20px 0;">
-      <a href="#" onclick="window.forceEmergencyBypass();return false;" style="color:#f47217;font-size:12px;text-decoration:underline;">Emergency Developer Bypass</a>
+      <form id="loginForm" onsubmit="event.preventDefault(); window.handleFormLogin();" style="display:flex;flex-direction:column;gap:20px;">
+        <div>
+          <label for="loginEmail" style="display:block;font-size:13px;font-weight:600;color:#1a1d23;margin-bottom:6px;letter-spacing:0.2px;">Username</label>
+          <input type="email" id="loginEmail" autocomplete="email" placeholder="Enter your corporate email" onkeypress="if(event.key==='Enter')window.handleFormLogin()" style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:4px;box-sizing:border-box;font-size:14px;color:#1a1d23;transition:border-color 0.15s ease,box-shadow 0.15s ease;" onfocus="this.style.borderColor='#f47217';this.style.boxShadow='0 0 0 3px rgba(244,114,23,0.1)';" onblur="this.style.borderColor='#d1d5db';this.style.boxShadow='none';">
+        </div>
+        <div>
+          <label for="loginPassword" style="display:block;font-size:13px;font-weight:600;color:#1a1d23;margin-bottom:6px;letter-spacing:0.2px;">Password</label>
+          <input type="password" id="loginPassword" autocomplete="current-password" placeholder="Enter your password" onkeypress="if(event.key==='Enter')window.handleFormLogin()" style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:4px;box-sizing:border-box;font-size:14px;color:#1a1d23;transition:border-color 0.15s ease,box-shadow 0.15s ease;" onfocus="this.style.borderColor='#f47217';this.style.boxShadow='0 0 0 3px rgba(244,114,23,0.1)';" onblur="this.style.borderColor='#d1d5db';this.style.boxShadow='none';">
+        </div>
+        <button type="submit" style="width:100%;padding:11px;background:#f47217;color:white;border:none;border-radius:4px;font-weight:600;cursor:pointer;font-size:14px;margin-top:4px;transition:background 0.15s ease;">Sign In</button>
+      </form>
+      <div id="loginError" style="color:#dc2626;margin-top:16px;font-size:13px;min-height:20px;font-weight:500;"></div>
     </div>
   </div>
 
-  <!-- SIDEBAR -->
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-      <img src="/static/NCTLogo.png" alt="NCT" class="logo-small">
-      <div class="brand-text">
-        <h2>NCT Alliance</h2>
-        <span>Stocks & Inventory V3</span>
+  <!-- CORPORATE HEADER -->
+  <header class="app-header" id="appHeader">
+    <div class="header-left">
+      <img src="/static/NCTLogo.png" alt="NCT" class="header-logo">
+      <span class="header-title">NCT Stocks & Inventory System</span>
+    </div>
+    <div class="header-right">
+      <div class="header-user-btn" id="headerUserBtn">
+        <span class="user-avatar" id="headerUserAvatar">U</span>
+        <span class="user-name" id="headerUserName">User</span>
+        <span class="user-chevron"><i class="fas fa-chevron-down"></i></span>
+        <div class="header-dropdown" id="headerDropdown">
+          <button class="header-dropdown-item" data-action="profile">
+            <span class="dropdown-icon"><i class="fas fa-user"></i></span>
+            Profile
+          </button>
+          <button class="header-dropdown-item logout-item" data-action="logout">
+            <span class="dropdown-icon"><i class="fas fa-sign-out-alt"></i></span>
+            Logout
+          </button>
+        </div>
       </div>
     </div>
+  </header>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
     <nav class="sidebar-nav">
-      <div class="nav-section-label">Navigation</div>
-      <div class="nav-item active" data-view="home">
-        <span class="nav-icon"><i class="fas fa-home"></i></span>
-        <span class="nav-label">Home</span>
-      </div>
-      <div class="nav-section-label">Projects</div>
-      <div class="nav-item" data-view="grand-ion-delemen">
-        <span class="nav-icon"><i class="fas fa-building"></i></span>
-        <span class="nav-label">Grand Ion Delemen</span>
-      </div>
-      <div class="nav-item" data-view="grand-ion-majestic">
-        <span class="nav-icon"><i class="fas fa-city"></i></span>
-        <span class="nav-label">Grand Ion Majestic</span>
-      </div>
-      <div class="nav-item" data-view="ion-belian-garden">
-        <span class="nav-icon"><i class="fas fa-tree"></i></span>
-        <span class="nav-label">Ion Belian Garden</span>
-      </div>
-      <div class="nav-item" data-view="mahkota-kampar">
-        <span class="nav-icon"><i class="fas fa-landmark"></i></span>
-        <span class="nav-label">Mahkota Kampar</span>
-      </div>
-      <div class="nav-item" data-view="n-city">
-        <span class="nav-icon"><i class="fas fa-draw-polygon"></i></span>
-        <span class="nav-label">N-City</span>
-      </div>
-      <div class="nav-item nav-parent" data-view="nsip">
-        <span class="nav-icon"><i class="fas fa-map"></i></span>
-        <span class="nav-label">NSIP</span>
-        <span class="nav-badge nav-expand-icon"><i class="fas fa-chevron-right"></i></span>
-      </div>
-      <div class="nav-children" id="navChildren-nsip">
-        <div class="nav-item nav-child" data-view="nsip-km1">
-          <span class="nav-icon"><i class="fas fa-map-location-dot"></i></span>
-          <span class="nav-label">KM1</span>
+        <div class="nav-section-label">Navigation</div>
+        <div class="nav-item active" data-view="home">
+          <span class="nav-icon"><i class="fas fa-home"></i></span>
+          <span class="nav-label">Home</span>
         </div>
-        <div class="nav-item nav-child" data-view="nsip-km2">
-          <span class="nav-icon"><i class="fas fa-map-marker-alt"></i></span>
-          <span class="nav-label">KM2</span>
+        <div class="nav-section-label">Projects</div>
+        <div class="nav-item nav-parent" data-view="nsip">
+          <span class="nav-icon"><i class="fas fa-map"></i></span>
+          <span class="nav-label">NSIP</span>
+          <span class="nav-badge nav-expand-icon"><i class="fas fa-chevron-right"></i></span>
         </div>
-        <div class="nav-item nav-child" data-view="nsip-km3">
-          <span class="nav-icon"><i class="fas fa-location-arrow"></i></span>
-          <span class="nav-label">KM3</span>
+        <div class="nav-children" id="navChildren-nsip">
+          <div class="nav-item nav-child" data-view="nsip-km1">
+            <span class="nav-icon"><i class="fas fa-map-location-dot"></i></span>
+            <span class="nav-label">KM1</span>
+          </div>
+          <div class="nav-item nav-child" data-view="nsip-km2">
+            <span class="nav-icon"><i class="fas fa-map-marker-alt"></i></span>
+            <span class="nav-label">KM2</span>
+          </div>
+          <div class="nav-item nav-child" data-view="nsip-km3">
+            <span class="nav-icon"><i class="fas fa-location-arrow"></i></span>
+            <span class="nav-label">KM3</span>
+          </div>
+          <div class="nav-item nav-child" data-view="nsip-km4">
+            <span class="nav-icon"><i class="fas fa-map-pin"></i></span>
+            <span class="nav-label">KM4</span>
+          </div>
+          <div class="nav-item nav-child" data-view="nsip-km5">
+            <span class="nav-icon"><i class="fas fa-compass"></i></span>
+            <span class="nav-label">KM5</span>
+          </div>
+          <div class="nav-item nav-child" data-view="nsip-km6">
+            <span class="nav-icon"><i class="fas fa-globe"></i></span>
+            <span class="nav-label">KM6</span>
+          </div>
         </div>
-        <div class="nav-item nav-child" data-view="nsip-km4">
-          <span class="nav-icon"><i class="fas fa-map-pin"></i></span>
-          <span class="nav-label">KM4</span>
+        <div class="nav-item" data-view="nct-innosphere">
+          <span class="nav-icon"><i class="fas fa-flask"></i></span>
+          <span class="nav-label">NCT Innosphere</span>
         </div>
-        <div class="nav-item nav-child" data-view="nsip-km5">
-          <span class="nav-icon"><i class="fas fa-compass"></i></span>
-          <span class="nav-label">KM5</span>
+        <div class="nav-item" data-view="ion-belian-garden">
+          <span class="nav-icon"><i class="fas fa-tree"></i></span>
+          <span class="nav-label">Ion Belian Garden</span>
         </div>
-        <div class="nav-item nav-child" data-view="nsip-km6">
-          <span class="nav-icon"><i class="fas fa-globe"></i></span>
-          <span class="nav-label">KM6</span>
+        <div class="nav-item" data-view="mahkota-kampar">
+          <span class="nav-icon"><i class="fas fa-landmark"></i></span>
+          <span class="nav-label">Mahkota Kampar</span>
         </div>
-      </div>
-       <div class="nav-item" data-view="vortex-business-park">
-         <span class="nav-icon"><i class="fas fa-industry"></i></span>
-         <span class="nav-label">Vortex Business Park</span>
-       </div>
-       <div class="nav-item" data-view="nct-innosphere">
-         <span class="nav-icon"><i class="fas fa-flask"></i></span>
-         <span class="nav-label">NCT Innosphere</span>
-       </div>
-      <div class="nav-item" data-view="salak-perdana">
-        <span class="nav-icon"><i class="fas fa-home"></i></span>
-        <span class="nav-label">Salak Perdana Business Park</span>
-      </div>
-      <div class="nav-section-label">NCT Headquarter</div>
-      <div class="nav-item" data-view="head-office">
-        <span class="nav-icon"><i class="fas fa-building"></i></span>
-        <span class="nav-label">Head Office</span>
-      </div>
-      <div class="nav-section-label">Gallery</div>
-      <div class="nav-item" data-view="media">
-        <span class="nav-icon"><i class="fas fa-images"></i></span>
-        <span class="nav-label">Media</span>
-      </div>
-      <div class="nav-section-label">Layouts</div>
-      <div class="nav-item" data-view="svg-map">
-        <span class="nav-icon"><i class="fas fa-map"></i></span>
-        <span class="nav-label">NSIP KM1 Layout</span>
-      </div>
-    </nav>
+        <div class="nav-item" data-view="n-city">
+          <span class="nav-icon"><i class="fas fa-draw-polygon"></i></span>
+          <span class="nav-label">N-City</span>
+        </div>
+        <div class="nav-item" data-view="vortex-business-park">
+          <span class="nav-icon"><i class="fas fa-industry"></i></span>
+          <span class="nav-label">Vortex Business Park</span>
+        </div>
+        <div class="nav-item" data-view="salak-perdana">
+          <span class="nav-icon"><i class="fas fa-home"></i></span>
+          <span class="nav-label">Salak Perdana Business Park</span>
+        </div>
+        <div class="nav-item" data-view="grand-ion-delemen">
+          <span class="nav-icon"><i class="fas fa-building"></i></span>
+          <span class="nav-label">Grand Ion Delemen</span>
+        </div>
+        <div class="nav-item" data-view="grand-ion-majestic">
+          <span class="nav-icon"><i class="fas fa-city"></i></span>
+          <span class="nav-label">Grand Ion Majestic</span>
+        </div>
+        <div class="nav-section-label">NCT Headquarter</div>
+        <div class="nav-item" data-view="head-office">
+          <span class="nav-icon"><i class="fas fa-building"></i></span>
+          <span class="nav-label">Head Office</span>
+        </div>
+        <div class="nav-section-label">Projects Info</div>
+        <div class="nav-item" data-view="media">
+          <span class="nav-icon"><i class="fas fa-folder"></i></span>
+          <span class="nav-label">Projects Information</span>
+        </div>
+      </nav>
     <button class="sidebar-toggle" id="sidebarToggle">
       <i class="fas fa-chevron-left" id="toggleIcon"></i>
     </button>
   </aside>
+
 
   <!-- MAIN CONTENT -->
   <main class="main-content" id="mainContent">
@@ -189,26 +205,38 @@ if (sessionStorage.getItem("nct_authenticated") === "true") {
         </div>
       </div>
 
-<!-- Section Title -->
-      <div class="kpi-section-title">Total Available Units & Total Price</div>
-
-      <!-- UNIFIED KPI CARDS: Available units + Total Price side-by-side per project -->
-      <div class="kpi-row-unified" id="homeKpiRow"></div>
-
-      <div class="card">
-        <div class="card-header">
-          <span class="card-title">
-            <i class="fas fa-table"></i>
-            Asset List
-          </span>
-          <div class="table-controls">
-            <select id="ledgerProjectFilter">
-              <option value="">All Projects</option>
-            </select>
-          </div>
+      <!-- ONGOING PROJECTS SECTION -->
+      <div class="dashboard-section">
+        <div class="dashboard-section-header">
+          <span class="dashboard-section-dot ongoing-dot"></span>
+          <h2 class="dashboard-section-title">ONGOING PROJECTS</h2>
         </div>
-        <div class="table-wrapper asset-table-container" id="homeHierarchyContainer"></div>
+        <div class="dashboard-kpi-grid" id="ongoingProjectsGrid"></div>
       </div>
+
+      <!-- COMPLETED PROJECTS SECTION -->
+      <div class="dashboard-section">
+        <div class="dashboard-section-header">
+          <span class="dashboard-section-dot completed-dot"></span>
+          <h2 class="dashboard-section-title">COMPLETED PROJECTS</h2>
+        </div>
+        <div class="dashboard-kpi-grid" id="completedProjectsGrid"></div>
+      </div>
+
+        <div class="card">
+          <div class="card-header">
+             <span class="card-title">
+               <i class="fas fa-table"></i>
+               MASTER ASSET LIST
+             </span>
+            <div class="table-controls">
+              <select id="ledgerProjectFilter">
+                <option value="">All Projects</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-wrapper asset-table-container" id="homeHierarchyContainer"></div>
+        </div>
     </div>
 
     <!-- NSIP KM1 view - special handling with layout image -->
@@ -233,16 +261,16 @@ if (sessionStorage.getItem("nct_authenticated") === "true") {
     <div class="view-panel" id="view-salak-perdana"></div>
     <div class="view-panel" id="view-media">
       <div class="page-header">
-        <div><h1>Media Gallery</h1><div class="header-sub">Corporate Media Viewer</div></div>
+        <div><h1>Projects Information</h1><div class="header-sub">Project Documents & Materials</div></div>
       </div>
-      <div id="gallery-root"></div>
+      <div id="projects-info-root"></div>
     </div>
-
-    <!-- NSIP KM1 Layout View -->
-    <div class="view-panel" id="view-svg-map"></div>
 
     <!-- Head Office View -->
     <div class="view-panel" id="view-head-office"></div>
+
+    <!-- User Profile View -->
+    <div class="view-panel" id="view-user-profile"></div>
 
   </main>
 
@@ -252,7 +280,6 @@ if (sessionStorage.getItem("nct_authenticated") === "true") {
 
 <link rel="stylesheet" href="/static/svg-map.css?v=1.0.5">
 <script src="/static/app.js?v=8.0.7"></script>
-<script src="/static/svg-map.js?v=1.0.5"></script>
 
 </body>
 </html>
