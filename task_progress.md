@@ -1,30 +1,26 @@
-# UI Refinement Patch V2
+# NCT Stocks & Inventory — Enhancement Task Progress
 
-## A) Sidebar - NSIP parent expand/collapse only (no navigation)
-- [ ] NSIP parent click: expand/collapse only, no navigation
-- [ ] Add icons to NSIP KM1 and NSIP KM2 children
-- [ ] Smooth animation 200-300ms
-- [ ] Chevron rotation: ▶ collapsed, ▼ expanded
+## Completion Status
 
-## B) NSIP KM1 Image Viewer - Restore original lightbox
-- [ ] Restore lightbox modal (nsip-image-lightbox, close btn, target img)
-- [ ] Remove browser Fullscreen API approach
-- [ ] Double-click image opens lightbox
-- [ ] Fullscreen button remains removed
+### 1. Dashboard Status Section ✅ COMPLETE
+Already implemented.
 
-## C) Property Type Groups - Accordion
-- [ ] Entire header clickable
-- [ ] Chevron: ▶ collapsed, ▼ expanded, smooth rotation
-- [ ] Animate height 200-300ms
-- [ ] Available Units always visible
-- [ ] Default: ALL expanded
-- [ ] Collapse state retained during search/filter
+### 2. Balance Box on All Project Pages ✅ COMPLETE
+- Added to all project pages with hardcoded values
+- Positioned correctly below KPI cards and above layout sections
 
-## D) Collapse State - Remember expanded/collapsed while on page
+### 3. Project Title Uppercase ✅ COMPLETE
+All page titles now display in UPPERCASE across all project pages.
 
-## E) Header UX - Improved appearance
+### 4. N-City Rise SVG Layout ✅ COMPLETE
+Uses `renderInteractiveSvg()` with same rendering logic as other SVG pages.
 
-## F) Sidebar UX - Auto-expand NSIP parent when child active
+### 5. Standardize SVG Layout Containers with Zoom ✅ COMPLETE
+- Created reusable `renderInteractiveSvg()` function
+- Added `addZoomControls()` function with zoom in/out buttons
+- Updated CSS with `.svg-zoom-controls` and `.svg-zoom-btn` styles
+- Updated NSIP, N-City, and Mahkota Kampar to use standardized renderer
+- All SVG pages now have consistent zoom controls (0.5x to 3x)
 
-## Verification
-- [ ] Test all changes
+### 6. Replace "Data Extracted Text" ✅ COMPLETE
+All labels replaced with "Updated as of 15 July 2026".

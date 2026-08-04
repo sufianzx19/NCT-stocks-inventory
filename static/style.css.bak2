@@ -4,22 +4,6 @@
   box-sizing: border-box;
 }
 
-.project-image-banner {
-  background: #000 !important;
-  overflow: hidden !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-.project-image-banner > img {
-  width: 100% !important;
-  height: 100% !important;
-  object-fit: contain !important;
-  display: block !important;
-  background: #000 !important;
-}
-
 html, body {
   width: 100%;
   max-width: 100%;
@@ -176,12 +160,6 @@ body {
   transform: rotate(180deg);
 }
 
-.gallery-back-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
 .header-dropdown {
   position: absolute;
   top: calc(100% + 6px);
@@ -261,13 +239,6 @@ body {
               min-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
   box-shadow: var(--shadow-sm);
-}
-
-.sidebar-nav {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
 }
 
 
@@ -364,9 +335,11 @@ body {
 
 .sidebar-nav {
   flex: 1;
-  min-height: 0;
+  display: flex;
+  flex-direction: column;
   overflow-y: auto;
   overflow-x: hidden;
+  min-height: 0;
 }
 
 .sidebar-nav::-webkit-scrollbar { width: 3px; }
@@ -459,20 +432,7 @@ body {
 }
 
 .nav-children.open {
-  max-height: 600px;
-}
-
-.sidebar-nav::-webkit-scrollbar {
-  width: 6px;
-}
-
-.sidebar-nav::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background: #333;
-}
-
-.sidebar-nav::-webkit-scrollbar-track {
-  background: transparent;
+  max-height: 200px;
 }
 
 .nav-child {
@@ -657,43 +617,6 @@ body {
   box-shadow: 0 0 0 3px var(--corporate-orange-light);
 }
 
-/* ----- TOGGLE VIEW BUTTON ----- */
-.toggle-view-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
-  background: var(--bg-light);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-sm);
-  color: var(--text-primary);
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: inherit;
-  white-space: nowrap;
-}
-
-.toggle-view-btn:hover {
-  background: var(--corporate-orange-light);
-  border-color: var(--corporate-orange);
-  color: var(--corporate-orange);
-}
-
-.toggle-view-btn:active {
-  transform: scale(0.98);
-}
-
-.toggle-view-btn i {
-  font-size: 12px;
-  transition: transform 0.2s ease;
-}
-
-.toggle-view-btn.collapsed i {
-  transform: rotate(180deg);
-}
-
 /* ----- ASSET TABLE ----- */
 .asset-table-container {
   width: 100%;
@@ -795,14 +718,10 @@ table .status-signed {
   border-bottom: 1px solid var(--border-light);
 }
 
-.dashboard-status-body {
-  padding: 16px;
-}
-
 .dashboard-status-title {
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 700;
-  color: #000000;
+  color: #92400e;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin: 0;
@@ -938,9 +857,9 @@ table .status-signed {
 }
 
 .kpi-card-unified {
-  background: #ffffff;
+  background: var(--bg-card);
   border: 1px solid var(--border-light);
-  border-left: none;
+  border-left: 4px solid var(--corporate-orange);
   border-radius: var(--radius-sm);
   padding: 10px 12px;
   box-shadow: var(--shadow-sm);
@@ -1015,8 +934,8 @@ table .status-signed {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #ffffff;
-  border-left: none;
+  background: var(--bg-card);
+  border-left: 5px solid var(--corporate-orange);
 }
 
 .project-kpi-box .project-kpi-label {
@@ -1030,15 +949,15 @@ table .status-signed {
 .project-kpi-box .project-kpi-value {
   font-size: 32px;
   font-weight: 700;
-  color: #000000;
+  color: var(--corporate-orange);
 }
 
 .project-kpi-price-box {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #ffffff;
-  border-left: none;
+  background: var(--bg-card);
+  border-left: 5px solid #0f2042;
 }
 
 .project-kpi-price-box .project-kpi-label {
@@ -1052,7 +971,7 @@ table .status-signed {
 .project-kpi-price-box .project-kpi-value {
   font-size: 32px;
   font-weight: 700;
-  color: #000000;
+  color: #0f2042;
 }
 
 /* ----- DATA EXTRACTED DATE BOX ----- */
@@ -1073,7 +992,7 @@ table .status-signed {
 .data-extracted-box .de-label {
   font-size: 10px;
   font-weight: 600;
-  color: #000000;
+  color: var(--corporate-orange);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -1787,37 +1706,22 @@ table .status-signed {
 
 .dashboard-kpi-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px;
-  width: 100%;
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-@media (max-width: 1200px) {
-  .dashboard-kpi-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px;
-  }
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
 }
 
 @media (max-width: 768px) {
   .dashboard-kpi-grid {
     grid-template-columns: 1fr;
-    gap: 16px;
   }
 }
 
-.dashboard-kpi-card .dash-kpi-value {
-  color: #000000;
-}
-
 .dashboard-kpi-card {
-  background: #ffffff;
+  background: var(--bg-card);
   border-radius: 8px;
-  padding: 20px 16px;
+  padding: 14px;
   border: 1px solid var(--border-light);
-  border-left: none;
+  border-left: 4px solid var(--corporate-orange);
   box-shadow: var(--shadow-sm);
   transition: box-shadow 0.2s, transform 0.15s ease;
   cursor: pointer;
@@ -1856,7 +1760,7 @@ table .status-signed {
 
 .dash-kpi-body {
   display: flex;
-  gap: 8px;
+  gap: 12px;
 }
 
 .dash-kpi-metric {
@@ -1866,9 +1770,8 @@ table .status-signed {
 .dash-kpi-value {
   font-size: 18px;
   font-weight: 700;
-  color: #000000;
+  color: var(--corporate-orange);
   margin-bottom: 3px;
-  white-space: nowrap;
 }
 
 .dash-kpi-label {

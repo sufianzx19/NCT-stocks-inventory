@@ -43,67 +43,6 @@ function getUnitTypeDisplay(unitType) {
   return unitType;
 }
 
-function getBumiStatus(unitNo, projectName) {
-  var bumiMapping = {
-    "B6-01": "Bumi",
-    "B8-01": "Bumi",
-    "B9-09": "Bumi",
-    "B6-03A": "Bumi",
-    "B6-05": "Non-Bumi",
-    "B6-08": "Bumi",
-    "B8-02": "Bumi",
-    "B8-03": "Bumi",
-    "B8-03A": "Bumi",
-    "B8-05": "Bumi",
-    "B8-06": "Bumi",
-    "B8-07": "Bumi",
-    "B9-01": "Bumi",
-    "B9-02": "Bumi",
-    "B9-03": "Non-Bumi",
-    "B9-03A": "Non-Bumi",
-    "B9-05": "Bumi",
-    "B9-06": "Non-Bumi",
-    "B9-07": "Bumi",
-    "B9-08": "Bumi"
-  };
-
-  if (!unitNo) return "-";
-  var normalizedUnitNo = unitNo.toString().trim().toUpperCase();
-  if (bumiMapping[normalizedUnitNo]) return bumiMapping[normalizedUnitNo];
-  return "-";
-}
-
-function getProjectBorderColor(projectName) {
-  var colorMap = {
-    "GRAND ION DELEMEN": "#3b82f6",
-    "ION BELIAN GARDEN": "#10b981",
-    "GRAND ION MAJESTIC": "#f59e0b",
-    "MAHKOTA KAMPAR": "#8b5cf6",
-    "N-CITY": "#ef4444",
-    "NCT SMART INDUSTRIAL PARK": "#06b6d4",
-    "SALAK PERDANA BUSINESS PARK": "#f97316",
-    "VORTEX BUSINESS PARK": "#ec4899",
-    "NCT INNOSPHERE": "#6366f1"
-  };
-
-  var normalized = (projectName || "").toString().trim().toUpperCase();
-  
-  // N-City sub-projects (no standalone "N-City" card exists)
-  if (normalized === "N-CITY COMMERCIAL" || normalized === "N-CITY CONVENTION HALL" || normalized === "RISE INTERNATIONAL SCHOOL") {
-    return colorMap["N-CITY"];
-  }
-  
-  // IBG sub-projects
-  if (normalized.indexOf("ION BELIAN GARDEN") > -1) {
-    return colorMap["ION BELIAN GARDEN"];
-  }
-  
-  // Direct match
-  if (colorMap[normalized]) return colorMap[normalized];
-  
-  return "#6b7280";
-}
-
 function getStatusColor(status) {
   if (!status) return "#9ca3af";
   return (PROJECT_STATUS_COLORS[status] || {}).color || "#9ca3af";
@@ -180,17 +119,6 @@ var HIGHRISE_PROJECTS = {
   "GRAND ION DELEMEN": true,
   "GRAND ION MAJESTIC": true,
 };
-
-var MAJESTIC_PHASE_DISPLAY = {
-  "Phase 5": "Phase 5 (M1)",
-  "Phase 4": "Phase 4 (M2)",
-  "Phase 6": "Phase 6 (M3)"
-};
-
-function getMajesticPhaseDisplay(phase) {
-  if (!phase) return phase;
-  return MAJESTIC_PHASE_DISPLAY[phase] || phase;
-}
 
 var PROJECT_DISPLAY_ORDER = [
   "NSIP",
@@ -356,11 +284,9 @@ function bindSidebarNavigation() {
         if (view === "head-office") { activateSidebarItem("head-office"); renderHeadOffice(); return; }
         if (view === "nsip-km1") { activateSidebarItem("nsip-km1"); collapseNsipSubmenu(); renderNsipKm1View(); return; }
         if (view === "n-city") { activateSidebarItem("n-city"); renderNcityView(); return; }
-        if (view === "nsip-km2") { activateSidebarItem(view); collapseNsipSubmenu(); renderNsipKm2View(); return; }
-        if (view === "nsip-km3" || view === "nsip-km4" || view === "nsip-km5" || view === "nsip-km6") {
+        if (view === "nsip-km2" || view === "nsip-km3" || view === "nsip-km4" || view === "nsip-km5" || view === "nsip-km6") {
           activateSidebarItem(view); collapseNsipSubmenu(); renderComingSoon(view); return;
         }
-        if (view === "nsip-overall-layout") { activateSidebarItem("nsip-overall-layout"); collapseNsipSubmenu(); renderNsipOverallLayoutView(); return; }
         if (view === "nct-innosphere") { activateSidebarItem(view); renderNctInnosphereView(); return; }
         if (view === "ion-belian-garden-commercial") { activateSidebarItem("ion-belian-garden-commercial"); collapseIonBelianGardenSubmenu(); renderIbgCommercialView(); return; }
         if (view === "ion-belian-garden-residential") { activateSidebarItem("ion-belian-garden-residential"); collapseIonBelianGardenSubmenu(); renderIbgResidentialView(); return; }
@@ -388,6 +314,7 @@ function renderComingSoon(view) {
   var label = view.indexOf("nsip-") === 0 ? "NSIP " + view.split("-")[1].toUpperCase() : view.toUpperCase().replace(/-/g, " ");
   panel.innerHTML =
     '<div class="page-header"><div><h1>' + label + '</h1><div class="header-sub">Project Dashboard</div></div>' +
+    '  <div class="data-extracted-box"><div class="de-label">Updated as of</div><div class="de-date">15 July 2026</div></div></div>' +
     '  <div class="data-extracted-box"><div class="de-label">Updated as of</div><div class="de-date">15 July 2026</div></div></div>' +
     '<div class="card staging-placeholder" style="text-align:center;padding:80px 20px;">' +
     '  <i class="fas fa-clock" style="font-size:64px;color:var(--corporate-orange);margin-bottom:20px;display:block;"></i>' +
@@ -431,185 +358,34 @@ function renderWaitingForData(view) {
 }
 
 /* ==========================================================================
-   HARDCODED LAYOUT PLAN BALANCE (No database, no API, no calculation)
+   BALANCE DATA (Hardcoded - not connected to database)
    ========================================================================== */
-var PROJECT_LAYOUT_BALANCE = {
-  "NCT SMART INDUSTRIAL PARK KM1": "Bal 63 / 270 units",
-  "ION BELIAN GARDEN — COMMERCIAL": "Bal 1 / 9 units",
-  "ION BELIAN GARDEN — RESIDENTIAL": "1/1167 units",
-  "MAHKOTA KAMPAR": "Bal 23/24 units",
-  "N-CITY — COMMERCIAL": "Bal 30 / 122 units",
-  "N-CITY — RISE INTERNATIONAL SCHOOL": "Bal 10 / 122 units",
-  "N-CITY — CONVENTION HALL": "Bal 1 / 1 units",
-  "VORTEX BUSINESS PARK": "Bal 2 / 90 units",
-  "SALAK PERDANA BUSINESS PARK": "Bal 11 / 260 units",
-  "GRAND ION DELEMEN": "Bal 92 / 1148 units",
-  "GRAND ION MAJESTIC": "Bal 96 / 1885 units"
+var BALANCE_DATA = {
+  "NCT SMART INDUSTRIAL PARK KM1": "BALANCE 63 / 270",
+  "ION BELIAN GARDEN — COMMERCIAL": "BALANCE 1 / 9",
+  "ION BELIAN GARDEN — RESIDENTIAL": "BALANCE 1 / 52",
+  "MAHKOTA KAMPAR": "BALANCE 23 / 376",
+  "N-CITY — COMMERCIAL": "BALANCE 30 / 122",
+  "N-CITY — RISE INTERNATIONAL SCHOOL": "BALANCE 10 / 122",
+  "N-CITY — CONVENTION HALL": "BALANCE 1 / 1",
+  "VORTEX BUSINESS PARK": "BALANCE 2 / 90",
+  "SALAK PERDANA BUSINESS PARK": "BALANCE 11 / 260",
+  "GRAND ION DELEMEN": "BALANCE 8 / 1148",
+  "GRAND ION MAJESTIC": "BALANCE 96 / 1885"
 };
 
-/* ==========================================================================
-   PROJECT DETAILS DATA
-   ========================================================================== */
-var PROJECT_DETAILS_DATA = {
-  "N-CITY — COMMERCIAL": {
-    tenure: "Leasehold (Balance 91 Years, Expiry: June 2117)",
-    vpDate: "Phase 2 : June 2022",
-    bookingFee: "RM5,000",
-    bumiDiscount: "Additional 5% before rebate",
-    salePackage: [
-      "28% Rebate",
-      "Free Legal Fees on SPA & Loan Agreement",
-      "Free Loan Agreement Stamp Duty",
-      "Free Valuation Fee"
-    ],
-    salesCommission: "5% from nett price upon full drawdown"
-  },
-  "VORTEX BUSINESS PARK": {
-    tenure: "Freehold",
-    vpDate: "November 2020",
-    bookingFee: "RM10,000",
-    bumiDiscount: "-",
-    salePackage: [
-      "25% Rebate",
-      "Free Legal Fees on SPA & Loan Agreement",
-      "Free Loan Agreement Stamp Duty",
-      "Free Valuation Fee",
-      "Free MOT"
-    ],
-    salesCommission: "3%"
-  },
-  "MAHKOTA KAMPAR": {
-    tenure: "Leasehold (Balance 91 Years, Expiry: August 2117)",
-    vpDate: "Phase 4 : September 2025",
-    bookingFee: "RM2,000",
-    bumiDiscount: "-",
-    salePackage: [
-      "40% Rebate",
-      "Free Legal Fees on SPA & Loan Agreement",
-      "Free Loan Agreement Stamp Duty",
-      "Free Valuation Fee",
-      "Free MOT"
-    ],
-    salesCommission: "TBC"
-  },
-  "NCT SMART INDUSTRIAL PARK KM1": {
-    tenure: "Leasehold",
-    vpDate: "-",
-    bookingFee: "RM5,000",
-    bumiDiscount: "-",
-    salePackage: [
-      "Semi D, Cluster, Detached",
-      "10% Downpayment Rebate",
-      "Additional 2% rebate if buyer executes the SPA & Loan Agreement, or submits a Cash Purchase Letter, within 60 days from the Booking Date",
-      "Free Legal Fees for SPA & Loan Agreement",
-      "Free Loan Agreement Stamp Duty",
-      "Free MOT (maximum capped at 4% of SPA price)"
-    ],
-    salesCommission: "-"
-  },
-  "ION BELIAN GARDEN — COMMERCIAL": {
-    tenure: "Freehold",
-    vpDate: "January 2026",
-    bookingFee: "RM5,000",
-    bumiDiscount: "-",
-    salePackage: [
-      "10% Rebate",
-      "Free Legal Fees on SPA & Loan Agreement",
-      "Free Loan Agreement Stamp Duty"
-    ],
-    salesCommission: "RM18,000 per unit"
-  }
-};
-
-function renderProjectDetails(projectName) {
-  var data = PROJECT_DETAILS_DATA[projectName];
-  if (!data) return '';
-  
-  var salePackageHtml = '';
-  if (data.salePackage && data.salePackage.length > 0) {
-    salePackageHtml = '<ul style="margin:0;padding-left:18px;line-height:1.6;">';
-    data.salePackage.forEach(function(item) {
-      salePackageHtml += '<li>' + esc(item) + '</li>';
-    });
-    salePackageHtml += '</ul>';
-  } else {
-    salePackageHtml = esc(data.salePackage || '-');
-  }
-  
-  return '' +
-    '<div class="card" style="margin-bottom:20px;">' +
-    '  <div class="card-header">' +
-    '    <span class="card-title"><i class="fas fa-info-circle"></i> PROJECT DETAILS</span>' +
-    '  </div>' +
-    '  <div class="table-wrapper" style="overflow-x:auto;">' +
-    '    <table class="asset-table" style="width:100%;border-collapse:collapse;">' +
-    '      <thead>' +
-    '        <tr style="background:#f8fafc;border-bottom:2px solid #eef0f4;">' +
-    '          <th style="width:30%;padding:12px 16px;text-align:left;font-size:12px;font-weight:700;color:#5e6778;text-transform:uppercase;letter-spacing:0.4px;">Property</th>' +
-    '          <th style="width:70%;padding:12px 16px;text-align:left;font-size:12px;font-weight:700;color:#5e6778;text-transform:uppercase;letter-spacing:0.4px;">Details</th>' +
-    '        </tr>' +
-    '      </thead>' +
-    '      <tbody>' +
-    '        <tr style="border-bottom:1px solid #f4f6fa;">' +
-    '          <td style="padding:12px 16px;font-size:13px;font-weight:600;color:#0f2042;vertical-align:top;">Tenure</td>' +
-    '          <td style="padding:12px 16px;font-size:13px;color:#1a1d23;vertical-align:top;">' + esc(data.tenure) + '</td>' +
-    '        </tr>' +
-    '        <tr style="border-bottom:1px solid #f4f6fa;background:#fafbfc;">' +
-    '          <td style="padding:12px 16px;font-size:13px;font-weight:600;color:#0f2042;vertical-align:top;">VP Date</td>' +
-    '          <td style="padding:12px 16px;font-size:13px;color:#1a1d23;vertical-align:top;">' + esc(data.vpDate) + '</td>' +
-    '        </tr>' +
-    '        <tr style="border-bottom:1px solid #f4f6fa;">' +
-    '          <td style="padding:12px 16px;font-size:13px;font-weight:600;color:#0f2042;vertical-align:top;">Booking Fee</td>' +
-    '          <td style="padding:12px 16px;font-size:13px;color:#1a1d23;vertical-align:top;">' + esc(data.bookingFee) + '</td>' +
-    '        </tr>' +
-    '        <tr style="border-bottom:1px solid #f4f6fa;background:#fafbfc;">' +
-    '          <td style="padding:12px 16px;font-size:13px;font-weight:600;color:#0f2042;vertical-align:top;">Bumi Discount</td>' +
-    '          <td style="padding:12px 16px;font-size:13px;color:#1a1d23;vertical-align:top;">' + esc(data.bumiDiscount) + '</td>' +
-    '        </tr>' +
-    '        <tr style="border-bottom:1px solid #f4f6fa;">' +
-    '          <td style="padding:12px 16px;font-size:13px;font-weight:600;color:#0f2042;vertical-align:top;">Sales Package</td>' +
-    '          <td style="padding:12px 16px;font-size:13px;color:#1a1d23;vertical-align:top;">' + salePackageHtml + '</td>' +
-    '        </tr>' +
-    '        <tr style="background:#fafbfc;">' +
-    '          <td style="padding:12px 16px;font-size:13px;font-weight:600;color:#0f2042;vertical-align:top;">Sales Commission</td>' +
-    '          <td style="padding:12px 16px;font-size:13px;color:#1a1d23;vertical-align:top;">' + esc(data.salesCommission) + '</td>' +
-    '        </tr>' +
-    '      </tbody>' +
-    '    </table>' +
-    '  </div>' +
+function renderBalanceBox(title, balanceValue) {
+  return '<div class="balance-info-wrapper" style="text-align:right;margin-bottom:20px;">' +
+    '<div class="balance-info-box" style="display:inline-block;background:#ffffff;border:1px solid #e5e7eb;border-radius:8px;padding:10px 16px;box-shadow:0 1px 3px rgba(0,0,0,0.06);">' +
+    '<div class="balance-info-title" style="font-size:11px;font-weight:600;color:#5e6778;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:2px;">' + esc(title) + '</div>' +
+    '<div class="balance-info-value" style="font-size:14px;font-weight:700;color:#0f2042;">' + esc(balanceValue) + '</div>' +
+    '</div>' +
     '</div>';
 }
 
-function getLayoutBalance(projectName) {
-  return PROJECT_LAYOUT_BALANCE[projectName] || '';
-}
-
-function renderLayoutPlanHeader(balanceText) {
-  return '<div class="card" style="padding:12px 16px;margin-bottom:0;background:#f8fafc;border:1px solid #eef0f4;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,0.06);display:flex;align-items:center;"><span class="card-title" style="flex-shrink:0;"><i class="fas fa-map"></i> LAYOUT PLAN</span><span style="margin-left:auto;font-size:14px;font-weight:700;color:#0f2042;white-space:nowrap;">' + balanceText + '</span></div>';
-}
-
 /* ==========================================================================
-    GRAND ION DELEMEN SUBSALE UNITS
-    ========================================================================== */
-var GID_SUBSALE_UNITS = new Set([
-  "E2-22-05","E3-11-01","E3-12-01","E3-18-03","E7-36-01","E7-36-03","E2-13A-09","E3-8-01","E3-8-02","E3-8-03","E3-9-01","E3-9-02","E3-9-03","E4-22-10","E1-23A-03","E1-23A-03A","E2-10-09","E2-22-01","E3-10-03","E3-1-01","E3-1-02","E3-1-03","E3-1-05","E3-1-06","E3-11-02","E3-11-03","E3-11-06","E3-12-02","E3-12-03","E3-13A-01","E3-13A-02","E3-13A-03","E3-15-01","E3-15-03","E3-16-01","E3-16-02","E3-17-01","E3-18-01","E3-19-01","E3-19-03A","E3-20-03","E3-20-06","E3-2-01","E3-2-03","E3-2-03A","E3-2-05","E3-21-01","E3-21-03","E3-22-01","E3-22-03A","E3-23-01","E3-23-03","E3-23A-01","E3-23A-03","E3-23A-03A","E3-3-03","E3-3-03A","E3-3-05","E3-03A-01","E3-03A-02","E3-03A-03","E3-03A-05","E3-5-01","E3-5-02","E3-5-03","E3-5-05","E3-6-02","E3-6-03A","E3-7-01","E3-7-02","E3-7-03","E3-7-03A","E3-7-05","E3-8-03A","E4-6-01","E4-7-01","E4-7-10","E4-9-10","E4-10-01","E4-11-01","E4-12-01","E4-13-01","E4-13A-01","E4-13A-10","E4-15-01","E4-17-01","E4-19-01","E4-21-01","E4-21-10","E4-23-01","E4-23A-01","E4-23A-02"
-]);
-
-function isDisplayAvailable(unit) {
-  if (!unit) return false;
-  var project = (unit.Project || "").toString().trim().toUpperCase();
-  if (project !== "GRAND ION DELEMEN") {
-    var status = (unit.Status || "").toString().trim().toLowerCase();
-    return status === "available";
-  }
-  var isAvailable = (unit.Status || "").toString().trim().toLowerCase() === "available";
-  var unitNo = (unit.Unit_No || "").toString().trim().toUpperCase();
-  return isAvailable || GID_SUBSALE_UNITS.has(unitNo);
-}
-
-/* ==========================================================================
-    UTILITIES
-    ========================================================================== */
+   UTILITIES
+   ========================================================================== */
 function esc(s) { return (s === undefined || s === null || s === "") ? "-" : String(s); }
 
 function formatPrice(val) {
@@ -617,42 +393,6 @@ function formatPrice(val) {
     if (!val || Number(val) === 0) return "-";
     return "RM " + Number(val).toLocaleString("en-MY", {minimumFractionDigits:0, maximumFractionDigits:0});
   } catch(e) { return "-"; }
-}
-
-function formatPriceValue(val) {
-  try {
-    if (!val || Number(val) === 0) return "-";
-    return Number(val).toLocaleString("en-MY", {minimumFractionDigits:0, maximumFractionDigits:0});
-  } catch(e) { return "-"; }
-}
-
-/* Natural sort: alphabetical prefix first, then numeric sequence (A1, A2, A10, B1, B2, B10) */
-function compareUnitType(a, b) {
-  var aStr = String(a === null || a === undefined ? "" : a);
-  var bStr = String(b === null || b === undefined ? "" : b);
-  var aMatch = aStr.match(/^([A-Za-z]+)[\s-]*(\d+)$/);
-  var bMatch = bStr.match(/^([A-Za-z]+)[\s-]*(\d+)$/);
-  if (aMatch && bMatch) {
-    var aLetter = aMatch[1].toUpperCase();
-    var bLetter = bMatch[1].toUpperCase();
-    if (aLetter !== bLetter) return aLetter < bLetter ? -1 : 1;
-    var aNum = parseInt(aMatch[2], 10);
-    var bNum = parseInt(bMatch[2], 10);
-    if (aNum !== bNum) return aNum - bNum;
-    return 0;
-  }
-  return aStr.localeCompare(bStr);
-}
-
-/* GID subsale units display as Available in the frontend only (database unchanged) */
-function getDisplayStatus(u) {
-  if (!u) return "-";
-  var project = (u.Project || "").toString().trim().toUpperCase();
-  if (project === "GRAND ION DELEMEN") {
-    var unitNo = (u.Unit_No || "").toString().trim().toUpperCase();
-    if (GID_SUBSALE_UNITS.has(unitNo)) return "Available";
-  }
-  return esc(u.Status || "");
 }
 
 function formatArea(val) {
@@ -674,20 +414,15 @@ function computePrice(u) {
 }
 
 function isAvailable(u) {
-  try { return isDisplayAvailable(u); } catch(e) { return false; }
+  try { return (u.Status || "").toString().trim().toLowerCase() === "available"; } catch(e) { return false; }
 }
 
 function computeAvailableUnits(units) {
-  return units.filter(function(u) { return isDisplayAvailable(u); }).length;
+  return units.filter(function(u) { return isAvailable(u); }).length;
 }
 
 function computeGrandTotalPrice(units) {
   return units.reduce(function(acc, u) { return acc + computePrice(u); }, 0);
-}
-
-/* Total SPA Price of ONLY the units displayed in the Available Unit List (single source of truth) */
-function computeDisplayedTotalPrice(units) {
-  return units.filter(isDisplayAvailable).reduce(function(acc, u) { return acc + computePrice(u); }, 0);
 }
 
 /* ==========================================================================
@@ -801,108 +536,16 @@ function createGroupHeader(title, availableCount, isExpanded, levelClass, catego
   return div;
 }
 
-var __sortState = {};
-
-function initSortState(slug) {
-  if (!__sortState[slug]) {
-    __sortState[slug] = {
-      unitTypeDir: "asc",      // Default: alphabetical + number sequence
-      builtUpDir: "asc",       // Default: Smallest -> Largest
-      spaPriceDir: "asc",      // Default: Cheapest -> Most Expensive
-      activeColumn: null       // null = default sort (Unit Type)
-    };
-  }
-  return __sortState[slug];
-}
-
-function resetSortState(slug) {
-  if (__sortState[slug]) {
-    __sortState[slug].unitTypeDir = "asc";
-    __sortState[slug].builtUpDir = "asc";
-    __sortState[slug].spaPriceDir = "asc";
-    __sortState[slug].activeColumn = null;
-  }
-}
-
-function applyDefaultSort(units) {
-  // Default: sort by Unit No (alphabetical prefix first, then number sequence)
-  return units.slice().sort(function(a, b) {
-    return compareUnitType(a.Unit_No, b.Unit_No);
-  });
-}
-
-function applyUnitTypeSort(units, dir) {
-  var sorted = units.slice().sort(function(a, b) {
-    return compareUnitType(a.Unit_No, b.Unit_No);
-  });
-  if (dir === "desc") sorted.reverse();
-  return sorted;
-}
-
-function applyBuiltUpSort(units, dir) {
-  return units.slice().sort(function(a, b) {
-    var av = Number(a.Built_Up) || 0;
-    var bv = Number(b.Built_Up) || 0;
-    return dir === "asc" ? av - bv : bv - av;
-  });
-}
-
-function applySpaPriceSort(units, dir) {
-  return units.slice().sort(function(a, b) {
-    var av = computePrice(a);
-    var bv = computePrice(b);
-    return dir === "asc" ? av - bv : bv - av;
-  });
-}
-
-function sortUnits(units, sortState) {
-  if (!sortState) return applyDefaultSort(units);
-  if (sortState.activeColumn === "builtUp") return applyBuiltUpSort(units, sortState.builtUpDir);
-  if (sortState.activeColumn === "spaPrice") return applySpaPriceSort(units, sortState.spaPriceDir);
-  return applyDefaultSort(units);
-}
-
-/* B6-01 remark - applies ONLY to unit B6-01 (N-CITY Phase 2) */
-function getUnitRemark(u) {
-  if (!u) return "";
-  var unitNo = (u.Unit_No || "").toString().trim().toUpperCase();
-  if (unitNo === "B6-01") return "* In the midst of conversion from Bumi to Non-Bumi";
-  return "";
-}
-
-function getSortIndicator(column) {
-  return '<span style="color:#f47217;font-size:10px;margin-left:4px;"><i class="fas fa-sort"></i></span>';
-}
-
-function getActiveSortIndicator(column, dir) {
-  var icon = dir === "asc" ? "fa-sort-up" : "fa-sort-down";
-  return '<span style="color:#f47217;font-size:10px;margin-left:4px;"><i class="fas ' + icon + '"></i></span>';
-}
-
-function getSortButtonHtml(column, sortState) {
-  var isActive = sortState && sortState.activeColumn === column;
-  var dir = isActive ? sortState[column + "Dir"] : "asc";
-  var icon = isActive ? (dir === "asc" ? "fa-sort-up" : "fa-sort-down") : "fa-sort";
-  return '<button class="sort-btn" data-sort="' + column + '" style="background:none;border:none;cursor:pointer;color:#000000;font-size:15px;margin-left:8px;padding:0;vertical-align:middle;line-height:1;" title="Sort"><i class="fas ' + icon + '"></i></button>';
-}
-
-function createUnitsTable(units, startNum, projectName, sortState) {
+function createUnitsTable(units, startNum, projectName) {
   var isHighrise = projectName && HIGHRISE_PROJECTS[projectName.toString().trim().toUpperCase()];
-  var isGid = projectName && projectName.toString().trim().toUpperCase() === "GRAND ION DELEMEN";
-
-  var sortedUnits = sortUnits(units, sortState);
 
   var colGroups, headers;
-  if (isHighrise && isGid) {
-    // GID: Property Owner column removed
-    colGroups = '<col style="width:5%"><col style="width:30%"><col style="width:25%"><col style="width:20%"><col style="width:20%">';
-    headers = '<th>No</th><th>Unit No</th><th>Status</th><th>Built Up (sqft)</th><th>SPA Price (RM)</th>';
-  } else if (isHighrise) {
+  if (isHighrise) {
     colGroups = '<col style="width:5%"><col style="width:25%"><col style="width:35%"><col style="width:35%">';
-    headers = '<th>No</th><th>Unit No</th><th>Built Up (sqft)</th><th>SPA Price (RM)</th>';
+    headers = '<th>No</th><th>Unit No</th><th>Built Up</th><th>List Price</th>';
   } else {
     colGroups = '<col style="width:5%"><col style="width:20%"><col style="width:25%"><col style="width:25%"><col style="width:25%">';
-    headers = '<th>No</th><th>Unit No</th><th>Land Area (sqft)</th><th>Built Up (sqft)</th><th>SPA Price (RM)</th>';
+    headers = '<th>No</th><th>Unit No</th><th>Land Area</th><th>Built Up</th><th>List Price</th>';
   }
 
   var table = document.createElement("table");
@@ -912,35 +555,24 @@ function createUnitsTable(units, startNum, projectName, sortState) {
     '<thead><tr>' + headers + '</tr></thead><tbody></tbody>';
 
   var tbody = table.querySelector("tbody");
-  sortedUnits.forEach(function(u, i) {
+  units.forEach(function(u, i) {
     var tr = document.createElement("tr");
     var builtUp = u.Built_Up;
     var landArea = u.Land_Area;
     var listPrice = u.Listing_Price || 0;
-    var displayStatus = getDisplayStatus(u);
-    var displayStatusClass = displayStatus.toLowerCase() === "available" ? ' style="color:#16a34a;font-weight:600;"' : '';
-    var remark = getUnitRemark(u);
-    var unitNoCell = '<td>' + esc(u.Unit_No) + '' + (remark ? '<br><span style="color:#dc2626;font-size:11px;font-style:italic;display:block;margin-top:2px;">' + remark + '</span>' : '') + '</td>';
-    if (isHighrise && isGid) {
+    if (isHighrise) {
       tr.innerHTML =
         '<td>' + (startNum + i + 1) + '</td>' +
-        unitNoCell +
-        '<td><span' + displayStatusClass + '>' + esc(displayStatus) + '</span></td>' +
+        '<td>' + esc(u.Unit_No) + '</td>' +
         '<td>' + formatArea(builtUp) + '</td>' +
-        '<td>' + formatPriceValue(listPrice) + '</td>';
-    } else if (isHighrise) {
-      tr.innerHTML =
-        '<td>' + (startNum + i + 1) + '</td>' +
-        unitNoCell +
-        '<td>' + formatArea(builtUp) + '</td>' +
-        '<td>' + formatPriceValue(listPrice) + '</td>';
+        '<td>' + formatPrice(listPrice) + '</td>';
     } else {
       tr.innerHTML =
         '<td>' + (startNum + i + 1) + '</td>' +
-        unitNoCell +
+        '<td>' + esc(u.Unit_No) + '</td>' +
         '<td>' + formatArea(landArea) + '</td>' +
         '<td>' + formatArea(builtUp) + '</td>' +
-        '<td>' + formatPriceValue(listPrice) + '</td>';
+        '<td>' + formatPrice(listPrice) + '</td>';
     }
     tbody.appendChild(tr);
   });
@@ -1153,16 +785,11 @@ function updateWelcomeMessage() {
 function renderHomeDashboard() {
   updateWelcomeMessage();
 
-  var kpiDataCache = null;
-
   fetch("/api/home/kpi")
     .then(function(res) { if (!res.ok) throw new Error("HTTP " + res.status); return res.json(); })
     .then(function(data) {
-      kpiDataCache = Array.isArray(data) ? data : [];
-      // Only render dashboard if units are already loaded
-      if (window.__allUnits && window.__allUnits.length) {
-        renderDashboardSections(kpiDataCache);
-      }
+      var kpiData = Array.isArray(data) ? data : [];
+      renderDashboardSections(kpiData);
     })
     .catch(function(err) {
       console.error("Home KPI fetch error:", err);
@@ -1171,15 +798,7 @@ function renderHomeDashboard() {
   fetchAllUnitsCached().then(function(units) {
     try { populateProjectFilter(units); } catch(e) { console.error("Filter:", e); }
     try { renderHomeHierarchy(units); } catch(e) { console.error("Home hierarchy:", e); }
-
-    // Re-render dashboard sections with Grand Ion Delemen override now that units are loaded
-    if (kpiDataCache && kpiDataCache.length) {
-      renderDashboardSections(kpiDataCache);
-    }
   });
-
-  // Bind Master Asset List toggle button
-  bindMasterAssetListToggle();
 }
 
 function renderDashboardSections(kpiData) {
@@ -1195,32 +814,9 @@ function renderDashboardSections(kpiData) {
     dataMap[(proj.project_name || "").toString().trim().toUpperCase()] = proj;
   });
 
-  // Override Grand Ion Delemen with corrected display-available count
-  // to match the Project Page Available Unit List
-  if (window.__allUnits && window.__allUnits.length) {
-    var gidUnits = window.__allUnits.filter(function(u) {
-      return (u.Project || "").toString().trim().toUpperCase() === "GRAND ION DELEMEN";
-    });
-    var gidAvailable = gidUnits.filter(isDisplayAvailable);
-    var gidTotalPrice = gidAvailable.reduce(function(acc, u) { return acc + computePrice(u); }, 0);
-    dataMap["GRAND ION DELEMEN"] = {
-      project_name: "GRAND ION DELEMEN",
-      project_status: "Completed",
-      available_units: gidAvailable.length,
-      total_list_price: gidTotalPrice,
-      project_slug: "grand-ion-delemen"
-    };
-  }
-
   var guaranteedOngoing = [
     { project_name: "NCT SMART INDUSTRIAL PARK KM1", project_status: "Ongoing", available_units: 0, total_list_price: 0, project_slug: "nsip" },
     { project_name: "NCT INNOSPHERE", project_status: "Ongoing", available_units: 0, total_list_price: 0, project_slug: "nct-innosphere" }
-  ];
-
-  // Hardcoded sub-project cards (replacing parent ION BELIAN GARDEN only - N-CITY sub-projects come from API data)
-  var SUB_PROJECT_CARDS = [
-    { project_name: "ION BELIAN GARDEN — COMMERCIAL", project_status: "Ongoing", available_units: 1, total_list_price: 758000, project_slug: "ion-belian-garden-commercial" },
-    { project_name: "ION BELIAN GARDEN — RESIDENTIAL", project_status: "Ongoing", available_units: 1, total_list_price: 356000, project_slug: "ion-belian-garden-residential" }
   ];
 
   var allProjects = [];
@@ -1235,23 +831,9 @@ function renderDashboardSections(kpiData) {
     }
   });
 
-  // Add sub-project cards
-  SUB_PROJECT_CARDS.forEach(function(sp) {
-    allProjects.push(sp);
-  });
-
-  // Add remaining API projects, excluding parent projects and hardcoded sub-project cards
-  var EXCLUDED_PROJECTS = {
-    "NCT SMART INDUSTRIAL PARK KM1": true,
-    "NCT INNOSPHERE": true,
-    "N-CITY": true,
-    "ION BELIAN GARDEN": true,
-    "ION BELIAN GARDEN — COMMERCIAL": true,
-    "ION BELIAN GARDEN — RESIDENTIAL": true
-  };
   (Array.isArray(kpiData) ? kpiData : []).forEach(function(proj) {
     var key = (proj.project_name || "").toString().trim().toUpperCase();
-    if (!EXCLUDED_PROJECTS[key]) {
+    if (key !== "NCT SMART INDUSTRIAL PARK KM1" && key !== "NCT INNOSPHERE") {
       allProjects.push(proj);
     }
   });
@@ -1264,18 +846,6 @@ function renderDashboardSections(kpiData) {
       completedGrid.appendChild(card);
     }
   });
-
-  // Dashboard Grand Total KPIs aggregate the EXACT displayed project KPI cards (single source of truth)
-  var grandAvail = 0;
-  var grandValue = 0;
-  allProjects.forEach(function(proj) {
-    grandAvail += Number(proj.available_units) || 0;
-    grandValue += Number(proj.total_list_price) || 0;
-  });
-  var grandAvailEl = document.getElementById("grandTotalAvailable");
-  var grandValueEl = document.getElementById("grandTotalValue");
-  if (grandAvailEl) grandAvailEl.textContent = grandAvail;
-  if (grandValueEl) grandValueEl.textContent = formatPrice(grandValue);
 
   if (completedGrid.children.length === 0) {
     completedGrid.innerHTML = '<div class="dashboard-empty">No completed projects</div>';
@@ -1291,33 +861,19 @@ function createDashboardCard(proj) {
   card.style.cursor = "pointer";
 
   var slug = proj.project_slug || "";
-  var displayName = (proj.project_name || "").toUpperCase();
-  if (displayName === "NCT SMART INDUSTRIAL PARK KM1") {
-    displayName = "NCT SMART INDUSTRIAL PARK (KM1)";
-  }
-  if (displayName === "N-CITY — RISE INTERNATIONAL SCHOOL" || displayName === "N-CITY - RISE INTERNATIONAL SCHOOL" || displayName === "RISE INTERNATIONAL SCHOOL") {
-    displayName = "N-CITY RISE INTERNATIONAL SCHOOL";
-  }
-
-  // Apply project border color
-  var borderColor = getProjectBorderColor(proj.project_name);
-  card.style.border = "2px solid " + borderColor;
-  
-  var availableUnits = proj.available_units;
-  var totalListPrice = proj.total_list_price;
 
   card.innerHTML =
     '<div class="dash-kpi-header">' +
-      '<div class="dash-kpi-name">' + esc(displayName) + '</div>' +
+      '<div class="dash-kpi-name">' + esc(proj.project_name) + '</div>' +
     '</div>' +
     '<div class="dash-kpi-body">' +
       '<div class="dash-kpi-metric">' +
-        '<div class="dash-kpi-value">' + availableUnits + '</div>' +
+        '<div class="dash-kpi-value">' + proj.available_units + '</div>' +
         '<div class="dash-kpi-label">Total Available Units</div>' +
       '</div>' +
       '<div class="dash-kpi-metric">' +
-        '<div class="dash-kpi-value">' + formatPrice(totalListPrice) + '</div>' +
-        '<div class="dash-kpi-label">Total SPA Price</div>' +
+        '<div class="dash-kpi-value">' + formatPrice(proj.total_list_price) + '</div>' +
+        '<div class="dash-kpi-label">Total List Price</div>' +
       '</div>' +
     '</div>';
 
@@ -1327,26 +883,6 @@ function createDashboardCard(proj) {
       activateSidebarItem("nsip-km1");
       collapseNsipSubmenu();
       renderNsipKm1View();
-    } else if (slug === "n-city-commercial") {
-      activateSidebarItem("n-city-commercial");
-      collapseNcitySubmenu();
-      renderNcityCommercialView();
-    } else if (slug === "n-city-rise") {
-      activateSidebarItem("n-city-rise");
-      collapseNcitySubmenu();
-      renderNcityRiseView();
-    } else if (slug === "n-city-convention-hall") {
-      activateSidebarItem("n-city-convention-hall");
-      collapseNcitySubmenu();
-      renderNcityConventionHallView();
-    } else if (slug === "ion-belian-garden-commercial") {
-      activateSidebarItem("ion-belian-garden-commercial");
-      collapseIonBelianGardenSubmenu();
-      renderIbgCommercialView();
-    } else if (slug === "ion-belian-garden-residential") {
-      activateSidebarItem("ion-belian-garden-residential");
-      collapseIonBelianGardenSubmenu();
-      renderIbgResidentialView();
     } else {
       activateSidebarItem(slug);
       if (getProjectConfig(slug)) {
@@ -1378,18 +914,13 @@ function renderHomeKPIRow(units) {
     var cfg = PROJECT_CONFIG.filter(function(c) { return c.name === dbProjectName; })[0];
     if (!cfg) return;
     var slug = cfg.slug;
-    var count = units.filter(function(u) { return (u.Project || "").toString().trim() === dbProjectName && isDisplayAvailable(u); }).length;
-    var totalPrice = units.filter(function(u) { return (u.Project || "").toString().trim() === dbProjectName; }).filter(isDisplayAvailable).reduce(function(acc, u) { return acc + computePrice(u); }, 0);
+    var count = units.filter(function(u) { return (u.Project || "").toString().trim() === dbProjectName && isAvailable(u); }).length;
+    var totalPrice = units.filter(function(u) { return (u.Project || "").toString().trim() === dbProjectName; }).reduce(function(acc, u) { return acc + computePrice(u); }, 0);
     var status = getProjectStatus(dbProjectName);
     var card = document.createElement("div");
     card.className = "kpi-card-unified";
     card.dataset.view = slug;
     var displayName = dbProjectName === "NSIP" ? "NSIP KM1" : dbProjectName;
-
-    // Apply project border color
-    var borderColor = getProjectBorderColor(dbProjectName);
-    card.style.border = "2px solid " + borderColor;
-
     card.innerHTML =
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">' +
       '  <div class="kpi-project-name" style="margin-bottom:0;">' + esc(displayName) + '</div>' +
@@ -1425,41 +956,11 @@ function renderHomeHierarchy(units) {
     projFilter.addEventListener("change", function() {
       var proj = projFilter.value;
       var sourceUnits = proj ? (window.__allUnits || units).filter(function(u) { return (u.Project || "").toString().trim() === proj; }) : (window.__allUnits || units);
-      renderHierarchy(container, sourceUnits.filter(isDisplayAvailable), "home");
+      renderHierarchy(container, sourceUnits.filter(isAvailable), "home");
     });
   }
 
-  renderHierarchy(container, units.filter(isDisplayAvailable), "home");
-}
-
-function bindMasterAssetListToggle() {
-  var toggleBtn = document.getElementById("toggleMasterAssetList");
-  var card = document.getElementById("masterAssetListCard");
-  if (!toggleBtn || !card) return;
-
-  toggleBtn.addEventListener("click", function() {
-    var contentArea = card.querySelector(".table-wrapper.asset-table-container");
-    var icon = toggleBtn.querySelector("i");
-    var text = toggleBtn.querySelector("span");
-    
-    if (!contentArea) return;
-
-    var isHidden = contentArea.style.display === "none";
-    
-    if (isHidden) {
-      // Show
-      contentArea.style.display = "";
-      if (icon) icon.className = "fas fa-eye";
-      if (text) text.textContent = "HIDE";
-      toggleBtn.classList.remove("collapsed");
-    } else {
-      // Hide
-      contentArea.style.display = "none";
-      if (icon) icon.className = "fas fa-eye-slash";
-      if (text) text.textContent = "VIEW";
-      toggleBtn.classList.add("collapsed");
-    }
-  });
+  renderHierarchy(container, units.filter(isAvailable), "home");
 }
 
 function populateProjectFilter(units) {
@@ -1475,132 +976,6 @@ function populateProjectFilter(units) {
   });
   projects.forEach(function(p) { var o = document.createElement("option"); o.value = p; o.textContent = p; select.appendChild(o); });
   select.setAttribute("data-populated", "1");
-}
-
-/* ==========================================================================
-   NCT INNOSPHERE VIEW
-   ========================================================================== */
-function renderNctInnosphereView() {
-  var panel = document.getElementById("view-nct-innosphere");
-  if (!panel) return;
-
-  panel.innerHTML =
-    '<div class="page-header">' +
-    '  <div style="display:flex;justify-content:space-between;align-items:center;flex:1;">' +
-    '    <div><h1 style="margin-right:12px;">NCT INNOSPHERE</h1><div class="header-sub">Project Dashboard</div></div>' +
-    '  </div>' +
-    '  <div class="data-extracted-box"><div class="de-label">Updated as of</div><div class="de-date">Not Available</div></div>' +
-    '</div>' +
-    '<div class="project-image-banner" id="project-image-nct-innosphere" style="background:#000000;border-radius:10px;overflow:hidden;margin-bottom:20px;position:relative;cursor:pointer;" title="Double-click to view full image">' +
-    '  <img src="/static/NIS.png" alt="NCT Innosphere" style="width:100%;max-height:400px;object-fit:contain;display:block;background:#000000;">' +
-    '</div>' +
-    '<div class="project-kpi-container">' +
-    '  <div class="card project-kpi-box"><div class="project-kpi-label"><i class="fas fa-check-circle" style="color:#10b981;margin-right:8px;"></i>Total Available Units</div><div class="project-kpi-value" id="kpi-nct-innosphere">0</div></div>' +
-    '  <div class="card project-kpi-price-box"><div class="project-kpi-label"><i class="fas fa-dollar-sign" style="color:#2563eb;margin-right:8px;"></i>Total SPA Price</div><div class="project-kpi-value" id="kpi-price-nct-innosphere">RM 0.00</div></div>' +
-    '</div>' +
-    '<div id="nis-layout-wrapper" style="width:100%;display:flex;flex-direction:column;gap:20px;box-sizing:border-box;padding:0;margin-bottom:20px;">' +
-    '  <div class="card" style="padding:12px 16px;margin-bottom:0;background:#f8fafc;border:1px solid #eef0f4;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,0.06);display:flex;align-items:center;">' +
-    '    <span class="card-title" style="flex-shrink:0;"><i class="fas fa-map"></i> LAYOUT PLAN</span>' +
-    '    <span style="margin-left:auto;font-size:14px;font-weight:700;color:#0f2042;white-space:nowrap;">Bal 0 / 0 units</span>' +
-    '  </div>' +
-    '  <div style="width:100%;background:#ffffff;border:1px solid #eef0f4;border-radius:10px;padding:12px;box-shadow:0 1px 3px rgba(0,0,0,0.06);overflow:hidden;">' +
-    '    <img src="/static/NIS_Layout.png" alt="NCT Innosphere Layout" style="width:100%;height:auto;display:block;border-radius:6px;">' +
-    '  </div>' +
-    '</div>' +
-    '<div class="card" style="margin-bottom:20px;">' +
-    '  <div class="card-header"><span class="card-title"><i class="fas fa-info-circle"></i> PROJECT DETAILS</span></div>' +
-    '  <div style="padding:16px;overflow-x:auto;">' +
-    '    <table class="asset-table" style="width:100%;border-collapse:collapse;">' +
-    '      <colgroup><col style="width:30%"><col style="width:70%"></colgroup>' +
-    '      <thead><tr><th>Detail</th><th>Value</th></tr></thead>' +
-    '      <tbody>' +
-    '        <tr><td style="font-weight:600;">Tenure</td><td>-</td></tr>' +
-    '        <tr><td style="font-weight:600;">Vacant Possession</td><td>-</td></tr>' +
-    '        <tr><td style="font-weight:600;">Booking Fee</td><td>-</td></tr>' +
-    '        <tr><td style="font-weight:600;">Bumiputera Discount</td><td>-</td></tr>' +
-    '        <tr><td style="font-weight:600;">Sales Package</td><td>-</td></tr>' +
-    '      </tbody>' +
-    '    </table>' +
-    '  </div>' +
-    '</div>' +
-    '<div class="card" id="staticAssetList-nct-innosphere">' +
-    '  <div class="card-header">' +
-    '    <span class="card-title"><i class="fas fa-table"></i> AVAILABLE UNIT LIST</span>' +
-    '    <div class="table-controls">' +
-    '      <select id="staticFilterPhase-nct-innosphere" class="table-filter"><option value="">All Phases</option></select>' +
-    '      <select id="staticFilterType-nct-innosphere" class="table-filter"><option value="">All Unit Types</option></select>' +
-    '    </div>' +
-    '  </div>' +
-    '  <div id="staticLedgerContainer-nct-innosphere" class="asset-table-container">' +
-    '    <table class="asset-table"><colgroup><col style="width:5%"><col style="width:20%"><col style="width:15%"><col style="width:20%"><col style="width:20%"><col style="width:20%"></colgroup><thead><tr><th>No</th><th>Unit No</th><th>Status</th><th>Land Area (sqft)</th><th>Built Up (sqft)</th><th>SPA Price</th></tr></thead><tbody><tr><td colspan="6" style="text-align:center;padding:40px 20px;color:#9ca3af;font-style:italic;">No records found</td></tr></tbody></table>' +
-    '  </div>' +
-    '  <div id="staticPagination-nct-innosphere" style="display:flex;align-items:center;justify-content:center;gap:12px;margin-top:16px;padding-top:12px;border-top:1px solid var(--border-light);">' +
-    '    <span style="font-size:13px;color:#5e6778;">0 units</span>' +
-    '  </div>' +
-    '</div>';
-}
-
-/* ==========================================================================
-   NSIP OVERALL LAYOUT VIEW
-   ========================================================================== */
-function renderNsipOverallLayoutView() {
-  var panel = document.getElementById("view-nsip-overall-layout");
-  if (!panel) return;
-
-  panel.innerHTML =
-    '<div class="page-header">' +
-    '  <div><h1>Overall Layout</h1><div class="header-sub">NCT SMART INDUSTRIAL PARK LAYOUT PLAN</div></div>' +
-    '</div>' +
-    '<div id="nsip-overall-layout-wrapper" style="width:100%;display:flex;flex-direction:column;gap:20px;box-sizing:border-box;padding:0;margin-bottom:20px;">' +
-    '  <div class="card" style="padding:12px 16px;margin-bottom:0;background:#f8fafc;border:1px solid #eef0f4;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,0.06);display:flex;align-items:center;">' +
-    '    <span class="card-title" style="flex-shrink:0;"><i class="fas fa-map"></i> LAYOUT PLAN</span>' +
-    '  </div>' +
-    '  <div id="nsip-overall-layout-stage" style="width:100%;background:#ffffff;border:1px solid #eef0f4;border-radius:10px;padding:12px;box-shadow:0 1px 3px rgba(0,0,0,0.06);overflow:hidden;position:relative;">' +
-    '    <img src="/static/NSIP_Full%20Layout.jpeg" alt="NSIP Overall Layout" style="width:100%;height:auto;display:block;border-radius:6px;transform-origin:center center;">' +
-    '  </div>' +
-    '</div>';
-
-  // Enable double-click fullscreen on overall layout image
-  var layoutImg = document.getElementById("nsip-overall-layout-stage").querySelector("img");
-  if (layoutImg) {
-    layoutImg.addEventListener("dblclick", function() {
-      openImageModal("/static/NSIP_Full%20Layout.jpeg", "NSIP Overall Layout");
-    });
-  }
-}
-
-/* ==========================================================================
-   NSIP KM2 VIEW (Layout + Coming Soon)
-   ========================================================================== */
-function renderNsipKm2View() {
-  var panel = document.getElementById("view-nsip-km2");
-  if (!panel) return;
-
-  panel.innerHTML =
-    '<div class="page-header">' +
-    '  <div><h1>NSIP KM2</h1><div class="header-sub">Project Dashboard</div></div>' +
-    '  <div class="data-extracted-box"><div class="de-label">Updated as of</div><div class="de-date">15 July 2026</div></div></div>' +
-    '</div>' +
-    '<div id="nsip-km2-layout-wrapper" style="width:100%;display:flex;flex-direction:column;gap:20px;box-sizing:border-box;padding:0;margin-bottom:20px;">' +
-    '  <div class="card" style="padding:12px 16px;margin-bottom:0;background:#f8fafc;border:1px solid #eef0f4;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,0.06);display:flex;align-items:center;">' +
-    '    <span class="card-title" style="flex-shrink:0;"><i class="fas fa-map"></i> LAYOUT PLAN</span>' +
-    '  </div>' +
-    '  <div id="nsip-km2-layout-stage" style="width:100%;background:#ffffff;border:1px solid #eef0f4;border-radius:10px;padding:12px;box-shadow:0 1px 3px rgba(0,0,0,0.06);overflow:hidden;position:relative;">' +
-    '    <img src="/static/NSIP%20KM2_Layout.png" alt="NSIP KM2 Layout" style="width:100%;height:auto;display:block;border-radius:6px;transform-origin:center center;">' +
-    '  </div>' +
-    '</div>' +
-    '<div class="card staging-placeholder" style="text-align:center;padding:80px 20px;">' +
-    '  <i class="fas fa-clock" style="font-size:64px;color:var(--corporate-orange);margin-bottom:20px;display:block;"></i>' +
-    '  <h3 style="font-size:24px;margin-bottom:12px;">Coming Soon</h3>' +
-    '  <p style="color:var(--text-secondary);font-size:15px;">NSIP KM2 project data will be available in a future update.</p></div>';
-
-  // Enable double-click fullscreen on KM2 layout image
-  var layoutImg = document.getElementById("nsip-km2-layout-stage").querySelector("img");
-  if (layoutImg) {
-    layoutImg.addEventListener("dblclick", function() {
-      openImageModal("/static/NSIP%20KM2_Layout.png", "NSIP KM2 Layout");
-    });
-  }
 }
 
 /* ==========================================================================
@@ -1626,8 +1001,9 @@ function renderProjectView(slug) {
     '<div class="page-header">' +
     '  <div style="display:flex;justify-content:space-between;align-items:center;flex:1;">' +
     '    <div><h1 style="margin-right:12px;">' + pageTitle.toUpperCase() + '</h1><div class="header-sub">Project Dashboard</div></div>' +
+    '    <div style="flex-shrink:0;">' + renderStatusDot(status) + '</div>' +
     '  </div>' +
-    '  <div class="data-extracted-box"><div class="de-label">Updated as of</div><div class="de-date">' + dateText + '</div></div>' +
+    '  <div class="data-extracted-box"><div class="de-label">Data Extracted</div><div class="de-date">' + dateText + '</div></div>' +
     '</div>' +
     '<div class="project-image-banner" id="project-image-' + slug + '" style="background:#000000;border-radius:10px;overflow:hidden;margin-bottom:20px;position:relative;cursor:pointer;" title="Double-click to view full image">' +
     '  <div style="display:flex;align-items:center;justify-content:center;min-height:200px;max-height:400px;padding:20px;">' +
@@ -1635,16 +1011,15 @@ function renderProjectView(slug) {
     '  </div>' +
     '</div>' +
     '<div class="project-kpi-container">' +
-    '  <div class="card project-kpi-box"><div class="project-kpi-label"><i class="fas fa-check-circle" style="color:#10b981;margin-right:8px;"></i>Total Available Units</div><div class="project-kpi-value" id="kpi-' + slug + '">0</div></div>' +
-    '  <div class="card project-kpi-price-box"><div class="project-kpi-label"><i class="fas fa-dollar-sign" style="color:#2563eb;margin-right:8px;"></i>Total SPA Price</div><div class="project-kpi-value" id="kpi-price-' + slug + '">RM 0</div></div>' +
+    '  <div class="card project-kpi-box"><div class="project-kpi-label"><i class="fas fa-check-circle" style="color:var(--corporate-orange);margin-right:8px;"></i>Total Available Units</div><div class="project-kpi-value" id="kpi-' + slug + '">0</div></div>' +
+    '  <div class="card project-kpi-price-box"><div class="project-kpi-label"><i class="fas fa-coins" style="color:#0f2042;margin-right:8px;"></i>Total List Price</div><div class="project-kpi-value" id="kpi-price-' + slug + '">RM 0</div></div>' +
     '</div>' +
     '<div class="card" id="staticAssetList-' + slug + '">' +
     '  <div class="card-header">' +
-    '    <span class="card-title"><i class="fas fa-table"></i> AVAILABLE UNIT LIST</span>' +
+    '    <span class="card-title"><i class="fas fa-table"></i> ASSET LIST TABLE</span>' +
     '    <div class="table-controls">' +
     '      <select id="staticFilterPhase-' + slug + '" class="table-filter"><option value="">All Phases</option></select>' +
     '      <select id="staticFilterType-' + slug + '" class="table-filter"><option value="">All Unit Types</option></select>' +
-    '      <button id="resetSort-' + slug + '" class="table-filter" style="padding:6px 12px;border:1px solid var(--border-light);border-radius:4px;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:#0f2042;"><i class="fas fa-undo" style="margin-right:4px;"></i>Reset Sort</button>' +
     '    </div>' +
     '  </div>' +
     '  <div id="staticLedgerContainer-' + slug + '" class="asset-table-container"></div>' +
@@ -1652,7 +1027,7 @@ function renderProjectView(slug) {
     '</div>' +
     '<div class="card" id="assetListContainer-' + slug + '">' +
     '  <div class="card-header">' +
-    '    <span class="card-title"><i class="fas fa-list"></i> AVAILABLE UNIT BY PHASE</span>' +
+    '    <span class="card-title"><i class="fas fa-list"></i> PROJECT ASSET LIST</span>' +
     '    <div class="table-controls">' +
     '      <select id="filterPhase-' + slug + '"><option value="">All Phases</option></select>' +
     '      <select id="filterType-' + slug + '"><option value="">All Unit Types</option></select>' +
@@ -1666,9 +1041,8 @@ function renderProjectView(slug) {
     try { renderProjectKPI(slug, projectUnits); } catch(e) { console.error("KPI:", e); }
     try { renderProjectTotalPriceKPI(slug, projectUnits); } catch(e) { console.error("Price KPI:", e); }
     
-      try { renderStaticAssetTable(slug, projectUnits); } catch(e) { console.error("Static table:", e); }
-      try { renderPsfInfoBox(slug); } catch(e) { console.error("PSF info:", e); }
-      try { renderProjectHierarchy(slug, projectUnits); } catch(e) { console.error("Hierarchy:", e); }
+    try { renderStaticAssetTable(slug, projectUnits); } catch(e) { console.error("Static table:", e); }
+    try { renderProjectHierarchy(slug, projectUnits); } catch(e) { console.error("Hierarchy:", e); }
   });
 
   loadProjectImageBanner(slug, cfg.name);
@@ -1676,20 +1050,14 @@ function renderProjectView(slug) {
   // Load temporary layout images for projects without SVG
   var TEMP_LAYOUT_IMAGES = {
     "grand-ion-majestic": "/static/GIM_Layout.png",
-    "vortex-business-park": "/static/Vortex_Layout.png",
-    "grand-ion-delemen": "/static/GID_Layout.png"
+    "vortex-business-park": "/static/Vortex_Layout.png"
   };
   if (TEMP_LAYOUT_IMAGES[slug]) {
     // Insert layout section after KPI cards
     var layoutWrapper = document.createElement("div");
     layoutWrapper.id = slug + "-layout-wrapper";
     layoutWrapper.style.cssText = "width:100%;display:flex;flex-direction:column;gap:20px;box-sizing:border-box;padding:0;margin-bottom:20px;";
-    var layoutBalance = getLayoutBalance(cfg.name) || '';
     layoutWrapper.innerHTML =
-      '<div class="card" style="padding:12px 16px;margin-bottom:0;background:#f8fafc;border:1px solid #eef0f4;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,0.06);display:flex;align-items:center;">' +
-      '  <span class="card-title" style="flex-shrink:0;"><i class="fas fa-map"></i> LAYOUT PLAN</span>' +
-      '  <span style="margin-left:auto;font-size:14px;font-weight:700;color:#0f2042;white-space:nowrap;">' + layoutBalance + '</span>' +
-      '</div>' +
       '<div style="width:100%;background:#ffffff;border:1px solid #eef0f4;border-radius:10px;padding:12px;box-shadow:0 1px 3px rgba(0,0,0,0.06);overflow:hidden;">' +
       '  <img src="' + TEMP_LAYOUT_IMAGES[slug] + '" alt="Layout" style="width:100%;height:auto;display:block;border-radius:6px;">' +
       '</div>';
@@ -1697,22 +1065,6 @@ function renderProjectView(slug) {
     if (kpiContainer && kpiContainer.nextSibling) {
       kpiContainer.parentNode.insertBefore(layoutWrapper, kpiContainer.nextSibling);
     }
-  }
-
-  // Insert Project Details between LAYOUT PLAN and AVAILABLE UNIT LIST
-  var detailsHtml = '' + renderProjectDetails(cfg.name) + '';
-  var detailsDiv = document.createElement("div");
-  detailsDiv.innerHTML = detailsHtml;
-  var layoutWrapperEl = document.getElementById(slug + "-layout-wrapper");
-  var refNode = layoutWrapperEl ? layoutWrapperEl.nextSibling : null;
-  if (!refNode) {
-    var kpiContainerEl = panel.querySelector(".project-kpi-container");
-    if (kpiContainerEl) refNode = kpiContainerEl.nextSibling;
-  }
-  if (refNode) {
-    panel.insertBefore(detailsDiv, refNode);
-  } else {
-    panel.appendChild(detailsDiv);
   }
 }
 
@@ -1729,7 +1081,7 @@ function loadProjectImageBanner(slug, projectName) {
       }
 
       var imgUrl = images[0].url;
-      banner.innerHTML = '<img src="' + imgUrl + '" alt="' + esc(projectName) + '" style="width:100%;max-height:400px;object-fit:contain;display:block;background:#000000;">';
+      banner.innerHTML = '<img src="' + imgUrl + '" alt="' + esc(projectName) + '" style="width:100%;max-height:400px;object-fit:cover;object-position:center;display:block;background:#000000;">';
 
       banner.addEventListener("dblclick", function() {
         openImageModal(imgUrl, images[0].filename);
@@ -1746,68 +1098,12 @@ function loadProjectImageBanner(slug, projectName) {
    ========================================================================== */
 var __staticTableState = {};
 
-var PROJECT_PSF_INFO = {
-  "n-city-commercial": "RM378 psf NSA",
-  "vortex-business-park": "RM398 psf NSA",
-  "mahkota-kampar": "RM198 psf NSA",
-  "ion-belian-garden-commercial": "RM338 psf NSA",
-  "nsip": "RM663 psf NSA",
-  "grand-ion-delemen": "RM1489 psf NSA",
-  "grand-ion-majestic": "RM1770 psf NSA"
-};
-
-function renderPsfInfoBox(slug) {
-  var text = PROJECT_PSF_INFO[slug];
-  if (!text) return;
-  var container = document.getElementById("staticAssetList-" + slug);
-  if (!container) return;
-  var existing = container.nextElementSibling;
-  if (existing && existing.classList.contains("psf-info-box")) return;
-  var box = document.createElement("div");
-  box.className = "psf-info-box";
-  box.style.cssText = "background:#fef9e7;border:1px solid #fde68a;border-radius:10px;padding:4px 20px;margin-bottom:20px;text-align:right;font-style:italic;font-size:14px;color:#000000;width:100%;box-sizing:border-box;line-height:28px;";
-  box.textContent = text;
-  container.parentNode.insertBefore(box, container.nextSibling);
-}
-
 function renderStaticAssetTable(slug, projectUnits) {
   var container = document.getElementById("staticLedgerContainer-" + slug);
   var phaseFilter = document.getElementById("staticFilterPhase-" + slug);
   var typeFilter = document.getElementById("staticFilterType-" + slug);
   var paginationEl = document.getElementById("staticPagination-" + slug);
   if (!container) return;
-
-  // Initialize sort state for this project
-  var sortState = initSortState(slug);
-
-  // Bind Reset Sort button
-  var resetBtn = document.getElementById("resetSort-" + slug);
-  if (resetBtn && !resetBtn.getAttribute("data-bound")) {
-    resetBtn.setAttribute("data-bound", "1");
-    resetBtn.addEventListener("click", function() {
-      resetSortState(slug);
-      state.page = 1;
-      filterAndRender();
-    });
-  }
-
-  // Grand Ion Majestic: replace Phase filter with Block Name filter
-  var blockFilter = null;
-  if (slug === "grand-ion-majestic") {
-    if (phaseFilter) phaseFilter.style.display = "none";
-    blockFilter = document.getElementById("staticFilterBlock-" + slug);
-    if (!blockFilter) {
-      var blockSelect = document.createElement("select");
-      blockSelect.id = "staticFilterBlock-" + slug;
-      blockSelect.className = "table-filter";
-      blockSelect.innerHTML = '<option value="">All Blocks</option>';
-      var controls = phaseFilter ? phaseFilter.parentNode : null;
-      if (controls) {
-        controls.insertBefore(blockSelect, phaseFilter);
-      }
-      blockFilter = blockSelect;
-    }
-  }
 
   // Get project config for highrise check
   var staticCfg = getProjectConfig(slug);
@@ -1817,35 +1113,16 @@ function renderStaticAssetTable(slug, projectUnits) {
   if (!__staticTableState[slug]) __staticTableState[slug] = { page: 1, perPage: 50 };
   var state = __staticTableState[slug];
 
-  // For NSIP KM1, show all units in one page (disable pagination)
-  if (slug === "nsip") {
-    state.perPage = 999;
-  }
-
   // Populate phase filter
   if (phaseFilter && phaseFilter.getAttribute("data-populated") !== "1") {
     var phases = Array.from(new Set(projectUnits.map(function(u) { return u.Phase || "N/A"; }))).sort();
     phases.forEach(function(phase) {
       var opt = document.createElement("option");
       opt.value = phase;
-      // Apply Grand Ion Majestic phase display mapping
-      var displayPhase = (slug === "grand-ion-majestic") ? getMajesticPhaseDisplay(phase) : phase;
-      opt.textContent = displayPhase;
+      opt.textContent = phase;
       phaseFilter.appendChild(opt);
     });
     phaseFilter.setAttribute("data-populated", "1");
-  }
-
-  // Populate Block Name filter for Grand Ion Majestic
-  if (slug === "grand-ion-majestic" && blockFilter && blockFilter.getAttribute("data-populated") !== "1") {
-    var blocks = Array.from(new Set(projectUnits.map(function(u) { return u.Block || "N/A"; }))).sort();
-    blocks.forEach(function(block) {
-      var opt = document.createElement("option");
-      opt.value = block;
-      opt.textContent = block;
-      blockFilter.appendChild(opt);
-    });
-    blockFilter.setAttribute("data-populated", "1");
   }
 
   // Populate type filter
@@ -1861,20 +1138,14 @@ function renderStaticAssetTable(slug, projectUnits) {
   }
 
   function filterAndRender() {
-    // Filter to Display-Available units only
-    var filtered = projectUnits.filter(isDisplayAvailable);
-    if (phaseFilter && phaseFilter.value && phaseFilter.style.display !== "none") {
+    // Filter to Available units only
+    var filtered = projectUnits.filter(isAvailable);
+    if (phaseFilter && phaseFilter.value) {
       filtered = filtered.filter(function(u) { return (u.Phase || "N/A") === phaseFilter.value; });
-    }
-    if (slug === "grand-ion-majestic" && blockFilter && blockFilter.value) {
-      filtered = filtered.filter(function(u) { return (u.Block || "N/A") === blockFilter.value; });
     }
     if (typeFilter && typeFilter.value) {
       filtered = filtered.filter(function(u) { return (u.Unit_Type || "N/A") === typeFilter.value; });
     }
-
-    // Apply sorting
-    filtered = sortUnits(filtered, sortState);
 
     // Pagination
     var totalPages = Math.ceil(filtered.length / state.perPage) || 1;
@@ -1882,123 +1153,31 @@ function renderStaticAssetTable(slug, projectUnits) {
     var start = (state.page - 1) * state.perPage;
     var pageUnits = filtered.slice(start, start + state.perPage);
 
-    // Check if this is Salak Perdana (hide Land Area column)
-    var isSalakPerdana = (slug === "salak-perdana");
-    // Check if this is NSIP KM1 (use sqm + sqft columns)
-    var isNsipKm1 = (slug === "nsip");
+    // Render table
     var isHighrise = HIGHRISE_PROJECTS[projectNameForCheck.toString().trim().toUpperCase()];
-    var isGid = (slug === "grand-ion-delemen");
-    var showBumiStatus = (slug === "n-city-commercial");
     var colGroups, headers;
-    if (isHighrise && isGid) {
-      // GID: Property Owner column removed
-      if (showBumiStatus) {
-        colGroups = '<col style="width:5%"><col style="width:25%"><col style="width:15%"><col style="width:15%"><col style="width:20%"><col style="width:20%">';
-        headers = '<th>No</th><th>Unit No</th><th>Bumi Status</th><th>Status</th><th>Built Up (sqft)' + getSortButtonHtml("builtUp", sortState) + '</th><th>SPA Price (RM)' + getSortButtonHtml("spaPrice", sortState) + '</th>';
-      } else {
-        colGroups = '<col style="width:5%"><col style="width:30%"><col style="width:25%"><col style="width:20%"><col style="width:20%">';
-        headers = '<th>No</th><th>Unit No</th><th>Status</th><th>Built Up (sqft)' + getSortButtonHtml("builtUp", sortState) + '</th><th>SPA Price (RM)' + getSortButtonHtml("spaPrice", sortState) + '</th>';
-      }
-    } else if (isHighrise) {
-      if (showBumiStatus) {
-        colGroups = '<col style="width:5%"><col style="width:18%"><col style="width:10%"><col style="width:12%"><col style="width:30%"><col style="width:30%">';
-        headers = '<th>No</th><th>Unit No</th><th>Bumi Status</th><th>Status</th><th>Built Up (sqft)' + getSortButtonHtml("builtUp", sortState) + '</th><th>SPA Price (RM)' + getSortButtonHtml("spaPrice", sortState) + '</th>';
-      } else {
-        colGroups = '<col style="width:5%"><col style="width:20%"><col style="width:15%"><col style="width:30%"><col style="width:30%">';
-        headers = '<th>No</th><th>Unit No</th><th>Status</th><th>Built Up (sqft)' + getSortButtonHtml("builtUp", sortState) + '</th><th>SPA Price (RM)' + getSortButtonHtml("spaPrice", sortState) + '</th>';
-      }
-    } else if (isSalakPerdana) {
-      // Salak Perdana: hide Land Area column
-      if (showBumiStatus) {
-        colGroups = '<col style="width:5%"><col style="width:18%"><col style="width:10%"><col style="width:12%"><col style="width:30%"><col style="width:30%">';
-        headers = '<th>No</th><th>Unit No</th><th>Bumi Status</th><th>Status</th><th>Built Up (sqft)' + getSortButtonHtml("builtUp", sortState) + '</th><th>SPA Price (RM)' + getSortButtonHtml("spaPrice", sortState) + '</th>';
-      } else {
-        colGroups = '<col style="width:5%"><col style="width:20%"><col style="width:15%"><col style="width:30%"><col style="width:30%">';
-        headers = '<th>No</th><th>Unit No</th><th>Status</th><th>Built Up (sqft)' + getSortButtonHtml("builtUp", sortState) + '</th><th>SPA Price (RM)' + getSortButtonHtml("spaPrice", sortState) + '</th>';
-      }
-    } else if (isNsipKm1) {
-      // NSIP KM1: full-width table with proper spacing
-      if (showBumiStatus) {
-        colGroups = '<col style="width:4%"><col style="width:12%"><col style="width:8%"><col style="width:8%"><col style="width:10%"><col style="width:10%"><col style="width:10%"><col style="width:10%"><col style="width:8%"><col style="width:20%">';
-        headers = '<th>No</th><th>Unit No</th><th>Bumi Status</th><th>Status</th><th>Land Area (sqm)</th><th>Built Up (sqm)</th><th>Land Area (sqft)</th><th>Built Up (sqft)' + getSortButtonHtml("builtUp", sortState) + '</th><th>Unit Type</th><th>SPA Price (RM)' + getSortButtonHtml("spaPrice", sortState) + '</th>';
-      } else {
-        colGroups = '<col style="width:4%"><col style="width:14%"><col style="width:8%"><col style="width:11%"><col style="width:11%"><col style="width:11%"><col style="width:11%"><col style="width:10%"><col style="width:20%">';
-        headers = '<th>No</th><th>Unit No</th><th>Status</th><th>Land Area (sqm)</th><th>Built Up (sqm)</th><th>Land Area (sqft)</th><th>Built Up (sqft)' + getSortButtonHtml("builtUp", sortState) + '</th><th>Unit Type</th><th>SPA Price (RM)' + getSortButtonHtml("spaPrice", sortState) + '</th>';
-      }
+    if (isHighrise) {
+      colGroups = '<col style="width:5%"><col style="width:20%"><col style="width:15%"><col style="width:30%"><col style="width:30%">';
+      headers = '<th>No</th><th>Unit No</th><th>Status</th><th>Built Up</th><th>List Price</th>';
     } else {
-      if (showBumiStatus) {
-        colGroups = '<col style="width:5%"><col style="width:18%"><col style="width:10%"><col style="width:12%"><col style="width:20%"><col style="width:20%"><col style="width:20%">';
-        headers = '<th>No</th><th>Unit No</th><th>Bumi Status</th><th>Status</th><th>Land Area (sqft)</th><th>Built Up (sqft)' + getSortButtonHtml("builtUp", sortState) + '</th><th>SPA Price (RM)' + getSortButtonHtml("spaPrice", sortState) + '</th>';
-      } else {
-        colGroups = '<col style="width:5%"><col style="width:20%"><col style="width:15%"><col style="width:20%"><col style="width:20%"><col style="width:20%">';
-        headers = '<th>No</th><th>Unit No</th><th>Status</th><th>Land Area (sqft)</th><th>Built Up (sqft)' + getSortButtonHtml("builtUp", sortState) + '</th><th>SPA Price (RM)' + getSortButtonHtml("spaPrice", sortState) + '</th>';
-      }
+      colGroups = '<col style="width:5%"><col style="width:20%"><col style="width:15%"><col style="width:20%"><col style="width:20%"><col style="width:20%">';
+      headers = '<th>No</th><th>Unit No</th><th>Status</th><th>Land Area</th><th>Built Up</th><th>List Price</th>';
     }
 
     var tableHtml = '<table class="asset-table"><colgroup>' + colGroups + '</colgroup><thead><tr>' + headers + '</tr></thead><tbody>';
     pageUnits.forEach(function(u, i) {
-      var status = getDisplayStatus(u);
+      var status = esc(u.Status || "");
       var statusClass = (status || "").toLowerCase() === "available" ? ' style="color:#16a34a;font-weight:600;"' : '';
-    var remark = getUnitRemark(u);
-    var unitNoCell = esc(u.Unit_No) + (remark ? '<br><span style="color:#dc2626;font-size:11px;font-style:italic;display:block;margin-top:2px;">' + remark + '</span>' : '');
-    if (isHighrise && isGid) {
-        if (showBumiStatus) {
-          tableHtml += '<tr><td>' + (start + i + 1) + '</td><td>' + unitNoCell + '</td><td>' + getBumiStatus(u.Unit_No) + '</td><td><span' + statusClass + '>' + status + '</span></td><td>' + formatArea(u.Built_Up) + '</td><td>' + formatPriceValue(u.Listing_Price) + '</td></tr>';
-        } else {
-          tableHtml += '<tr><td>' + (start + i + 1) + '</td><td>' + unitNoCell + '</td><td><span' + statusClass + '>' + status + '</span></td><td>' + formatArea(u.Built_Up) + '</td><td>' + formatPriceValue(u.Listing_Price) + '</td></tr>';
-        }
-      } else if (isHighrise) {
-        if (showBumiStatus) {
-          tableHtml += '<tr><td>' + (start + i + 1) + '</td><td>' + unitNoCell + '</td><td>' + getBumiStatus(u.Unit_No) + '</td><td><span' + statusClass + '>' + status + '</span></td><td>' + formatArea(u.Built_Up) + '</td><td>' + formatPriceValue(u.Listing_Price) + '</td></tr>';
-        } else {
-          tableHtml += '<tr><td>' + (start + i + 1) + '</td><td>' + unitNoCell + '</td><td><span' + statusClass + '>' + status + '</span></td><td>' + formatArea(u.Built_Up) + '</td><td>' + formatPriceValue(u.Listing_Price) + '</td></tr>';
-        }
-      } else if (isSalakPerdana) {
-        if (showBumiStatus) {
-          tableHtml += '<tr><td>' + (start + i + 1) + '</td><td>' + unitNoCell + '</td><td>' + getBumiStatus(u.Unit_No) + '</td><td><span' + statusClass + '>' + status + '</span></td><td>' + formatArea(u.Built_Up) + '</td><td>' + formatPriceValue(u.Listing_Price) + '</td></tr>';
-        } else {
-          tableHtml += '<tr><td>' + (start + i + 1) + '</td><td>' + unitNoCell + '</td><td><span' + statusClass + '>' + status + '</span></td><td>' + formatArea(u.Built_Up) + '</td><td>' + formatPriceValue(u.Listing_Price) + '</td></tr>';
-        }
-      } else if (isNsipKm1) {
-        var landSqm = formatArea(u.Land_Area);
-        var builtSqm = formatArea(u.Built_Up);
-        var landSqft = (u.Land_Area && !isNaN(Number(u.Land_Area))) ? (Number(u.Land_Area) * 10.7639).toFixed(2) : '-';
-        var builtSqft = (u.Built_Up && !isNaN(Number(u.Built_Up))) ? (Number(u.Built_Up) * 10.7639).toFixed(2) : '-';
-        var unitType = esc(u.Unit_Type || '-');
-        var unitLayout = esc(u.Unit_Layout || '-');
-        var nsipPrice = formatPriceValue(u.Listing_Price);
-        if (showBumiStatus) {
-          tableHtml += '<tr><td>' + (start + i + 1) + '</td><td>' + unitNoCell + '</td><td>' + getBumiStatus(u.Unit_No) + '</td><td><span' + statusClass + '>' + status + '</span></td><td>' + landSqm + '</td><td>' + builtSqm + '</td><td>' + landSqft + '</td><td>' + builtSqft + '</td><td>' + unitType + '</td><td>' + nsipPrice + '</td></tr>';
-        } else {
-          tableHtml += '<tr><td>' + (start + i + 1) + '</td><td>' + unitNoCell + '</td><td><span' + statusClass + '>' + status + '</span></td><td>' + landSqm + '</td><td>' + builtSqm + '</td><td>' + landSqft + '</td><td>' + builtSqft + '</td><td>' + unitType + '</td><td>' + nsipPrice + '</td></tr>';
-        }
-      } else {
-        if (showBumiStatus) {
-          tableHtml += '<tr><td>' + (start + i + 1) + '</td><td>' + unitNoCell + '</td><td>' + getBumiStatus(u.Unit_No) + '</td><td><span' + statusClass + '>' + status + '</span></td><td>' + formatArea(u.Land_Area) + '</td><td>' + formatArea(u.Built_Up) + '</td><td>' + formatPriceValue(u.Listing_Price) + '</td></tr>';
-        } else {
-          tableHtml += '<tr><td>' + (start + i + 1) + '</td><td>' + unitNoCell + '</td><td><span' + statusClass + '>' + status + '</span></td><td>' + formatArea(u.Land_Area) + '</td><td>' + formatArea(u.Built_Up) + '</td><td>' + formatPriceValue(u.Listing_Price) + '</td></tr>';
-        }
+      if (isHighrise) {
+      tableHtml += '<tr><td>' + (start + i + 1) + '</td><td>' + esc(u.Unit_No) + '</td><td><span' + statusClass + '>' + status + '</span></td><td>' + formatArea(u.Built_Up) + '</td><td>' + formatPrice(u.Listing_Price) + '</td></tr>';
+    } else {
+      tableHtml += '<tr><td>' + (start + i + 1) + '</td><td>' + esc(u.Unit_No) + '</td><td><span' + statusClass + '>' + status + '</span></td><td>' + formatArea(u.Land_Area) + '</td><td>' + formatArea(u.Built_Up) + '</td><td>' + formatPrice(u.Listing_Price) + '</td></tr>';
       }
     });
     tableHtml += '</tbody></table>';
 
     var cfg = getProjectConfig(slug);
     container.innerHTML = tableHtml;
-
-    // Bind sort button clicks
-    container.querySelectorAll(".sort-btn").forEach(function(btn) {
-      btn.addEventListener("click", function() {
-        var column = this.getAttribute("data-sort");
-        if (sortState.activeColumn === column) {
-          sortState[column + "Dir"] = sortState[column + "Dir"] === "asc" ? "desc" : "asc";
-        } else {
-          sortState.activeColumn = column;
-          sortState[column + "Dir"] = "asc";
-        }
-        state.page = 1;
-        filterAndRender();
-      });
-    });
 
     // Render pagination
     if (paginationEl) {
@@ -2037,10 +1216,6 @@ function renderStaticAssetTable(slug, projectUnits) {
   if (typeFilter && !typeFilter.getAttribute("data-bound")) {
     typeFilter.setAttribute("data-bound", "1");
     typeFilter.addEventListener("change", function() { state.page = 1; filterAndRender(); });
-  }
-  if (blockFilter && !blockFilter.getAttribute("data-bound")) {
-    blockFilter.setAttribute("data-bound", "1");
-    blockFilter.addEventListener("change", function() { state.page = 1; filterAndRender(); });
   }
 
   filterAndRender();
@@ -2101,7 +1276,7 @@ function renderProjectHierarchyContent(slug, projectUnits) {
   if (!container) return;
   container.innerHTML = "";
 
-  var availableUnits = projectUnits.filter(isDisplayAvailable);
+  var availableUnits = projectUnits.filter(isAvailable);
   var state = getOrInitState("project-" + slug);
 
   var projKey = "proj:" + slug;
@@ -2221,7 +1396,7 @@ function renderProjectUnitTypesAccordion(container, units, slug, phase, projName
 function renderProjectTotalPriceKPI(slug, projectUnits) {
   var el = document.getElementById("kpi-price-" + slug);
   if (!el) return;
-  el.textContent = formatPrice(computeDisplayedTotalPrice(projectUnits));
+  el.textContent = formatPrice(computeGrandTotalPrice(projectUnits));
 }
 
 function renderProjectKPI(slug, projectUnits) {
@@ -2243,8 +1418,9 @@ function renderNsipKm1View() {
 
   panel.innerHTML =
     '<div class="page-header">' +
-    '  <div style="display:flex;justify-content:space-between;align-items:center;flex:1;flex-wrap:wrap;gap:8px;">' +
-    '    <div><h1 style="margin-right:12px;">' + nsipProjectName + ' (230.09 acre)</h1><div class="header-sub">Project Dashboard</div></div>' +
+    '  <div style="display:flex;justify-content:space-between;align-items:center;flex:1;">' +
+    '    <div><h1 style="margin-right:12px;">' + nsipProjectName.toUpperCase() + '</h1><div class="header-sub">Project Dashboard</div></div>' +
+    '    <div style="flex-shrink:0;">' + renderStatusDot(status) + '</div>' +
     '  </div>' +
     '  <div class="data-extracted-box"><div class="de-label">Updated as of</div><div class="de-date">15 July 2026</div></div></div>' +
     '</div>' +
@@ -2254,32 +1430,30 @@ function renderNsipKm1View() {
     '  </div>' +
     '</div>' +
     '<div class="project-kpi-container">' +
-    '  <div class="card project-kpi-box"><div class="project-kpi-label"><i class="fas fa-check-circle" style="color:#10b981;margin-right:8px;"></i>Total Available Units</div><div class="project-kpi-value" id="kpi-nsip">0</div></div>' +
-    '  <div class="card project-kpi-price-box"><div class="project-kpi-label"><i class="fas fa-dollar-sign" style="color:#2563eb;margin-right:8px;"></i>Total SPA Price</div><div class="project-kpi-value" id="kpi-price-nsip">RM 0</div></div>' +
+    '  <div class="card project-kpi-box"><div class="project-kpi-label"><i class="fas fa-check-circle" style="color:var(--corporate-orange);margin-right:8px;"></i>Total Available Units</div><div class="project-kpi-value" id="kpi-nsip">0</div></div>' +
+    '  <div class="card project-kpi-price-box"><div class="project-kpi-label"><i class="fas fa-coins" style="color:#0f2042;margin-right:8px;"></i>Total List Price</div><div class="project-kpi-value" id="kpi-price-nsip">RM 0</div></div>' +
     '</div>' +
+    renderBalanceBox("NCT SMART INDUSTRIAL PARK KM1", BALANCE_DATA["NCT SMART INDUSTRIAL PARK KM1"]) +
     '<div id="nsip-svg-wrapper" style="width:100%;display:flex;flex-direction:column;gap:20px;box-sizing:border-box;padding:0;margin-bottom:20px;">' +
-    '  ' + renderLayoutPlanHeader(getLayoutBalance("NCT SMART INDUSTRIAL PARK KM1")) + '' +
     '  <div id="nsip-svg-stage" style="width:100%;background:#ffffff;border:1px solid #eef0f4;border-radius:10px;padding:12px;box-shadow:0 1px 3px rgba(0,0,0,0.06);overflow:hidden;min-height:200px;">' +
     '    <div style="display:flex;align-items:center;justify-content:center;height:200px;color:#5e6778;font-style:italic;">Loading layout...</div>' +
     '  </div>' +
     '  <div id="nsip-layout-legends"></div>' +
     '  <div id="nsip-layout-summary"></div>' +
     '</div>' +
-    '' + renderProjectDetails("NCT SMART INDUSTRIAL PARK KM1") + '' +
     '<div class="card" id="staticAssetList-nsip">' +
     '  <div class="card-header">' +
-    '    <span class="card-title"><i class="fas fa-table"></i> AVAILABLE UNIT LIST</span>' +
+    '    <span class="card-title"><i class="fas fa-table"></i> ASSET LIST TABLE</span>' +
     '    <div class="table-controls">' +
     '      <select id="staticFilterPhase-nsip" class="table-filter"><option value="">All Phases</option></select>' +
     '      <select id="staticFilterType-nsip" class="table-filter"><option value="">All Unit Types</option></select>' +
-    '      <button id="resetSort-nsip" class="table-filter" style="padding:6px 12px;border:1px solid var(--border-light);border-radius:4px;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:#0f2042;"><i class="fas fa-undo" style="margin-right:4px;"></i>Reset Sort</button>' +
     '    </div>' +
     '  </div>' +
     '  <div id="staticLedgerContainer-nsip" class="asset-table-container"></div>' +
     '  <div id="staticPagination-nsip" style="display:flex;align-items:center;justify-content:center;gap:12px;margin-top:16px;padding-top:12px;border-top:1px solid var(--border-light);"></div>' +
     '</div>' +
     '<div class="card">' +
-    '  <div class="card-header"><span class="card-title"><i class="fas fa-list"></i> AVAILABLE UNIT BY PHASE</span></div>' +
+    '  <div class="card-header"><span class="card-title"><i class="fas fa-list"></i> PROJECT ASSET LIST</span></div>' +
     '  <div id="ledgerContainer-nsip"></div>' +
     '</div>';
 
@@ -2301,13 +1475,15 @@ function renderNsipKm1View() {
       };
 
       var kpiEl = document.getElementById("kpi-nsip");
-      if (kpiEl) kpiEl.textContent = computeAvailableUnits(__nsipSharedData.units);
+      if (kpiEl) kpiEl.textContent = __nsipSharedData.available;
       var priceEl = document.getElementById("kpi-price-nsip");
-      if (priceEl) priceEl.textContent = formatPrice(computeDisplayedTotalPrice(__nsipSharedData.units));
+      if (priceEl) {
+        var sumPrice = __nsipSharedData.units.filter(function(u) { return String(u.Status).trim().toLowerCase() === 'available'; }).reduce(function(acc, u) { return acc + (Number(u.Listing_Price) || 0); }, 0);
+        priceEl.textContent = formatPrice(sumPrice);
+      }
 
       try { renderNsipHierarchy(__nsipSharedData.units); } catch(e) { console.error("Hierarchy:", e); }
       try { renderStaticAssetTable("nsip", __nsipSharedData.units); } catch(e) { console.error("Static NSIP table:", e); }
-      try { renderPsfInfoBox("nsip"); } catch(e) { console.error("PSF info:", e); }
 
       // Use standardized SVG renderer with zoom controls
       renderInteractiveSvg({
@@ -2322,9 +1498,14 @@ function renderNsipKm1View() {
         modalCloseId: "nsip-modal-close",
         modalOverlayId: "nsip-modal-overlay",
         copyBtnId: "nsip-copy-btn",
-        fitToScreen: true,
-        preserveNotAvailableOnHover: true,
         onSvgLoaded: function(data) {
+          // Apply NSIP-specific D42 override after standard overlay
+          var d42 = document.getElementById("D42");
+          if (d42) {
+            d42._unitData.Status = 'Sold';
+            d42.classList.remove('available');
+            d42.classList.add('not-available');
+          }
           renderNsipLayoutLegends();
         }
       });
@@ -2365,7 +1546,11 @@ function applyNsipSvgOverlay(layoutData) {
 
     if (poly) {
       poly._unitData = unit;
-      if (status === 'available') {
+      if (unitNo === 'D42') {
+        poly._unitData.Status = 'Sold';
+        poly.classList.remove('available');
+        poly.classList.add('not-available');
+      } else if (status === 'available') {
         poly.classList.remove('not-available');
         poly.classList.add('available');
       }
@@ -2441,7 +1626,8 @@ function renderNsipLayoutLegends() {
   if (!legendsContainer) return;
   legendsContainer.innerHTML =
     '<div style="display:flex;gap:16px;align-items:center;padding:8px 16px;background:#ffffff;border:1px solid #eef0f4;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,0.06);font-size:12px;color:#5e6778;">' +
-    '  <div style="display:flex;align-items:center;gap:6px;"><span style="width:12px;height:12px;border-radius:3px;background:#00E676;display:inline-block;"></span> Available Unit</div>' +
+    '  <div style="display:flex;align-items:center;gap:6px;"><span style="width:12px;height:12px;border-radius:3px;background:#00E676;display:inline-block;"></span> Available</div>' +
+    '  <div style="display:flex;align-items:center;gap:6px;"><span style="width:12px;height:12px;border-radius:3px;background:#9E9E9E;display:inline-block;"></span> Sold / Not Available</div>' +
     '</div>';
 }
 
@@ -2510,8 +1696,8 @@ function showNsipUnitModal(unit, svgId) {
     '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-top:1px solid #f4f6fa;"><span style="font-size:12px;color:#5e6778;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;">Block</span><span style="font-size:13px;color:#1a1d23;font-weight:500;text-align:right;">' + (block || '-') + '</span></div>' +
     '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-top:1px solid #f4f6fa;"><span style="font-size:12px;color:#5e6778;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;">Lot No</span><span style="font-size:13px;color:#1a1d23;font-weight:500;text-align:right;">' + (lotNo || '-') + '</span></div>' +
     '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-top:1px solid #f4f6fa;"><span style="font-size:12px;color:#5e6778;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;">Unit Type</span><span style="font-size:13px;color:#1a1d23;font-weight:500;text-align:right;">' + (unitType || '-') + '</span></div>' +
-    '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-top:1px solid #f4f6fa;"><span style="font-size:12px;color:#5e6778;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;">Built Up (sqft)</span><span style="font-size:13px;color:#1a1d23;font-weight:500;text-align:right;">' + (builtUp || '-') + '</span></div>' +
-    '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-top:1px solid #f4f6fa;"><span style="font-size:12px;color:#5e6778;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;">Land Area (sqft)</span><span style="font-size:13px;color:#1a1d23;font-weight:500;text-align:right;">' + (landArea || '-') + '</span></div>' +
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-top:1px solid #f4f6fa;"><span style="font-size:12px;color:#5e6778;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;">Built Up</span><span style="font-size:13px;color:#1a1d23;font-weight:500;text-align:right;">' + (builtUp || '-') + '</span></div>' +
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-top:1px solid #f4f6fa;"><span style="font-size:12px;color:#5e6778;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;">Land Area</span><span style="font-size:13px;color:#1a1d23;font-weight:500;text-align:right;">' + (landArea || '-') + '</span></div>' +
     '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-top:1px solid #f4f6fa;"><span style="font-size:12px;color:#5e6778;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;">Price</span><span style="font-size:13px;color:#1a1d23;font-weight:500;text-align:right;">' + (price || '-') + '</span></div>';
 
   modalEl.style.display = 'flex';
@@ -2521,7 +1707,7 @@ function renderNsipHierarchy(projectUnits) {
   var container = document.getElementById("ledgerContainer-nsip");
   if (!container) return;
 
-  var availableUnits = projectUnits.filter(isDisplayAvailable);
+  var availableUnits = projectUnits.filter(isAvailable);
   var state = getOrInitState("project-nsip");
 
   var projKey = "proj:nsip";
@@ -2578,8 +1764,9 @@ function renderNcityView() {
 
   panel.innerHTML =
     '<div class="page-header">' +
-    '  <div style="display:flex;justify-content:space-between;align-items:center;flex:1;flex-wrap:wrap;gap:8px;">' +
+    '  <div style="display:flex;justify-content:space-between;align-items:center;flex:1;">' +
     '    <div><h1 style="margin-right:12px;">' + ncityProjectName.toUpperCase() + '</h1><div class="header-sub">Project Dashboard</div></div>' +
+    '    <div style="flex-shrink:0;">' + renderStatusDot(status) + '</div>' +
     '  </div>' +
     '  <div class="data-extracted-box"><div class="de-label">Updated as of</div><div class="de-date">15 July 2026</div></div></div>' +
     '</div>' +
@@ -2589,11 +1776,11 @@ function renderNcityView() {
     '  </div>' +
     '</div>' +
     '<div class="project-kpi-container">' +
-    '  <div class="card project-kpi-box"><div class="project-kpi-label"><i class="fas fa-check-circle" style="color:#10b981;margin-right:8px;"></i>Total Available Units</div><div class="project-kpi-value" id="kpi-ncity">0</div></div>' +
-    '  <div class="card project-kpi-price-box"><div class="project-kpi-label"><i class="fas fa-dollar-sign" style="color:#2563eb;margin-right:8px;"></i>Total SPA Price</div><div class="project-kpi-value" id="kpi-price-ncity">RM 0</div></div>' +
+    '  <div class="card project-kpi-box"><div class="project-kpi-label"><i class="fas fa-check-circle" style="color:var(--corporate-orange);margin-right:8px;"></i>Total Available Units</div><div class="project-kpi-value" id="kpi-ncity">0</div></div>' +
+    '  <div class="card project-kpi-price-box"><div class="project-kpi-label"><i class="fas fa-coins" style="color:#0f2042;margin-right:8px;"></i>Total List Price</div><div class="project-kpi-value" id="kpi-price-ncity">RM 0</div></div>' +
     '</div>' +
+    renderBalanceBox("N-CITY", BALANCE_DATA["N-CITY — COMMERCIAL"]) +
     '<div id="ncity-svg-wrapper" style="width:100%;display:flex;flex-direction:column;gap:20px;box-sizing:border-box;padding:0;margin-bottom:20px;">' +
-    '  ' + renderLayoutPlanHeader(getLayoutBalance("N-CITY — COMMERCIAL")) + '' +
     '  <div id="ncity-svg-stage" style="width:100%;background:#ffffff;border:1px solid #eef0f4;border-radius:10px;padding:12px;box-shadow:0 1px 3px rgba(0,0,0,0.06);overflow:hidden;min-height:200px;">' +
     '    <div style="display:flex;align-items:center;justify-content:center;height:200px;color:#5e6778;font-style:italic;">Loading layout...</div>' +
     '  </div>' +
@@ -2602,18 +1789,17 @@ function renderNcityView() {
     '</div>' +
     '<div class="card" id="staticAssetList-ncity">' +
     '  <div class="card-header">' +
-    '    <span class="card-title"><i class="fas fa-table"></i> AVAILABLE UNIT LIST</span>' +
+    '    <span class="card-title"><i class="fas fa-table"></i> ASSET LIST TABLE</span>' +
     '    <div class="table-controls">' +
     '      <select id="staticFilterPhase-ncity" class="table-filter"><option value="">All Phases</option></select>' +
     '      <select id="staticFilterType-ncity" class="table-filter"><option value="">All Unit Types</option></select>' +
-    '      <button id="resetSort-ncity" class="table-filter" style="padding:6px 12px;border:1px solid var(--border-light);border-radius:4px;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:#0f2042;"><i class="fas fa-undo" style="margin-right:4px;"></i>Reset Sort</button>' +
     '    </div>' +
     '  </div>' +
     '  <div id="staticLedgerContainer-ncity" class="asset-table-container"></div>' +
     '  <div id="staticPagination-ncity" style="display:flex;align-items:center;justify-content:center;gap:12px;margin-top:16px;padding-top:12px;border-top:1px solid var(--border-light);"></div>' +
     '</div>' +
     '<div class="card">' +
-    '  <div class="card-header"><span class="card-title"><i class="fas fa-list"></i> AVAILABLE UNIT BY PHASE</span></div>' +
+    '  <div class="card-header"><span class="card-title"><i class="fas fa-list"></i> PROJECT ASSET LIST</span></div>' +
     '  <div id="ledgerContainer-ncity"></div>' +
     '</div>';
 
@@ -2635,9 +1821,12 @@ function renderNcityView() {
       };
 
       var kpiEl = document.getElementById("kpi-ncity");
-      if (kpiEl) kpiEl.textContent = computeAvailableUnits(__ncitySharedData.units);
+      if (kpiEl) kpiEl.textContent = __ncitySharedData.available;
       var priceEl = document.getElementById("kpi-price-ncity");
-      if (priceEl) priceEl.textContent = formatPrice(computeDisplayedTotalPrice(__ncitySharedData.units));
+      if (priceEl) {
+        var sumPrice = __ncitySharedData.units.filter(function(u) { return String(u.Status).trim().toLowerCase() === 'available'; }).reduce(function(acc, u) { return acc + (Number(u.Listing_Price) || 0); }, 0);
+        priceEl.textContent = formatPrice(sumPrice);
+      }
 
       try { renderNcityHierarchy(__ncitySharedData.units); } catch(e) { console.error("Hierarchy:", e); }
       try { renderStaticAssetTable("ncity", __ncitySharedData.units); } catch(e) { console.error("Static table:", e); }
@@ -2650,7 +1839,6 @@ function renderNcityView() {
         summaryId: "ncity-layout-summary",
         units: __ncitySharedData.units,
         sharedDataVar: "__ncitySharedData",
-        fitToScreen: true,
         onSvgLoaded: function(data) {
           // Apply N-City-specific D42 override after standard overlay
           var d42 = document.getElementById("D42");
@@ -2722,20 +1910,14 @@ function bindNcitySvgInteractions() {
   svg.addEventListener('mouseover', function(e) {
     var target = e.target;
     if (target && target.id && target.classList) {
-      // Only apply hover effect to available units - grey units stay grey
-      if (target.classList.contains('available')) {
-        target.style.fillOpacity = '0.95';
-      }
+      target.style.fillOpacity = target.classList.contains('available') ? '0.95' : '0.50';
     }
   });
 
   svg.addEventListener('mouseout', function(e) {
     var target = e.target;
     if (target && target.id && target.classList) {
-      // Only clear hover effect from available units
-      if (target.classList.contains('available')) {
-        target.style.fillOpacity = '';
-      }
+      target.style.fillOpacity = '';
     }
   });
 
@@ -2785,7 +1967,8 @@ function renderNcityLayoutLegends() {
   if (!legendsContainer) return;
   legendsContainer.innerHTML =
     '<div style="display:flex;gap:16px;align-items:center;padding:8px 16px;background:#ffffff;border:1px solid #eef0f4;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,0.06);font-size:12px;color:#5e6778;">' +
-    '  <div style="display:flex;align-items:center;gap:6px;"><span style="width:12px;height:12px;border-radius:3px;background:#00E676;display:inline-block;"></span> Available Unit</div>' +
+    '  <div style="display:flex;align-items:center;gap:6px;"><span style="width:12px;height:12px;border-radius:3px;background:#00E676;display:inline-block;"></span> Available</div>' +
+    '  <div style="display:flex;align-items:center;gap:6px;"><span style="width:12px;height:12px;border-radius:3px;background:#9E9E9E;display:inline-block;"></span> Sold / Not Available</div>' +
     '</div>';
 }
 
@@ -2854,8 +2037,8 @@ function showNcityUnitModal(unit, svgId) {
     '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-top:1px solid #f4f6fa;"><span style="font-size:12px;color:#5e6778;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;">Block</span><span style="font-size:13px;color:#1a1d23;font-weight:500;text-align:right;">' + (block || '-') + '</span></div>' +
     '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-top:1px solid #f4f6fa;"><span style="font-size:12px;color:#5e6778;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;">Lot No</span><span style="font-size:13px;color:#1a1d23;font-weight:500;text-align:right;">' + (lotNo || '-') + '</span></div>' +
     '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-top:1px solid #f4f6fa;"><span style="font-size:12px;color:#5e6778;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;">Unit Type</span><span style="font-size:13px;color:#1a1d23;font-weight:500;text-align:right;">' + (unitType || '-') + '</span></div>' +
-    '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-top:1px solid #f4f6fa;"><span style="font-size:12px;color:#5e6778;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;">Built Up (sqft)</span><span style="font-size:13px;color:#1a1d23;font-weight:500;text-align:right;">' + (builtUp || '-') + '</span></div>' +
-    '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-top:1px solid #f4f6fa;"><span style="font-size:12px;color:#5e6778;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;">Land Area (sqft)</span><span style="font-size:13px;color:#1a1d23;font-weight:500;text-align:right;">' + (landArea || '-') + '</span></div>' +
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-top:1px solid #f4f6fa;"><span style="font-size:12px;color:#5e6778;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;">Built Up</span><span style="font-size:13px;color:#1a1d23;font-weight:500;text-align:right;">' + (builtUp || '-') + '</span></div>' +
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-top:1px solid #f4f6fa;"><span style="font-size:12px;color:#5e6778;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;">Land Area</span><span style="font-size:13px;color:#1a1d23;font-weight:500;text-align:right;">' + (landArea || '-') + '</span></div>' +
     '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-top:1px solid #f4f6fa;"><span style="font-size:12px;color:#5e6778;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;">Price</span><span style="font-size:13px;color:#1a1d23;font-weight:500;text-align:right;">' + (price || '-') + '</span></div>';
 
   modalEl.style.display = 'flex';
@@ -2865,7 +2048,7 @@ function renderNcityHierarchy(projectUnits) {
   var container = document.getElementById("ledgerContainer-ncity");
   if (!container) return;
 
-  var availableUnits = projectUnits.filter(isDisplayAvailable);
+  var availableUnits = projectUnits.filter(isAvailable);
   var state = getOrInitState("project-ncity");
 
   var projKey = "proj:ncity";
@@ -2915,8 +2098,9 @@ function renderMahkotaKamparView() {
 
   panel.innerHTML =
     '<div class="page-header">' +
-    '  <div style="display:flex;justify-content:space-between;align-items:center;flex:1;flex-wrap:wrap;gap:8px;">' +
+    '  <div style="display:flex;justify-content:space-between;align-items:center;flex:1;">' +
     '    <div><h1 style="margin-right:12px;">' + projectName.toUpperCase() + '</h1><div class="header-sub">Project Dashboard</div></div>' +
+    '    <div style="flex-shrink:0;">' + renderStatusDot(status) + '</div>' +
     '  </div>' +
     '  <div class="data-extracted-box"><div class="de-label">Updated as of</div><div class="de-date">15 July 2026</div></div></div>' +
     '</div>' +
@@ -2926,32 +2110,30 @@ function renderMahkotaKamparView() {
     '  </div>' +
     '</div>' +
     '<div class="project-kpi-container">' +
-    '  <div class="card project-kpi-box"><div class="project-kpi-label"><i class="fas fa-check-circle" style="color:#10b981;margin-right:8px;"></i>Total Available Units</div><div class="project-kpi-value" id="kpi-mahkota">0</div></div>' +
-    '  <div class="card project-kpi-price-box"><div class="project-kpi-label"><i class="fas fa-dollar-sign" style="color:#2563eb;margin-right:8px;"></i>Total SPA Price</div><div class="project-kpi-value" id="kpi-price-mahkota">RM 0</div></div>' +
+    '  <div class="card project-kpi-box"><div class="project-kpi-label"><i class="fas fa-check-circle" style="color:var(--corporate-orange);margin-right:8px;"></i>Total Available Units</div><div class="project-kpi-value" id="kpi-mahkota">0</div></div>' +
+    '  <div class="card project-kpi-price-box"><div class="project-kpi-label"><i class="fas fa-coins" style="color:#0f2042;margin-right:8px;"></i>Total List Price</div><div class="project-kpi-value" id="kpi-price-mahkota">RM 0</div></div>' +
     '</div>' +
+    renderBalanceBox("MAHKOTA KAMPAR", BALANCE_DATA["MAHKOTA KAMPAR"]) +
     '<div id="mahkota-svg-wrapper" style="width:100%;display:flex;flex-direction:column;gap:20px;box-sizing:border-box;padding:0;margin-bottom:20px;">' +
-    '  ' + renderLayoutPlanHeader(getLayoutBalance("MAHKOTA KAMPAR")) + '' +
     '  <div id="mahkota-svg-stage" style="width:100%;background:#ffffff;border:1px solid #eef0f4;border-radius:10px;padding:12px;box-shadow:0 1px 3px rgba(0,0,0,0.06);overflow:hidden;min-height:200px;">' +
     '    <div style="display:flex;align-items:center;justify-content:center;height:200px;color:#5e6778;font-style:italic;">Loading layout...</div>' +
     '  </div>' +
     '  <div id="mahkota-layout-legends"></div>' +
     '  <div id="mahkota-layout-summary"></div>' +
     '</div>' +
-    '' + renderProjectDetails(projectName) + '' +
     '<div class="card" id="staticAssetList-mahkota">' +
     '  <div class="card-header">' +
-    '    <span class="card-title"><i class="fas fa-table"></i> AVAILABLE UNIT LIST</span>' +
+    '    <span class="card-title"><i class="fas fa-table"></i> ASSET LIST TABLE</span>' +
     '    <div class="table-controls">' +
     '      <select id="staticFilterPhase-mahkota" class="table-filter"><option value="">All Phases</option></select>' +
     '      <select id="staticFilterType-mahkota" class="table-filter"><option value="">All Unit Types</option></select>' +
-    '      <button id="resetSort-mahkota" class="table-filter" style="padding:6px 12px;border:1px solid var(--border-light);border-radius:4px;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:#0f2042;"><i class="fas fa-undo" style="margin-right:4px;"></i>Reset Sort</button>' +
     '    </div>' +
     '  </div>' +
     '  <div id="staticLedgerContainer-mahkota" class="asset-table-container"></div>' +
     '  <div id="staticPagination-mahkota" style="display:flex;align-items:center;justify-content:center;gap:12px;margin-top:16px;padding-top:12px;border-top:1px solid var(--border-light);"></div>' +
     '</div>' +
     '<div class="card">' +
-    '  <div class="card-header"><span class="card-title"><i class="fas fa-list"></i> AVAILABLE UNIT BY PHASE</span></div>' +
+    '  <div class="card-header"><span class="card-title"><i class="fas fa-list"></i> PROJECT ASSET LIST</span></div>' +
     '  <div id="ledgerContainer-mahkota"></div>' +
     '</div>';
 
@@ -2973,13 +2155,15 @@ function renderMahkotaKamparView() {
       };
 
       var kpiEl = document.getElementById("kpi-mahkota");
-      if (kpiEl) kpiEl.textContent = computeAvailableUnits(__mahkotaSharedData.units);
+      if (kpiEl) kpiEl.textContent = __mahkotaSharedData.available;
       var priceEl = document.getElementById("kpi-price-mahkota");
-      if (priceEl) priceEl.textContent = formatPrice(computeDisplayedTotalPrice(__mahkotaSharedData.units));
+      if (priceEl) {
+        var sumPrice = __mahkotaSharedData.units.filter(function(u) { return String(u.Status).trim().toLowerCase() === 'available'; }).reduce(function(acc, u) { return acc + (Number(u.Listing_Price) || 0); }, 0);
+        priceEl.textContent = formatPrice(sumPrice);
+      }
 
       try { renderMahkotaHierarchy(__mahkotaSharedData.units); } catch(e) { console.error("Hierarchy:", e); }
       try { renderStaticAssetTable("mahkota", __mahkotaSharedData.units); } catch(e) { console.error("Static table:", e); }
-      try { renderPsfInfoBox("mahkota-kampar"); } catch(e) { console.error("PSF info:", e); }
 
       // Use standardized SVG renderer with zoom controls
       renderInteractiveSvg({
@@ -2994,7 +2178,6 @@ function renderMahkotaKamparView() {
         modalCloseId: "mahkota-modal-close",
         modalOverlayId: "mahkota-modal-overlay",
         copyBtnId: "mahkota-copy-btn",
-        fitToScreen: true,
         onSvgLoaded: function(data) {
           renderMahkotaLayoutLegends();
         }
@@ -3050,20 +2233,14 @@ function bindMahkotaSvgInteractions() {
   svg.addEventListener('mouseover', function(e) {
     var target = e.target;
     if (target && target.id && target.classList) {
-      // Only apply hover effect to available units - grey units stay grey
-      if (target.classList.contains('available')) {
-        target.style.fillOpacity = '0.95';
-      }
+      target.style.fillOpacity = target.classList.contains('available') ? '0.95' : '0.50';
     }
   });
 
   svg.addEventListener('mouseout', function(e) {
     var target = e.target;
     if (target && target.id && target.classList) {
-      // Only clear hover effect from available units
-      if (target.classList.contains('available')) {
-        target.style.fillOpacity = '';
-      }
+      target.style.fillOpacity = '';
     }
   });
 
@@ -3113,7 +2290,8 @@ function renderMahkotaLayoutLegends() {
   if (!legendsContainer) return;
   legendsContainer.innerHTML =
     '<div style="display:flex;gap:16px;align-items:center;padding:8px 16px;background:#ffffff;border:1px solid #eef0f4;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,0.06);font-size:12px;color:#5e6778;">' +
-    '  <div style="display:flex;align-items:center;gap:6px;"><span style="width:12px;height:12px;border-radius:3px;background:#00E676;display:inline-block;"></span> Available Unit</div>' +
+    '  <div style="display:flex;align-items:center;gap:6px;"><span style="width:12px;height:12px;border-radius:3px;background:#00E676;display:inline-block;"></span> Available</div>' +
+    '  <div style="display:flex;align-items:center;gap:6px;"><span style="width:12px;height:12px;border-radius:3px;background:#9E9E9E;display:inline-block;"></span> Sold / Not Available</div>' +
     '</div>';
 }
 
@@ -3182,8 +2360,8 @@ function showMahkotaUnitModal(unit, svgId) {
     '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-top:1px solid #f4f6fa;"><span style="font-size:12px;color:#5e6778;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;">Block</span><span style="font-size:13px;color:#1a1d23;font-weight:500;text-align:right;">' + (block || '-') + '</span></div>' +
     '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-top:1px solid #f4f6fa;"><span style="font-size:12px;color:#5e6778;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;">Lot No</span><span style="font-size:13px;color:#1a1d23;font-weight:500;text-align:right;">' + (lotNo || '-') + '</span></div>' +
     '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-top:1px solid #f4f6fa;"><span style="font-size:12px;color:#5e6778;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;">Unit Type</span><span style="font-size:13px;color:#1a1d23;font-weight:500;text-align:right;">' + (unitType || '-') + '</span></div>' +
-    '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-top:1px solid #f4f6fa;"><span style="font-size:12px;color:#5e6778;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;">Built Up (sqft)</span><span style="font-size:13px;color:#1a1d23;font-weight:500;text-align:right;">' + (builtUp || '-') + '</span></div>' +
-    '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-top:1px solid #f4f6fa;"><span style="font-size:12px;color:#5e6778;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;">Land Area (sqft)</span><span style="font-size:13px;color:#1a1d23;font-weight:500;text-align:right;">' + (landArea || '-') + '</span></div>' +
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-top:1px solid #f4f6fa;"><span style="font-size:12px;color:#5e6778;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;">Built Up</span><span style="font-size:13px;color:#1a1d23;font-weight:500;text-align:right;">' + (builtUp || '-') + '</span></div>' +
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-top:1px solid #f4f6fa;"><span style="font-size:12px;color:#5e6778;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;">Land Area</span><span style="font-size:13px;color:#1a1d23;font-weight:500;text-align:right;">' + (landArea || '-') + '</span></div>' +
     '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-top:1px solid #f4f6fa;"><span style="font-size:12px;color:#5e6778;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;">Price</span><span style="font-size:13px;color:#1a1d23;font-weight:500;text-align:right;">' + (price || '-') + '</span></div>';
 
   modalEl.style.display = 'flex';
@@ -3193,7 +2371,7 @@ function renderMahkotaHierarchy(projectUnits) {
   var container = document.getElementById("ledgerContainer-mahkota");
   if (!container) return;
 
-  var availableUnits = projectUnits.filter(isDisplayAvailable);
+  var availableUnits = projectUnits.filter(isAvailable);
   var state = getOrInitState("project-mahkota");
 
   var projKey = "proj:mahkota";
@@ -3272,11 +2450,14 @@ function renderInteractiveSvg(config) {
     window[config.sharedDataVar] = sharedData;
   }
 
-  // Update KPI if elements exist (using the SAME displayed dataset as the Available Unit List)
+  // Update KPI if elements exist
   var kpiEl = document.getElementById(config.kpiId);
   var priceEl = document.getElementById(config.kpiPriceId);
-  if (kpiEl) kpiEl.textContent = computeAvailableUnits(units);
-  if (priceEl) priceEl.textContent = formatPrice(computeDisplayedTotalPrice(units));
+  if (kpiEl) kpiEl.textContent = sharedData.available;
+  if (priceEl) {
+    var sumPrice = units.filter(function(u) { return String(u.Status).trim().toLowerCase() === 'available'; }).reduce(function(acc, u) { return acc + (Number(u.Listing_Price) || 0); }, 0);
+    priceEl.textContent = formatPrice(sumPrice);
+  }
 
       // Load SVG
       fetch(config.svgUrl)
@@ -3310,62 +2491,43 @@ function renderInteractiveSvg(config) {
         if (padded !== raw) allUnitMap[padded] = unit;
       });
 
+      // Default all matching polygons to not-available
+      polygons.forEach(function(p) {
+        if (!p.id) return;
+        // Match IDs that look like unit numbers (letter + digit pattern)
+        if (p.id.match(/^[A-Za-z][\d-]/) && !p.id.match(/^(svg|defs|namedview|layer|image|false)$/i)) {
+          p.classList.add('not-available');
+        }
+      });
+
       // Apply status-based colouring from database
-      // ONLY available units get GREEN highlight. ALL other polygons get GREY highlight.
-      // This includes: sold, signed, registered, null status, missing database records, etc.
-      
-      // Build set of available unit IDs for fast lookup
-      var availableUnitIds = {};
       units.forEach(function(unit) {
         var status = String(unit.Status || '').trim().toLowerCase();
-        if (status === 'available') {
-          var unitNo = String(unit.Unit_No || '').trim().toUpperCase();
-          var normalized = unitNo.replace(/\s+/g, '').replace(/-/g, '').replace(/^([A-Z]+)0+(\d)/, '$1$2');
-          availableUnitIds[normalized] = true;
-          availableUnitIds[unitNo] = true;
+        var unitNo = String(unit.Unit_No || '').trim().toUpperCase();
+        var normalized = unitNo.replace(/\s+/g, '').replace(/-/g, '').replace(/^([A-Z]+)0+(\d)/, '$1$2');
+
+        var poly = document.getElementById(normalized);
+        if (!poly) poly = document.getElementById(unitNo);
+        if (!poly) poly = document.getElementById(String(unit.Unit_No).trim());
+
+        if (poly) {
+          poly._unitData = unit;
+          if (status === 'available') {
+            poly.classList.remove('not-available');
+            poly.classList.add('available');
+          } else {
+            poly.classList.remove('available');
+            poly.classList.add('not-available');
+          }
         }
       });
 
-      // Process ALL polygon elements in the SVG
-      var allPolygons = stage.querySelectorAll('path, polygon, rect, circle, ellipse');
-      allPolygons.forEach(function(poly) {
-        if (!poly.id) return;
-        if (poly.id === 'svg-background') return;
-
-        var unitId = poly.id.trim().toUpperCase();
-        var normalizedId = unitId.replace(/\s+/g, '').replace(/-/g, '').replace(/^([A-Z]+)0+(\d)/, '$1$2');
-
-        // Check if this polygon ID matches any available unit
-        var isAvailable = availableUnitIds[unitId] || availableUnitIds[normalizedId];
-        
-        // Find matching unit data if available
-        var matchingUnit = null;
-        if (isAvailable) {
-          matchingUnit = units.find(function(u) {
-            var uNo = String(u.Unit_No || '').trim().toUpperCase();
-            var uNorm = uNo.replace(/\s+/g, '').replace(/-/g, '').replace(/^([A-Z]+)0+(\d)/, '$1$2');
-            return uNo === unitId || uNorm === normalizedId;
-          });
-        }
-        
-        poly._unitData = matchingUnit;
-        if (isAvailable) {
-          poly.classList.remove('not-available');
-          poly.classList.add('available');
-        } else {
-          poly.classList.remove('available');
-          poly.classList.add('not-available');
-        }
-      });
-
-      // Add zoom controls - determine if fit-to-screen is needed
-      var needsFit = config.fitToScreen === true;
-      addZoomControls(stage, svg, needsFit);
+      // Add zoom controls
+      addZoomControls(stage, svg);
 
       // Bind interactions
       bindSvgInteractions(config);
-      // Lower summary cards removed as per requirement
-      // renderSvgSummary(config.summaryId, sharedData);
+      renderSvgSummary(config.summaryId, sharedData);
       renderSvgLegends(config.legendsId);
 
       if (typeof config.onSvgLoaded === 'function') {
@@ -3379,7 +2541,7 @@ function renderInteractiveSvg(config) {
 }
 
 // Zoom controls functionality
-function addZoomControls(container, svg, fitToScreen, customDefaultZoom) {
+function addZoomControls(container, svg) {
   if (!container || !svg) return;
 
   var currentZoom = 1;
@@ -3387,29 +2549,6 @@ function addZoomControls(container, svg, fitToScreen, customDefaultZoom) {
   var minZoom = 0.5;
   var maxZoom = 3;
   var panX = 0, panY = 0;
-  var defaultZoom = 1; // Store the default zoom level (fit-to-screen or custom)
-  
-  // Open the SVG at the minimum zoom level (fully zoomed out).
-  // This is the same view the Zoom Out button stops at, so the
-  // entire layout is visible with black background around it.
-  defaultZoom = minZoom;
-  currentZoom = minZoom;
-  
-  // Center the SVG horizontally and vertically within the viewer area.
-  // Compute the pixel offsets so the SVG's center aligns with the
-  // container's center. The transform scales around the SVG center,
-  // so this centering holds at every zoom level.
-  var centeredPanX = 0, centeredPanY = 0;
-  function computeCenteredPan() {
-    var containerRect = container.getBoundingClientRect();
-    var svgRect = svg.getBoundingClientRect();
-    centeredPanX = (containerRect.left + containerRect.width / 2) - (svgRect.left + svgRect.width / 2);
-    centeredPanY = (containerRect.top + containerRect.height / 2) - (svgRect.top + svgRect.height / 2);
-  }
-  computeCenteredPan();
-  panX = centeredPanX;
-  panY = centeredPanY;
-  
   var isDragging = false;
   var startX, startY;
   var dragStartX, dragStartY;
@@ -3503,12 +2642,12 @@ function addZoomControls(container, svg, fitToScreen, customDefaultZoom) {
     }
   });
 
-  // Reset zoom - restore to the default (minimum) zoom and centered position
+  // Reset zoom
   if (zoomResetBtn) {
     zoomResetBtn.addEventListener('click', function() {
-      currentZoom = defaultZoom;
-      panX = centeredPanX;
-      panY = centeredPanY;
+      currentZoom = 1;
+      panX = 0;
+      panY = 0;
       updateZoom();
     });
   }
@@ -3525,26 +2664,16 @@ function bindSvgInteractions(config) {
 
   svg.addEventListener('mouseover', function(e) {
     var target = e.target;
-    if (!target || !target.id || !target.classList) return;
-    // Never modify the SVG background rectangle
-    if (target.id === 'svg-background') return;
-    // For NSIP KM1: preserveNotAvailableOnHover=true means do NOT change not-available fill
-    if (config.preserveNotAvailableOnHover && !target.classList.contains('available')) {
-      return;
+    if (target && target.id && target.classList) {
+      target.style.fillOpacity = target.classList.contains('available') ? '0.95' : '0.50';
     }
-    target.style.fillOpacity = target.classList.contains('available') ? '0.95' : '0.50';
   });
 
   svg.addEventListener('mouseout', function(e) {
     var target = e.target;
-    if (!target || !target.id || !target.classList) return;
-    // Never modify the SVG background rectangle
-    if (target.id === 'svg-background') return;
-    // For NSIP KM1: preserveNotAvailableOnHover=true means do NOT clear not-available fill
-    if (config.preserveNotAvailableOnHover && !target.classList.contains('available')) {
-      return;
+    if (target && target.id && target.classList) {
+      target.style.fillOpacity = '';
     }
-    target.style.fillOpacity = '';
   });
 
   svg.addEventListener('click', function(e) {
@@ -3593,7 +2722,8 @@ function renderSvgLegends(legendsId) {
   if (!legendsContainer) return;
   legendsContainer.innerHTML =
     '<div style="display:flex;gap:16px;align-items:center;padding:8px 16px;background:#ffffff;border:1px solid #eef0f4;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,0.06);font-size:12px;color:#5e6778;">' +
-    '  <div style="display:flex;align-items:center;gap:6px;"><span style="width:12px;height:12px;border-radius:3px;background:#00E676;display:inline-block;"></span> Available Unit</div>' +
+    '  <div style="display:flex;align-items:center;gap:6px;"><span style="width:12px;height:12px;border-radius:3px;background:#00E676;display:inline-block;"></span> Available</div>' +
+    '  <div style="display:flex;align-items:center;gap:6px;"><span style="width:12px;height:12px;border-radius:3px;background:#9E9E9E;display:inline-block;"></span> Sold / Not Available</div>' +
     '</div>';
 }
 
@@ -3662,8 +2792,8 @@ function showUnitModal(config, unit, svgId) {
     '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-top:1px solid #f4f6fa;"><span style="font-size:12px;color:#5e6778;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;">Block</span><span style="font-size:13px;color:#1a1d23;font-weight:500;text-align:right;">' + (block || '-') + '</span></div>' +
     '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-top:1px solid #f4f6fa;"><span style="font-size:12px;color:#5e6778;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;">Lot No</span><span style="font-size:13px;color:#1a1d23;font-weight:500;text-align:right;">' + (lotNo || '-') + '</span></div>' +
     '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-top:1px solid #f4f6fa;"><span style="font-size:12px;color:#5e6778;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;">Unit Type</span><span style="font-size:13px;color:#1a1d23;font-weight:500;text-align:right;">' + (unitType || '-') + '</span></div>' +
-    '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-top:1px solid #f4f6fa;"><span style="font-size:12px;color:#5e6778;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;">Built Up (sqft)</span><span style="font-size:13px;color:#1a1d23;font-weight:500;text-align:right;">' + (builtUp || '-') + '</span></div>' +
-    '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-top:1px solid #f4f6fa;"><span style="font-size:12px;color:#5e6778;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;">Land Area (sqft)</span><span style="font-size:13px;color:#1a1d23;font-weight:500;text-align:right;">' + (landArea || '-') + '</span></div>' +
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-top:1px solid #f4f6fa;"><span style="font-size:12px;color:#5e6778;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;">Built Up</span><span style="font-size:13px;color:#1a1d23;font-weight:500;text-align:right;">' + (builtUp || '-') + '</span></div>' +
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-top:1px solid #f4f6fa;"><span style="font-size:12px;color:#5e6778;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;">Land Area</span><span style="font-size:13px;color:#1a1d23;font-weight:500;text-align:right;">' + (landArea || '-') + '</span></div>' +
     '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-top:1px solid #f4f6fa;"><span style="font-size:12px;color:#5e6778;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;">Price</span><span style="font-size:13px;color:#1a1d23;font-weight:500;text-align:right;">' + (price || '-') + '</span></div>';
 
   modalEl.style.display = 'flex';
@@ -3695,6 +2825,53 @@ function collapseIonBelianGardenSubmenu() {
 }
 
 
+/* ==========================================================================
+   NCT INNOSPHERE — Full Project Page
+   ========================================================================== */
+function renderNctInnosphereView() {
+  var panel = document.getElementById("view-nct-innosphere");
+  if (!panel) return;
+  var status = getProjectStatus("NCT INNOSPHERE");
+  var projectName = "NCT INNOSPHERE";
+
+  panel.innerHTML =
+    '<div class="page-header">' +
+    '  <div style="display:flex;justify-content:space-between;align-items:center;flex:1;">' +
+    '    <div><h1 style="margin-right:12px;">' + projectName.toUpperCase() + '</h1><div class="header-sub">Project Dashboard</div></div>' +
+    '    <div style="flex-shrink:0;">' + renderStatusDot(status) + '</div>' +
+    '  </div>' +
+    '  <div class="data-extracted-box"><div class="de-label">Data Extracted</div><div class="de-date">Not Available</div></div>' +
+    '</div>' +
+    renderBalanceBox("NCT INNOSPHERE", "") +
+    '<div class="project-image-banner" id="project-image-nct-innosphere" style="background:#000000;border-radius:10px;overflow:hidden;margin-bottom:20px;position:relative;cursor:pointer;" title="Double-click to view full image">' +
+    '  <div style="display:flex;align-items:center;justify-content:center;min-height:200px;max-height:400px;padding:20px;">' +
+    '    <div style="color:#9ca3af;font-size:14px;"><i class="fas fa-spinner fa-spin" style="font-size:24px;display:block;margin-bottom:8px;"></i>Loading project image...</div>' +
+    '  </div>' +
+    '</div>' +
+    '<div class="project-kpi-container">' +
+    '  <div class="card project-kpi-box"><div class="project-kpi-label"><i class="fas fa-building" style="color:var(--corporate-orange);margin-right:8px;"></i>Total Units</div><div class="project-kpi-value">0</div></div>' +
+    '  <div class="card project-kpi-box"><div class="project-kpi-label"><i class="fas fa-check-circle" style="color:var(--corporate-orange);margin-right:8px;"></i>Available Units</div><div class="project-kpi-value">0</div></div>' +
+    '  <div class="card project-kpi-box"><div class="project-kpi-label"><i class="fas fa-handshake" style="color:var(--corporate-orange);margin-right:8px;"></i>Sold</div><div class="project-kpi-value">0</div></div>' +
+    '  <div class="card project-kpi-box"><div class="project-kpi-label"><i class="fas fa-clock" style="color:var(--corporate-orange);margin-right:8px;"></i>Reserved</div><div class="project-kpi-value">0</div></div>' +
+    '</div>' +
+    '<div id="nis-layout-wrapper" style="width:100%;display:flex;flex-direction:column;gap:20px;box-sizing:border-box;padding:0;margin-bottom:20px;">' +
+    '  <div id="nis-layout-stage" style="width:100%;background:#ffffff;border:1px solid #eef0f4;border-radius:10px;padding:12px;box-shadow:0 1px 3px rgba(0,0,0,0.06);overflow:hidden;min-height:200px;">' +
+    '    <div style="display:flex;align-items:center;justify-content:center;height:200px;color:#5e6778;font-style:italic;">Loading layout...</div>' +
+    '  </div>' +
+    '</div>' +
+    '<div class="card">' +
+    '  <div class="card-header"><span class="card-title"><i class="fas fa-table"></i> ASSET LIST TABLE</span></div>' +
+    '  <div class="asset-table-container" style="padding:40px;text-align:center;color:#5e6778;"><i class="fas fa-database" style="font-size:32px;display:block;margin-bottom:8px;opacity:0.4;"></i>No records available</div>' +
+    '</div>';
+
+  loadProjectImageBanner("nct-innosphere", "NCT INNOSPHERE");
+
+  // Load temporary layout image
+  var stage = document.getElementById("nis-layout-stage");
+  if (stage) {
+    stage.innerHTML = '<img src="/static/NIS_Layout.png" alt="NCT Innosphere Layout" style="width:100%;height:auto;display:block;border-radius:6px;">';
+  }
+}
 
 /* ==========================================================================
    ION BELIAN GARDEN — Commercial & Residential Pages
@@ -3718,40 +2895,33 @@ function renderIbgPageStructure(viewId, title, filterFn, imagePath, svgPath, api
 
   panel.innerHTML =
     '<div class="page-header">' +
-    '  <div style="display:flex;justify-content:space-between;align-items:center;flex:1;flex-wrap:wrap;gap:8px;">' +
+    '  <div style="display:flex;justify-content:space-between;align-items:center;flex:1;">' +
     '    <div><h1 style="margin-right:12px;">ION BELIAN GARDEN — ' + title.toUpperCase() + '</h1><div class="header-sub">Project Dashboard</div></div>' +
+    '    <div style="flex-shrink:0;">' + renderStatusDot(status) + '</div>' +
     '  </div>' +
     '  <div class="data-extracted-box"><div class="de-label">Updated as of</div><div class="de-date">15 July 2026</div></div>' +
     '</div>' +
     '<div class="project-image-banner" id="project-image-' + viewId + '" style="background:#000000;border-radius:10px;overflow:hidden;margin-bottom:20px;position:relative;cursor:pointer;" title="Double-click to view full image">' +
     '  <div style="display:flex;align-items:center;justify-content:center;min-height:200px;max-height:400px;padding:20px;">' +
-    '    <img src="' + imagePath + '" alt="' + title + '" style="width:100%;max-height:400px;object-fit:contain;display:block;background:#000000;">' +
+    '    <img src="' + imagePath + '" alt="' + title + '" style="width:100%;max-height:400px;object-fit:cover;object-position:center;display:block;background:#000000;">' +
     '  </div>' +
     '</div>' +
     '<div class="project-kpi-container">' +
-    '  <div class="card project-kpi-box"><div class="project-kpi-label"><i class="fas fa-check-circle" style="color:#10b981;margin-right:8px;"></i>Total Available Units</div><div class="project-kpi-value" id="kpi-' + viewId + '">0</div></div>' +
-    '  <div class="card project-kpi-price-box"><div class="project-kpi-label"><i class="fas fa-dollar-sign" style="color:#2563eb;margin-right:8px;"></i>Total SPA Price</div><div class="project-kpi-value" id="kpi-price-' + viewId + '">RM 0</div></div>' +
+    '  <div class="card project-kpi-box"><div class="project-kpi-label"><i class="fas fa-check-circle" style="color:var(--corporate-orange);margin-right:8px;"></i>Total Available Units</div><div class="project-kpi-value" id="kpi-' + viewId + '">0</div></div>' +
+    '  <div class="card project-kpi-price-box"><div class="project-kpi-label"><i class="fas fa-coins" style="color:#0f2042;margin-right:8px;"></i>Total List Price</div><div class="project-kpi-value" id="kpi-price-' + viewId + '">RM 0</div></div>' +
     '</div>' +
     '<div id="ibg-svg-wrapper" style="width:100%;display:flex;flex-direction:column;gap:20px;box-sizing:border-box;padding:0;margin-bottom:20px;">' +
-    '  ' + renderLayoutPlanHeader(getLayoutBalance(viewId === "ion-belian-garden-commercial" ? "ION BELIAN GARDEN — COMMERCIAL" : "ION BELIAN GARDEN — RESIDENTIAL")) + '' +
     '  <div id="ibg-svg-stage-' + viewId + '" style="width:100%;background:#ffffff;border:1px solid #eef0f4;border-radius:10px;padding:12px;box-shadow:0 1px 3px rgba(0,0,0,0.06);overflow:hidden;min-height:200px;">' +
     '    <div style="display:flex;align-items:center;justify-content:center;height:200px;color:#5e6778;font-style:italic;">Loading layout...</div>' +
     '  </div>' +
     '  <div id="ibg-layout-legends-' + viewId + '"></div>' +
     '  <div id="ibg-layout-summary-' + viewId + '"></div>' +
     '</div>' +
-    (viewId === "ion-belian-garden-commercial" ? renderProjectDetails("ION BELIAN GARDEN — COMMERCIAL") : '') +
     '<div class="card" id="staticAssetList-' + viewId + '">' +
     '  <div class="card-header">' +
-    '    <span class="card-title"><i class="fas fa-table"></i> AVAILABLE UNIT LIST</span>' +
-    '    <div class="table-controls">' +
-    '      <select id="staticFilterPhase-' + viewId + '" class="table-filter"><option value="">All Phases</option></select>' +
-    '      <select id="staticFilterType-' + viewId + '" class="table-filter"><option value="">All Unit Types</option></select>' +
-    '      <button id="resetSort-' + viewId + '" class="table-filter" style="padding:6px 12px;border:1px solid var(--border-light);border-radius:4px;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:#0f2042;"><i class="fas fa-undo" style="margin-right:4px;"></i>Reset Sort</button>' +
-    '    </div>' +
+    '    <span class="card-title"><i class="fas fa-table"></i> ASSET LIST TABLE</span>' +
     '  </div>' +
     '  <div id="staticLedgerContainer-' + viewId + '" class="asset-table-container"></div>' +
-    '  <div id="staticPagination-' + viewId + '" style="display:flex;align-items:center;justify-content:center;gap:12px;margin-top:16px;padding-top:12px;border-top:1px solid var(--border-light);"></div>' +
     '</div>';
 
   // Enable double-click fullscreen on project image
@@ -3780,7 +2950,6 @@ function renderIbgPageStructure(viewId, title, filterFn, imagePath, svgPath, api
       console.log("IBG filtered units count:", filteredUnits.length);
       renderIbgKpi(viewId, filteredUnits);
       renderIbgAssetTable(viewId, filteredUnits);
-      try { renderPsfInfoBox(viewId); } catch(e) { console.error("PSF info:", e); }
       applyPageOverrides(viewId);
 
       // Render interactive SVG with ALL units (not filtered)
@@ -3796,8 +2965,7 @@ function renderIbgPageStructure(viewId, title, filterFn, imagePath, svgPath, api
         modalBodyId: "ibg-modal-body-" + viewId,
         modalCloseId: "ibg-modal-close-" + viewId,
         modalOverlayId: "ibg-modal-overlay-" + viewId,
-        copyBtnId: "ibg-copy-btn-" + viewId,
-        fitToScreen: true,
+        copyBtnId: "ibg-copy-btn-" + viewId
       });
     })
     .catch(function(err) {
@@ -3811,7 +2979,7 @@ function renderIbgKpi(viewId, units) {
   var kpiEl = document.getElementById("kpi-" + viewId);
   var priceEl = document.getElementById("kpi-price-" + viewId);
   if (kpiEl) kpiEl.textContent = computeAvailableUnits(units);
-  if (priceEl) priceEl.textContent = formatPrice(computeDisplayedTotalPrice(units));
+  if (priceEl) priceEl.textContent = formatPrice(computeGrandTotalPrice(units));
 }
 
 function overrideIbgKpi(viewId) {
@@ -3827,7 +2995,39 @@ function overrideIbgKpi(viewId) {
 }
 
 function renderIbgAssetTable(viewId, units) {
-  renderStaticAssetTable(viewId, units);
+  var container = document.getElementById("staticLedgerContainer-" + viewId);
+  if (!container) return;
+  if (units.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:24px;color:#5e6778;">No records</div>';
+    return;
+  }
+
+  // Filter to Available only
+  var availUnits = units.filter(isAvailable);
+
+  var table = document.createElement("table");
+  table.className = "asset-table";
+  table.innerHTML =
+    '<colgroup><col style="width:5%"><col style="width:20%"><col style="width:15%"><col style="width:20%"><col style="width:20%"><col style="width:20%"></colgroup>' +
+    '<thead><tr><th>No</th><th>Unit No</th><th>Status</th><th>Land Area</th><th>Built Up</th><th>List Price</th></tr></thead><tbody></tbody>';
+
+  var tbody = table.querySelector("tbody");
+  availUnits.forEach(function(u, i) {
+    var status = esc(u.Status || "");
+    var statusClass = (status || "").toLowerCase() === "available" ? ' style="color:#16a34a;font-weight:600;"' : '';
+    var tr = document.createElement("tr");
+    tr.innerHTML =
+      '<td>' + (i + 1) + '</td>' +
+      '<td>' + esc(u.Unit_No) + '</td>' +
+      '<td><span' + statusClass + '>' + status + '</span></td>' +
+      '<td>' + formatArea(u.Land_Area) + '</td>' +
+      '<td>' + formatArea(u.Built_Up) + '</td>' +
+      '<td>' + formatPrice(u.Listing_Price) + '</td>';
+    tbody.appendChild(tr);
+  });
+
+  container.innerHTML = "";
+  container.appendChild(table);
 }
 
 function renderIbgCommercialView() {
@@ -3892,7 +3092,7 @@ function applyPageOverrides(viewId) {
   var newKpiHtml =
     '<div class="project-kpi-container" id="custom-kpi-container-' + viewId + '">' +
     '  <div class="card project-kpi-box"><div class="project-kpi-label"><i class="fas fa-check-circle" style="color:var(--corporate-orange);margin-right:8px;"></i>Available Units</div><div class="project-kpi-value" id="custom-kpi-' + viewId + '">' + cfg.units + '</div></div>' +
-    '  <div class="card project-kpi-price-box"><div class="project-kpi-label"><i class="fas fa-coins" style="color:#0f2042;margin-right:8px;"></i>Total SPA Price</div><div class="project-kpi-value" id="custom-kpi-price-' + viewId + '">' + cfg.price + '</div></div>' +
+    '  <div class="card project-kpi-price-box"><div class="project-kpi-label"><i class="fas fa-coins" style="color:#0f2042;margin-right:8px;"></i>Total List Price</div><div class="project-kpi-value" id="custom-kpi-price-' + viewId + '">' + cfg.price + '</div></div>' +
     '</div>';
 
   var imageBanner = panel.querySelector(".project-image-banner");
@@ -3936,49 +3136,35 @@ function renderNcityCommercialView() {
 
   panel.innerHTML =
     '<div class="page-header">' +
-    '  <div style="display:flex;justify-content:space-between;align-items:center;flex:1;flex-wrap:wrap;gap:8px;">' +
+    '  <div style="display:flex;justify-content:space-between;align-items:center;flex:1;">' +
     '    <div><h1 style="margin-right:12px;">N-CITY — COMMERCIAL</h1><div class="header-sub">Project Dashboard</div></div>' +
+    '    <div style="flex-shrink:0;">' + renderStatusDot(status) + '</div>' +
     '  </div>' +
-    '  <div class="data-extracted-box"><div class="de-label">Updated as of</div><div class="de-date">15 July 2026</div></div></div>' +
+    '  <div class="data-extracted-box"><div class="de-label">Updated as of</div><div class="de-date">15 July 2026</div></div>' +
     '</div>' +
     '<div class="project-image-banner" id="project-image-' + viewId + '" style="background:#000000;border-radius:10px;overflow:hidden;margin-bottom:20px;position:relative;cursor:pointer;" title="Double-click to view full image">' +
     '  <div style="display:flex;align-items:center;justify-content:center;min-height:200px;max-height:400px;padding:20px;">' +
-    '    <img src="/Gallery/N-CITY/N-CITY_COMM.png" alt="N-City Commercial" style="width:100%;max-height:400px;object-fit:contain;display:block;background:#000000;">' +
+    '    <img src="/Gallery/N-CITY/N-CITY_COMM.png" alt="N-City Commercial" style="width:100%;max-height:400px;object-fit:cover;object-position:center;display:block;background:#000000;">' +
     '  </div>' +
     '</div>' +
     '<div class="project-kpi-container">' +
-    '  <div class="card project-kpi-box"><div class="project-kpi-label"><i class="fas fa-check-circle" style="color:#10b981;margin-right:8px;"></i>Total Available Units</div><div class="project-kpi-value" id="kpi-' + viewId + '">0</div></div>' +
-    '  <div class="card project-kpi-price-box"><div class="project-kpi-label"><i class="fas fa-dollar-sign" style="color:#2563eb;margin-right:8px;"></i>Total SPA Price</div><div class="project-kpi-value" id="kpi-price-' + viewId + '">RM 0</div></div>' +
+    '  <div class="card project-kpi-box"><div class="project-kpi-label"><i class="fas fa-check-circle" style="color:var(--corporate-orange);margin-right:8px;"></i>Total Available Units</div><div class="project-kpi-value" id="kpi-' + viewId + '">0</div></div>' +
+    '  <div class="card project-kpi-price-box"><div class="project-kpi-label"><i class="fas fa-coins" style="color:#0f2042;margin-right:8px;"></i>Total List Price</div><div class="project-kpi-value" id="kpi-price-' + viewId + '">RM 0</div></div>' +
     '</div>' +
+    renderBalanceBox("N-CITY — COMMERCIAL", BALANCE_DATA["N-CITY — COMMERCIAL"]) +
     '<div id="ncity-svg-wrapper" style="width:100%;display:flex;flex-direction:column;gap:20px;box-sizing:border-box;padding:0;margin-bottom:20px;">' +
-    '  ' + renderLayoutPlanHeader(getLayoutBalance("N-CITY — COMMERCIAL")) + '' +
     '  <div id="ncity-svg-stage-' + viewId + '" style="width:100%;background:#ffffff;border:1px solid #eef0f4;border-radius:10px;padding:12px;box-shadow:0 1px 3px rgba(0,0,0,0.06);overflow:hidden;min-height:200px;">' +
     '    <div style="display:flex;align-items:center;justify-content:center;height:200px;color:#5e6778;font-style:italic;">Loading layout...</div>' +
     '  </div>' +
     '  <div id="ncity-svg-legends-' + viewId + '"></div>' +
     '  <div id="ncity-svg-summary-' + viewId + '"></div>' +
     '</div>' +
-    renderProjectDetails("N-CITY — COMMERCIAL") +
     '<div class="card" id="staticAssetList-' + viewId + '">' +
     '  <div class="card-header">' +
-    '    <span class="card-title"><i class="fas fa-table"></i> AVAILABLE UNIT LIST</span>' +
-    '    <div class="table-controls">' +
-    '      <select id="staticFilterPhase-' + viewId + '" class="table-filter"><option value="">All Phases</option></select>' +
-    '      <select id="staticFilterType-' + viewId + '" class="table-filter"><option value="">All Unit Types</option></select>' +
-    '      <button id="resetSort-' + viewId + '" class="table-filter" style="padding:6px 12px;border:1px solid var(--border-light);border-radius:4px;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:#0f2042;"><i class="fas fa-undo" style="margin-right:4px;"></i>Reset Sort</button>' +
-    '    </div>' +
+    '    <span class="card-title"><i class="fas fa-table"></i> ASSET LIST TABLE</span>' +
     '  </div>' +
     '  <div id="staticLedgerContainer-' + viewId + '" class="asset-table-container"></div>' +
-    '  <div id="staticPagination-' + viewId + '" style="display:flex;align-items:center;justify-content:center;gap:12px;margin-top:16px;padding-top:12px;border-top:1px solid var(--border-light);"></div>' +
     '</div>';
-
-  // Enable double-click fullscreen on project image
-  var banner = document.getElementById("project-image-" + viewId);
-  if (banner) {
-    banner.addEventListener("dblclick", function() {
-      openImageModal("/Gallery/N-CITY/N-CITY_COMM.png", "N-City Commercial");
-    });
-  }
 
   // Use shared N-City SVG engine
   fetch("/api/layout/ncity")
@@ -3995,7 +3181,6 @@ function renderNcityCommercialView() {
 
       renderNcitySubKpi(viewId, filtered);
       renderNcitySubAssetTable(viewId, filtered);
-      try { renderPsfInfoBox(viewId); } catch(e) { console.error("PSF info:", e); }
       applyPageOverrides(viewId);
 
       // Render shared N-City SVG with ALL units
@@ -4011,8 +3196,7 @@ function renderNcityCommercialView() {
         modalBodyId: "ncity-modal-body-" + viewId,
         modalCloseId: "ncity-modal-close-" + viewId,
         modalOverlayId: "ncity-modal-overlay-" + viewId,
-        copyBtnId: "ncity-copy-btn-" + viewId,
-        fitToScreen: true,
+        copyBtnId: "ncity-copy-btn-" + viewId
       });
     })
     .catch(function(err) {
@@ -4030,155 +3214,35 @@ function renderNcityRiseView() {
 
   panel.innerHTML =
     '<div class="page-header">' +
-    '  <div style="display:flex;justify-content:space-between;align-items:center;flex:1;flex-wrap:wrap;gap:8px;">' +
+    '  <div style="display:flex;justify-content:space-between;align-items:center;flex:1;">' +
     '    <div><h1 style="margin-right:12px;">N-CITY — RISE INTERNATIONAL SCHOOL</h1><div class="header-sub">Project Dashboard</div></div>' +
+    '    <div style="flex-shrink:0;">' + renderStatusDot(status) + '</div>' +
     '  </div>' +
-    '  <div class="data-extracted-box"><div class="de-label">Updated as of</div><div class="de-date">15 July 2026</div></div>' +
+    '  <div class="data-extracted-box"><div class="de-label">Data Extracted</div><div class="de-date">15 July 2026</div></div>' +
     '</div>' +
+    renderBalanceBox("N-CITY — RISE INTERNATIONAL SCHOOL", BALANCE_DATA["N-CITY — RISE INTERNATIONAL SCHOOL"]) +
     '<div class="project-image-banner" id="project-image-' + viewId + '" style="background:#000000;border-radius:10px;overflow:hidden;margin-bottom:20px;position:relative;cursor:pointer;" title="Double-click to view full image">' +
     '  <div style="display:flex;align-items:center;justify-content:center;min-height:200px;max-height:400px;padding:20px;">' +
-    '    <img src="/Gallery/N-CITY/N-CITY_RISE.jpeg" alt="Rise International School" style="width:100%;max-height:400px;object-fit:contain;display:block;background:#000000;">' +
+    '    <img src="/Gallery/N-CITY/N-CITY_RISE.png" alt="Rise International School" style="width:100%;max-height:400px;object-fit:cover;object-position:center;display:block;background:#000000;">' +
     '  </div>' +
     '</div>' +
     '<div class="project-kpi-container">' +
-    '  <div class="card project-kpi-box"><div class="project-kpi-label"><i class="fas fa-check-circle" style="color:#10b981;margin-right:8px;"></i>Total Available Units</div><div class="project-kpi-value" id="kpi-' + viewId + '">0</div></div>' +
-    '  <div class="card project-kpi-price-box"><div class="project-kpi-label"><i class="fas fa-dollar-sign" style="color:#2563eb;margin-right:8px;"></i>Total SPA Price</div><div class="project-kpi-value" id="kpi-price-' + viewId + '">RM 0</div></div>' +
+    '  <div class="card project-kpi-box"><div class="project-kpi-label"><i class="fas fa-check-circle" style="color:var(--corporate-orange);margin-right:8px;"></i>Total Available Units</div><div class="project-kpi-value" id="kpi-' + viewId + '">0</div></div>' +
+    '  <div class="card project-kpi-price-box"><div class="project-kpi-label"><i class="fas fa-coins" style="color:#0f2042;margin-right:8px;"></i>Total List Price</div><div class="project-kpi-value" id="kpi-price-' + viewId + '">RM 0</div></div>' +
     '</div>' +
     '<div id="ncity-svg-wrapper" style="width:100%;display:flex;flex-direction:column;gap:20px;box-sizing:border-box;padding:0;margin-bottom:20px;">' +
-    '  ' + renderLayoutPlanHeader(getLayoutBalance("N-CITY — RISE INTERNATIONAL SCHOOL")) + '' +
     '  <div id="ncity-svg-stage-' + viewId + '" style="width:100%;background:#ffffff;border:1px solid #eef0f4;border-radius:10px;padding:12px;box-shadow:0 1px 3px rgba(0,0,0,0.06);overflow:hidden;min-height:200px;">' +
     '    <div style="display:flex;align-items:center;justify-content:center;height:200px;color:#5e6778;font-style:italic;">Loading layout...</div>' +
     '  </div>' +
     '  <div id="ncity-svg-legends-' + viewId + '"></div>' +
     '  <div id="ncity-svg-summary-' + viewId + '"></div>' +
     '</div>' +
-    '<div id="rise-layout-wrapper" style="width:100%;display:flex;flex-direction:column;gap:0;box-sizing:border-box;padding:0;margin-bottom:20px;">' +
-    '  <div id="rise-layout-header" style="padding:12px 16px;margin-bottom:0;background:#f8fafc;border:1px solid #eef0f4;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,0.06);display:flex;align-items:center;">' +
-    '    <span class="card-title" style="flex-shrink:0;"><i class="fas fa-map"></i> LAYOUT PLAN</span>' +
-    '    <span style="margin-left:auto;font-size:14px;font-weight:700;color:#0f2042;white-space:nowrap;">Bal 10 / 122 units</span>' +
-    '  </div>' +
-    '  <div id="rise-layout-stage" style="width:100%;background:#000000;border:1px solid #eef0f4;border-radius:10px;padding:12px;box-shadow:0 1px 3px rgba(0,0,0,0.06);overflow:hidden;position:relative;">' +
-    '    <img id="rise-layout-img" src="/Gallery/N-CITY/N-City Rise_Layout.png" alt="N-City Rise Layout" style="width:100%;height:auto;display:block;border-radius:6px;transform-origin:center center;">' +
-    '  </div>' +
-    '</div>' +
     '<div class="card" id="staticAssetList-' + viewId + '">' +
     '  <div class="card-header">' +
-    '    <span class="card-title"><i class="fas fa-table"></i> AVAILABLE UNIT LIST</span>' +
-    '    <div class="table-controls">' +
-    '      <select id="staticFilterPhase-' + viewId + '" class="table-filter"><option value="">All Phases</option></select>' +
-    '      <select id="staticFilterType-' + viewId + '" class="table-filter"><option value="">All Unit Types</option></select>' +
-    '      <button id="resetSort-' + viewId + '" class="table-filter" style="padding:6px 12px;border:1px solid var(--border-light);border-radius:4px;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:#0f2042;"><i class="fas fa-undo" style="margin-right:4px;"></i>Reset Sort</button>' +
-    '    </div>' +
+    '    <span class="card-title"><i class="fas fa-table"></i> ASSET LIST TABLE</span>' +
     '  </div>' +
     '  <div id="staticLedgerContainer-' + viewId + '" class="asset-table-container"></div>' +
-    '  <div id="staticPagination-' + viewId + '" style="display:flex;align-items:center;justify-content:center;gap:12px;margin-top:16px;padding-top:12px;border-top:1px solid var(--border-light);"></div>' +
     '</div>';
-
-  // Enable double-click fullscreen on project image
-  var banner = document.getElementById("project-image-" + viewId);
-  if (banner) {
-    banner.addEventListener("dblclick", function() {
-      openImageModal("/Gallery/N-CITY/N-CITY_RISE.jpeg", "Rise International School");
-    });
-  }
-
-  // Enable double-click fullscreen on layout image
-  var layoutImg = document.getElementById("rise-layout-img");
-  if (layoutImg) {
-    layoutImg.addEventListener("dblclick", function() {
-      openImageModal("/Gallery/N-CITY/N-City Rise_Layout.png", "N-City Rise Layout");
-    });
-  }
-
-  // Add zoom controls to Rise layout image
-  var riseStage = document.getElementById("rise-layout-stage");
-  var riseImg = document.getElementById("rise-layout-img");
-  if (riseStage && riseImg) {
-    var riseZoomControls = document.createElement('div');
-    riseZoomControls.className = 'svg-zoom-controls';
-    riseZoomControls.innerHTML = '<button class="svg-zoom-btn" id="zoom-in-rise-layout-stage" title="Zoom In">+</button>' +
-                            '<button class="svg-zoom-btn" id="zoom-reset-rise-layout-stage" title="Reset">Reset</button>' +
-                            '<button class="svg-zoom-btn" id="zoom-out-rise-layout-stage" title="Zoom Out">−</button>';
-    riseStage.appendChild(riseZoomControls);
-
-    var riseZoomIn = document.getElementById('zoom-in-rise-layout-stage');
-    var riseZoomOut = document.getElementById('zoom-out-rise-layout-stage');
-    var riseZoomReset = document.getElementById('zoom-reset-rise-layout-stage');
-    var riseCurrentZoom = 1;
-    var riseDefaultZoom = 1;
-    var risePanX = 0, risePanY = 0;
-    var riseIsDragging = false;
-    var riseDragStartX, riseDragStartY;
-    var riseDragPanX, riseDragPanY;
-
-    function updateRiseZoom() {
-      riseImg.style.transform = 'translate(' + risePanX + 'px, ' + risePanY + 'px) scale(' + riseCurrentZoom + ')';
-      riseImg.style.transition = 'transform 0.3s ease';
-      riseImg.style.cursor = riseCurrentZoom > 1 ? 'grab' : 'default';
-      if (riseZoomIn) {
-        riseZoomIn.disabled = riseCurrentZoom >= 3;
-        riseZoomIn.style.opacity = riseCurrentZoom >= 3 ? '0.4' : '1';
-      }
-      if (riseZoomOut) {
-        riseZoomOut.disabled = riseCurrentZoom <= 0.5;
-        riseZoomOut.style.opacity = riseCurrentZoom <= 0.5 ? '0.4' : '1';
-      }
-    }
-
-    // Drag-to-pan on rise layout image
-    riseImg.addEventListener('mousedown', function(e) {
-      if (riseCurrentZoom <= 1) return;
-      riseIsDragging = true;
-      riseDragStartX = e.clientX;
-      riseDragStartY = e.clientY;
-      riseDragPanX = risePanX;
-      riseDragPanY = risePanY;
-      riseImg.style.cursor = 'grabbing';
-      riseImg.style.transition = 'none';
-      e.preventDefault();
-    });
-
-    document.addEventListener('mousemove', function(e) {
-      if (!riseIsDragging) return;
-      risePanX = riseDragPanX + (e.clientX - riseDragStartX);
-      risePanY = riseDragPanY + (e.clientY - riseDragStartY);
-      riseImg.style.transform = 'translate(' + risePanX + 'px, ' + risePanY + 'px) scale(' + riseCurrentZoom + ')';
-      riseImg.style.transition = 'none';
-    });
-
-    document.addEventListener('mouseup', function(e) {
-      if (!riseIsDragging) return;
-      riseIsDragging = false;
-      riseImg.style.cursor = riseCurrentZoom > 1 ? 'grab' : 'default';
-      riseImg.style.transition = 'transform 0.3s ease';
-    });
-
-    if (riseZoomIn) {
-      riseZoomIn.addEventListener('click', function() {
-        if (riseCurrentZoom < 3) {
-          riseCurrentZoom = Math.min(3, riseCurrentZoom + 0.2);
-          updateRiseZoom();
-        }
-      });
-    }
-    if (riseZoomOut) {
-      riseZoomOut.addEventListener('click', function() {
-        if (riseCurrentZoom > 0.5) {
-          riseCurrentZoom = Math.max(0.5, riseCurrentZoom - 0.2);
-          updateRiseZoom();
-        }
-      });
-    }
-    if (riseZoomReset) {
-      riseZoomReset.addEventListener('click', function() {
-        riseCurrentZoom = riseDefaultZoom;
-        risePanX = 0;
-        risePanY = 0;
-        updateRiseZoom();
-      });
-    }
-    updateRiseZoom();
-  }
 
   // Reuse identical N-City Commercial SVG engine
   fetch("/api/layout/ncity")
@@ -4197,21 +3261,20 @@ function renderNcityRiseView() {
       renderNcitySubAssetTable(viewId, filtered);
       applyPageOverrides(viewId);
 
-      // Render dedicated N-City Rise SVG with school units only
+      // Render shared N-City SVG with ALL units (identical to Commercial)
       renderInteractiveSvg({
-        svgUrl: "/static/N-CITY_Rise_Master.svg",
+        svgUrl: "/static/N-CITY_Master.svg",
         stageId: "ncity-svg-stage-" + viewId,
         legendsId: "ncity-svg-legends-" + viewId,
         summaryId: "ncity-svg-summary-" + viewId,
-        units: filtered,
+        units: allNcityUnits,
         kpiId: "kpi-" + viewId,
         kpiPriceId: "kpi-price-" + viewId,
         modalId: "ncity-unit-modal-" + viewId,
         modalBodyId: "ncity-modal-body-" + viewId,
         modalCloseId: "ncity-modal-close-" + viewId,
         modalOverlayId: "ncity-modal-overlay-" + viewId,
-        copyBtnId: "ncity-copy-btn-" + viewId,
-        fitToScreen: true,
+        copyBtnId: "ncity-copy-btn-" + viewId
       });
     })
     .catch(function(err) {
@@ -4224,12 +3287,53 @@ function renderNcityRiseView() {
 function renderNcitySubKpi(viewId, units) {
   var kpiEl = document.getElementById("kpi-" + viewId);
   var priceEl = document.getElementById("kpi-price-" + viewId);
-  if (kpiEl) kpiEl.textContent = computeAvailableUnits(units);
-  if (priceEl) priceEl.textContent = formatPrice(computeDisplayedTotalPrice(units));
+  
+  // Hardcoded KPI values for N-City sub-pages
+  if (viewId === "n-city-rise") {
+    if (kpiEl) kpiEl.textContent = 1;
+    if (priceEl) priceEl.textContent = "RM 356,000";
+  } else if (viewId === "n-city-commercial") {
+    if (kpiEl) kpiEl.textContent = 1;
+    if (priceEl) priceEl.textContent = "RM 758,000";
+  } else {
+    if (kpiEl) kpiEl.textContent = computeAvailableUnits(units);
+    if (priceEl) priceEl.textContent = formatPrice(computeGrandTotalPrice(units));
+  }
 }
 
 function renderNcitySubAssetTable(viewId, units) {
-  renderStaticAssetTable(viewId, units);
+  var container = document.getElementById("staticLedgerContainer-" + viewId);
+  if (!container) return;
+  if (units.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:24px;color:#5e6778;">No records</div>';
+    return;
+  }
+
+  var availUnits = units.filter(isAvailable);
+
+  var table = document.createElement("table");
+  table.className = "asset-table";
+  table.innerHTML =
+    '<colgroup><col style="width:5%"><col style="width:20%"><col style="width:15%"><col style="width:20%"><col style="width:20%"><col style="width:20%"></colgroup>' +
+    '<thead><tr><th>No</th><th>Unit No</th><th>Status</th><th>Land Area</th><th>Built Up</th><th>List Price</th></tr></thead><tbody></tbody>';
+
+  var tbody = table.querySelector("tbody");
+  availUnits.forEach(function(u, i) {
+    var status = esc(u.Status || "");
+    var statusClass = (status || "").toLowerCase() === "available" ? ' style="color:#16a34a;font-weight:600;"' : '';
+    var tr = document.createElement("tr");
+    tr.innerHTML =
+      '<td>' + (i + 1) + '</td>' +
+      '<td>' + esc(u.Unit_No) + '</td>' +
+      '<td><span' + statusClass + '>' + status + '</span></td>' +
+      '<td>' + formatArea(u.Land_Area) + '</td>' +
+      '<td>' + formatArea(u.Built_Up) + '</td>' +
+      '<td>' + formatPrice(u.Listing_Price) + '</td>';
+    tbody.appendChild(tr);
+  });
+
+  container.innerHTML = "";
+  container.appendChild(table);
 }
 
 function renderNcityConventionHallView() {
@@ -4241,9 +3345,9 @@ function renderNcityConventionHallView() {
     '<div class="page-header">' +
     '  <div><h1>N-CITY — CONVENTION HALL</h1><div class="header-sub">Project Dashboard</div></div>' +
     '</div>' +
-
+    renderBalanceBox("N-CITY — CONVENTION HALL", BALANCE_DATA["N-CITY — CONVENTION HALL"]) +
     '<div class="project-image-banner" style="background:#000000;border-radius:10px;overflow:hidden;margin-bottom:20px;position:relative;">' +
-    '  <img src="/Gallery/N-CITY/N-CITY_HALL.png" alt="N-City Convention Hall" style="width:100%;max-height:400px;object-fit:contain;display:block;background:#000000;">' +
+    '  <img src="/Gallery/N-CITY/N-CITY_HALL.png" alt="N-City Convention Hall" style="width:100%;max-height:400px;object-fit:cover;object-position:center;display:block;background:#000000;">' +
     '</div>' +
     '<div id="ncity-convention-layout" style="width:100%;background:#ffffff;border:1px solid #eef0f4;border-radius:10px;padding:12px;box-shadow:0 1px 3px rgba(0,0,0,0.06);overflow:hidden;margin-bottom:20px;">' +
     '  <img src="/Gallery/N-CITY/Hall_N-City_Layout.png" alt="Convention Hall Layout" style="width:100%;height:auto;display:block;border-radius:6px;">' +
@@ -4616,8 +3720,7 @@ function renderUserManagementView() {
       var users = json.data || [];
       window.__umUsers = users;
 
-      var SENSITIVE_COLS = ["mfa_secret", "mfa_backup_codes", "password_hash"];
-      var cols = Object.keys(users[0] || {}).filter(function(c) { return SENSITIVE_COLS.indexOf(c) === -1; });
+      var cols = Object.keys(users[0] || {});
       var html = '<table class="asset-table" style="width:100%;border-collapse:collapse;font-size:11px;">';
       html += '<thead><tr style="position:sticky;top:0;z-index:2;">';
       cols.forEach(function(c) { html += '<th style="white-space:nowrap;padding:6px 8px;text-align:left;background:#f4f6fa;border:1px solid #eef0f4;">' + c + '</th>'; });
@@ -5266,6 +4369,8 @@ function openProjectsInfoFolder(projectName) {
         item.addEventListener("mouseenter", function() {
           this.style.background = "#FFF3E8";
           this.style.borderColor = "#f97316";
+          this.style.transform = "translateY(-2px)";
+          this.style.boxShadow = "0 4px 12px rgba(244,114,23,0.15)";
         });
         item.addEventListener("mouseleave", function() {
           this.style.background = "#ffffff";

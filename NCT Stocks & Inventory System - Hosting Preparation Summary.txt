@@ -1,0 +1,176 @@
+================================================================================
+NCT STOCKS & INVENTORY SYSTEM - HOSTING PREPARATION SUMMARY
+================================================================================
+Document Version : 1.0
+Prepared Date    : 2026-08-03
+Purpose          : Live hosting environment preparation for testing
+Classification   : Internal Technical Handover
+
+================================================================================
+1. SYSTEM OVERVIEW
+================================================================================
+
+System Name:
+  NCT Stocks & Inventory System (NCT Alliance - Stocks & Inventory V3)
+
+Purpose of the System:
+  A comprehensive property inventory management platform designed to track,
+  visualize, and manage real estate units across multiple NCT Alliance projects.
+
+Business Usage:
+  - Track available, sold, signed, and registered property units across 8 projects.
+  - Provide sales teams and management with up-to-date inventory KPIs.
+  - Visualize unit availability via interactive SVG floor plans and image layouts.
+  - Manage user accounts with role-based access and MFA security.
+  - Generate project-level and portfolio-level reports.
+
+Main Modules / Features:
+  - Dashboard (KPI cards, grand totals, project summaries)
+  - Project Information Gallery (image browser)
+  - Unit Management (available unit lists, hierarchy drill-down)
+  - Interactive SVG Layout Engine
+  - User Management (CRUD, role assignment)
+  - Authentication & MFA (TOTP-based)
+  - Security Center (identity verification, password change)
+  - Admin Data Management (unit record editing)
+  - Profile Management
+
+Current Development Status:
+  - Feature-complete for initial testing deployment.
+  - Version: V3
+  - Last database summary report: 2026-07-23
+  - 5,318 total units across 8 projects
+  - 492 available units
+  - Grand total list price: RM 790,266,620.00
+  - Multiple hardcoded values require environment variable migration
+
+================================================================================
+2. SYSTEM ARCHITECTURE
+================================================================================
+
+Frontend Technology:
+  - Single-Page Application using vanilla JavaScript (ES5/ES6)
+  - No frontend framework (no React, Vue, Angular)
+  - Main entry: index.html
+  - Application logic: static/app.js (~5,855 lines)
+  - Styling: static/style.css (~2,031 lines) + static/svg-map.css
+  - SVG rendering: static/svg-map.js
+  - External libraries via CDN: Font Awesome 6.5.0, Google Fonts Inter,
+    Chart.js 4.4.0, QR code via api.qrserver.com
+
+Backend Technology:
+  - FastAPI (Python 3, version 0.104.1)
+  - ASGI server: Uvicorn (version 0.24.0)
+  - Entry point: main.py (~690 lines)
+  - Business logic: services.py
+  - Data access: repository.py
+  - Connection pool: database.py
+
+Database Technology:
+  - MySQL (mysql-connector-python 9.7.0)
+  - Database name: nct_stocks_inventory
+  - Connection pooling in database.py
+
+API Architecture:
+  - RESTful JSON API (~30 endpoints)
+  - CORS enabled with wildcard origin ("*")
+  - Authentication via Bearer token
+  - Key endpoints:
+      * Auth: /api/auth/login, /api/auth/me, /api/auth/mfa/*
+      * Units: /api/units, /api/units/{id}
+      * Layouts: /api/layout/nsip, /api/layout/ncity, /api/layout/ibe, etc.
+      * Admin: /api/admin/units, /api/admin/users, etc.
+      * Gallery: /api/gallery/images
+      * Reports: /api/reports/grand-totals, /api/reports/summary
+
+Static Files / Assets Structure:
+  - Static web assets: static/ directory
+      * index.html, static/app.js, static/style.css
+      * static/svg-map.js, static/svg-map.css
+      * static/*.svg (interactive layouts)
+      * static/*.png, *.jpg (layout images, logos)
+  - Project gallery: /Gallery URL path (PROJ INF/ directory)
+      * 8 project subdirectories with Project Photos/, Site Photos/
+
+SVG / Layout Rendering System:
+  - Interactive SVG engine in static/svg-map.js
+  - 6 SVG layouts: IBB_Master.svg, IBE_Master.svg, Mahkota_Master.svg,
+    N-CITY_Master.svg, N-CITY_Rise_Master.svg, NSIP_Master.svg
+  - Image layouts: GID_Layout.png, GIM_Layout.png, etc.
+  - Features: zoom/pan, unit hover highlighting, color-coded status,
+    click-to-view unit details modal
+
+Authentication / User Management:
+  - Password hashing: SHA-256 (see Section 8 for security concern)
+  - Session: localStorage + sessionStorage (client-side tokens)
+  - Token: simple Bearer token string comparison (no JWT expiry)
+  - User types: nct_user, agent, nct_admin
+  - MFA: TOTP-based via pyotp library
+  - Admin user creation: first user seeded as nct_admin in main.py
+
+Architecture Flow:
+
+  User Browser
+      |
+  Frontend
+      |
+  Backend API
+      |
+  Database
+
+================================================================================
+3. DEVELOPMENT ENVIRONMENT
+================================================================================
+
+Operating System:
+  - Development: Linux (Ubuntu/Debian-based)
+  - Current working directory: /home/sufian/dev/NCT_Stocks_Inventory
+
+Runtime Versions:
+  - Python: 3.x (compatible with FastAPI 0.104.1, Uvicorn 0.24.0)
+  - Node.js: Not required
+  - MySQL: 5.7+ or 8.0+
+
+Required Software:
+  - Python 3.x with pip
+  - MySQL Server
+  - Git
+  - Web browser (Chrome/Edge/Firefox)
+  - Optional: virtualenv/venv
+
+Package Dependencies (from requirements.txt):
+  fastapi==0.104.1
+  uvicorn==0.24.0
+  mysql-connector-python==9.7.0
+  python-dotenv==1.2.2
+  pydantic
+
+  MISSING FROM requirements.txt:
+  - pyotp (imported in services.py for MFA TOTP generation)
+  - pandas (used in migrate_excel.py, build_db.py, generate_report.py)
+
+Application Ports:
+  - Backend API: 8000 (Uvicorn default, hardcoded in main.py)
+  - MySQL: 3306 (standard MySQL port, hardcoded in database.py)
+
+Configuration Files:
+  - main.py, services.py, repository.py, database.py
+  - .env.example (environment variable template - NOT actively loaded)
+  - index.html, static/app.js, static/style.css, static/svg-map.js
+
+Environment Variables Required:
+  CURRENTLY HARDCODED:
+  - DB_HOST ("localhost")
+  - DB_PORT (3306)
+  - DB_USER ("nctuser")
+  - DB_PASSWORD ("Azrin@0019")
+  - DB_NAME ("nct_stocks_inventory")
+  - GALLERY_ROOT ("/home/sufian/dev/NCT_Stocks_Inventory/PROJ INF")
+  - API_BEARER_TOKEN ("bypass-token-nct-v3")
+  - FRONTEND_URL (for CORS - currently allow_origins=["*"])
+
+Current Startup Method:
+  - Direct execution: python main.py
+  - Starts Uvicorn programmatically: uvicorn.run(app, host="0.0.0.0", port=8000)
+  - No systemd service, no Docker, no process manager
+  - Development mode only

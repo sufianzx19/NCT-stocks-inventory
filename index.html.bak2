@@ -266,7 +266,7 @@ if (sessionStorage.getItem("nct_authenticated") === "true") {
   <header class="app-header" id="appHeader">
     <div class="header-left">
       <img src="/static/NCTLogo.png" alt="NCT" class="header-logo">
-          <span class="header-title">NCT</span>
+      <span class="header-title">NCT Stocks & Inventory System</span>
     </div>
     <div class="header-right">
       <div class="header-user-btn" id="headerUserBtn">
@@ -298,7 +298,7 @@ if (sessionStorage.getItem("nct_authenticated") === "true") {
         <div class="nav-section-label">Projects</div>
         <div class="nav-item nav-parent" data-view="nsip">
           <span class="nav-icon"><i class="fas fa-map"></i></span>
-          <span class="nav-label">NCT Smart Industrial Park</span>
+          <span class="nav-label">NSIP</span>
           <span class="nav-badge nav-expand-icon"><i class="fas fa-chevron-right"></i></span>
         </div>
         <div class="nav-children" id="navChildren-nsip">
@@ -325,10 +325,6 @@ if (sessionStorage.getItem("nct_authenticated") === "true") {
           <div class="nav-item nav-child" data-view="nsip-km6">
             <span class="nav-icon"><i class="fas fa-globe"></i></span>
             <span class="nav-label">KM6</span>
-          </div>
-          <div class="nav-item nav-child" data-view="nsip-overall-layout">
-            <span class="nav-icon"><i class="fas fa-map"></i></span>
-            <span class="nav-label">Overall Layout</span>
           </div>
         </div>
         <div class="nav-item" data-view="nct-innosphere">
@@ -370,7 +366,7 @@ if (sessionStorage.getItem("nct_authenticated") === "true") {
           </div>
           <div class="nav-item nav-child" data-view="n-city-convention-hall">
             <span class="nav-icon"><i class="fas fa-calendar-alt"></i></span>
-            <span class="nav-label">Convention Hall</span>
+            <span class="nav-label">N-City Convention Hall</span>
           </div>
         </div>
         <div class="nav-item" data-view="vortex-business-park">
@@ -423,27 +419,12 @@ if (sessionStorage.getItem("nct_authenticated") === "true") {
       <div class="page-header">
         <div>
           <div class="welcome-message" id="welcomeMessage">Hello, User</div>
-          <div class="header-sub" style="font-size:28px;font-weight:700;color:#0f2042;letter-spacing:-0.5px;">Stocks & Inventory</div>
+          <h1>Stocks & Inventory</h1>
+          <div class="header-sub">Stocks & Inventory | NCT Alliance Berhad</div>
         </div>
         <div class="data-extracted-box">
           <div class="de-label">Updated as of</div>
           <div class="de-date">15 July 2026</div>
-        </div>
-      </div>
-
-      <!-- GRAND TOTAL KPI SECTION -->
-      <div id="grandTotalKpiContainer" style="display:flex;gap:14px;margin-bottom:20px;flex-wrap:wrap;justify-content:center;">
-        <div class="card" style="flex:1;min-width:200px;margin-bottom:0;background:#d1fae5;border-left:5px solid #10b981;display:flex;align-items:center;justify-content:space-between;">
-          <div class="project-kpi-label" style="font-size:13px;font-weight:600;color:#5e6778;text-transform:uppercase;letter-spacing:0.5px;"><i class="fas fa-home" style="color:#10b981;margin-right:8px;"></i>Available Units</div>
-          <div class="project-kpi-value" id="grandTotalAvailable" style="font-size:24px;font-weight:700;color:#000000;">0</div>
-        </div>
-        <div class="card" style="flex:1;min-width:200px;margin-bottom:0;background:#dbeafe;border-left:5px solid #3b82f6;display:flex;align-items:center;justify-content:space-between;">
-          <div class="project-kpi-label" style="font-size:13px;font-weight:600;color:#5e6778;text-transform:uppercase;letter-spacing:0.5px;"><i class="fas fa-dollar-sign" style="color:#3b82f6;margin-right:8px;"></i>Total Value</div>
-          <div class="project-kpi-value" id="grandTotalValue" style="font-size:24px;font-weight:700;color:#000000;">RM 0</div>
-        </div>
-        <div class="card" style="flex:1;min-width:200px;margin-bottom:0;background:#f3e8ff;border-left:5px solid #a855f7;display:flex;align-items:center;justify-content:space-between;">
-          <div class="project-kpi-label" style="font-size:13px;font-weight:600;color:#5e6778;text-transform:uppercase;letter-spacing:0.5px;"><i class="fas fa-building" style="color:#a855f7;margin-right:8px;"></i>Total Projects</div>
-          <div class="project-kpi-value" id="grandTotalProjects" style="font-size:24px;font-weight:700;color:#000000;">9</div>
         </div>
       </div>
 
@@ -452,9 +433,7 @@ if (sessionStorage.getItem("nct_authenticated") === "true") {
         <div class="dashboard-status-header" style="background:#fef3c7;">
           <h2 class="dashboard-status-title">ONGOING</h2>
         </div>
-        <div class="dashboard-status-body">
-          <div class="dashboard-kpi-grid" id="ongoingProjectsGrid"></div>
-        </div>
+        <div class="dashboard-kpi-grid" id="ongoingProjectsGrid"></div>
       </div>
 
       <!-- COMPLETED PROJECTS SECTION -->
@@ -462,11 +441,23 @@ if (sessionStorage.getItem("nct_authenticated") === "true") {
         <div class="dashboard-status-header" style="background:#fef3c7;">
           <h2 class="dashboard-status-title">COMPLETED</h2>
         </div>
-        <div class="dashboard-status-body">
-          <div class="dashboard-kpi-grid" id="completedProjectsGrid"></div>
-        </div>
+        <div class="dashboard-kpi-grid" id="completedProjectsGrid"></div>
       </div>
 
+        <div class="card">
+          <div class="card-header">
+             <span class="card-title">
+               <i class="fas fa-table"></i>
+               MASTER ASSET LIST
+             </span>
+            <div class="table-controls">
+              <select id="ledgerProjectFilter">
+                <option value="">All Projects</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-wrapper asset-table-container" id="homeHierarchyContainer"></div>
+        </div>
     </div>
 
     <!-- NSIP KM1 view - special handling with layout image -->
@@ -478,9 +469,6 @@ if (sessionStorage.getItem("nct_authenticated") === "true") {
     <div class="view-panel" id="view-nsip-km4"></div>
     <div class="view-panel" id="view-nsip-km5"></div>
     <div class="view-panel" id="view-nsip-km6"></div>
-
-    <!-- OVERALL LAYOUT VIEW -->
-    <div class="view-panel" id="view-nsip-overall-layout"></div>
 
     <!-- UNIFIED PROJECT TEMPLATE VIEWS -->
     <div class="view-panel" id="view-grand-ion-delemen"></div>
