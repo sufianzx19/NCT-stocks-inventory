@@ -5,6 +5,7 @@ Handles data transformation, field mapping, derived values, and authentication.
 """
 import math
 import hashlib
+import re
 from typing import Optional
 import repository as repo
 
@@ -111,12 +112,13 @@ def _map_unit_row(row: dict) -> dict:
         "Phase": row.get("phase_name"),
         "Block": row.get("block_name"),
         "Status": row.get("status"),
-        "Built_Up": float(row["built_up_area"]) if row.get("built_up_area") else 0,
-        "Land_Area": float(row["land_area"]) if row.get("land_area") else 0,
+        "Built_Up": "{:.2f}".format(float(row["built_up_area"])) if row.get("built_up_area") else "0.00",
+        "Land_Area": "{:.2f}".format(float(row["land_area"])) if row.get("land_area") else "0.00",
         "Unit_Type": unit_type,
         "Unit_Type_Display": _get_unit_type_display(unit_type),
         "Listing_Price": float(row["list_price"]) if row.get("list_price") else 0,
         "Contract_Amt": float(row["contract_amt"]) if row.get("contract_amt") else 0,
+        "Unit_Layout": row.get("unit_layout"),
         # Expose new MySQL columns
         "Owner_Name": row.get("owner_name"),
         "Identity_No": row.get("identity_no"),
@@ -168,6 +170,9 @@ def get_home_kpi() -> list:
         # Override slug for NSIP to match frontend navigation
         if api_name and "NCT SMART INDUSTRIAL PARK" in api_name.upper():
             slug = "nsip"
+        # Override slug for Salak Perdana to match frontend navigation
+        if api_name and api_name.upper() == "SALAK PERDANA BUSINESS PARK":
+            slug = "salak-perdana"
         result.append({
             "project_name": api_name,
             "project_status": status,
@@ -175,7 +180,55 @@ def get_home_kpi() -> list:
             "total_list_price": float(row["total_list_price"]),
             "project_slug": slug,
         })
+
+    # Add N-City sub-project KPI cards with filtering
+    # These are derived from the N-CITY project data with specific unit filters
+    ncity_units = repo.get_units_by_project_like("%N-CITY%")
+    if ncity_units:
+        # N-City Commercial: exclude B5-01 to B5-10
+        ncity_commercial_units = [u for u in ncity_units if not _is_school_unit(u)]
+        ncity_commercial_available = [u for u in ncity_commercial_units if (u.get("status") or "").strip().lower() == "available"]
+        ncity_commercial_price = sum(float(u.get("list_price") or 0) for u in ncity_commercial_available)
+        result.append({
+            "project_name": "N-City Commercial",
+            "project_status": "Completed",
+            "available_units": len(ncity_commercial_available),
+            "total_list_price": ncity_commercial_price,
+            "project_slug": "n-city-commercial",
+        })
+
+        # Rise International School: only B5-01 to B5-10
+        rise_units = [u for u in ncity_units if _is_school_unit(u)]
+        rise_available = [u for u in rise_units if (u.get("status") or "").strip().lower() == "available"]
+        rise_price = sum(float(u.get("list_price") or 0) for u in rise_available)
+        result.append({
+            "project_name": "Rise International School",
+            "project_status": "Completed",
+            "available_units": len(rise_available),
+            "total_list_price": rise_price,
+            "project_slug": "n-city-rise",
+        })
+
+    # N-City Convention Hall: fixed value (no database records exist)
+    result.append({
+        "project_name": "N-City Convention Hall",
+        "project_status": "Completed",
+        "available_units": 1,
+        "total_list_price": 12500000.00,
+        "project_slug": "n-city-convention-hall",
+    })
+
     return result
+
+
+# School unit numbers for Rise International School (B5-01 to B5-10)
+NCITY_SCHOOL_UNITS = {"B5-01", "B5-02", "B5-03", "B5-03A", "B5-04", "B5-05", "B5-06", "B5-07", "B5-08", "B5-09", "B5-10"}
+
+
+def _is_school_unit(unit: dict) -> bool:
+    """Check if a unit belongs to the Rise International School (B5-01 to B5-10)."""
+    unit_no = str(unit.get("unit_no") or "").strip().upper()
+    return unit_no in NCITY_SCHOOL_UNITS
 
 
 def get_projects() -> list:
@@ -242,6 +295,157 @@ def get_units_by_project_like(project_pattern: str) -> list:
     return [_map_unit_row(r) for r in rows]
 
 
+# ----- MFA services -----
+import pyotp
+import json
+import secrets
+import time
+
+
+def generate_mfa_secret() -> str:
+    """Generate a new TOTP secret."""
+    return pyotp.random_base32()
+
+
+def get_totp_uri(secret: str, email: str) -> str:
+    """Generate TOTP URI for QR code."""
+    app_name = "NCT Stocks & Inventory"
+    totp = pyotp.TOTP(secret)
+    return totp.provisioning_uri(name=email, issuer_name=app_name)
+
+
+def verify_totp_code(secret: str, code: str) -> bool:
+    """Verify a TOTP code against the secret."""
+    if not secret or not code:
+        return False
+    totp = pyotp.TOTP(secret)
+    return totp.verify(code, valid_window=1)
+
+
+def get_mfa_status(email: str) -> dict:
+    """Get the MFA status for a user from the database."""
+    mfa_data = repo.get_user_mfa_status(email)
+    if not mfa_data:
+        return {"mfa_enabled": False, "mfa_secret": None, "mfa_backup_codes": None}
+    return {
+        "mfa_enabled": bool(mfa_data.get("mfa_enabled")),
+        "mfa_secret": mfa_data.get("mfa_secret"),
+        "mfa_backup_codes": mfa_data.get("mfa_backup_codes"),
+    }
+
+
+def enable_mfa_for_user(email: str, secret: str) -> bool:
+    """Enable MFA for a user in the database."""
+    repo.enable_mfa(email, secret)
+    return True
+
+
+def disable_mfa_for_user(email: str) -> bool:
+    """Disable MFA for a user in the database."""
+    repo.disable_mfa(email)
+    return True
+
+
+def verify_mfa_for_user(email: str, code: str) -> bool:
+    """Verify TOTP code against user's stored secret."""
+    mfa_data = repo.get_user_mfa_status(email)
+    if not mfa_data or not mfa_data.get("mfa_secret"):
+        return False
+    secret = mfa_data["mfa_secret"]
+    return verify_totp_code(secret, code)
+
+
+# Temporary login token storage for MFA flow
+_mfa_tokens = {}
+
+def create_mfa_temp_token(email: str) -> str:
+    """Create a short-lived temporary token for MFA verification."""
+    token = secrets.token_urlsafe(32)
+    _mfa_tokens[token] = {
+        "email": email,
+        "expires_at": time.time() + 300,  # 5 minutes
+    }
+    return token
+
+
+def validate_mfa_temp_token(token: str) -> str:
+    """Validate a temporary MFA token and return the email if valid, None otherwise."""
+    data = _mfa_tokens.get(token)
+    if not data:
+        return None
+    if time.time() > data["expires_at"]:
+        _mfa_tokens.pop(token, None)
+        return None
+    # Token consumed - remove it
+    _mfa_tokens.pop(token, None)
+    return data["email"]
+
+
+def user_requires_mfa(email: str) -> bool:
+    """Check if a user requires MFA verification."""
+    mfa_data = repo.get_user_mfa_status(email)
+    if mfa_data and mfa_data.get("mfa_enabled"):
+        return True
+    return False
+
+
+# ----- Temporary token cleanup -----
+def cleanup_expired_mfa_tokens():
+    """Remove expired MFA tokens."""
+    now = time.time()
+    expired = [k for k, v in _mfa_tokens.items() if v["expires_at"] <= now]
+    for k in expired:
+        _mfa_tokens.pop(k, None)
+
+
+# ----- Data Management services -----
+def get_all_units_raw() -> list:
+    """Get ALL raw units_master records (no field mapping)."""
+    return repo.get_units_master_all()
+
+
+def update_unit(unit_id: int, data: dict) -> bool:
+    """Update a unit record. Only nct_admin allowed (checked in API)."""
+    return repo.update_unit_record(unit_id, data)
+
+
+def delete_unit(unit_id: int) -> bool:
+    """Delete a unit record. Only nct_admin allowed (checked in API)."""
+    return repo.delete_unit_record(unit_id)
+
+
+def get_all_users() -> list:
+    """Get all users raw."""
+    return repo.get_all_users()
+
+
+def get_user_by_id_raw(user_id: int) -> dict:
+    """Get user by ID."""
+    users = repo.get_user_by_id(user_id)
+    return users[0] if users else None
+
+
+def create_user(data: dict) -> bool:
+    """Create a new user."""
+    return repo.create_user(data)
+
+
+def update_user(user_id: int, data: dict) -> bool:
+    """Update a user."""
+    return repo.update_user(user_id, data)
+
+
+def delete_user_by_id(user_id: int) -> bool:
+    """Delete a user."""
+    return repo.delete_user(user_id)
+
+
+def get_user_by_email_raw(email: str) -> dict:
+    """Get user by email."""
+    users = repo.get_user_by_email(email)
+    return users[0] if users else None
+
+
 # ----- Authentication services -----
 def hash_password(password: str) -> str:
     """Hash a password using SHA-256."""
@@ -262,6 +466,46 @@ def authenticate_user(email: str, password: str) -> dict:
     if stored_hash == provided_hash:
         return user
     return None
+
+
+def validate_password(password: str) -> list:
+    """Validate password requirements. Returns list of error messages."""
+    errors = []
+    if not password:
+        errors.append("Password is required.")
+        return errors
+    if len(password) < 8:
+        errors.append("Password must be at least 8 characters long.")
+    if len(password) > 12:
+        errors.append("Password must not exceed 12 characters.")
+    if not re.search(r'[A-Z]', password):
+        errors.append("Password must contain at least one uppercase letter.")
+    if not re.search(r'[a-z]', password):
+        errors.append("Password must contain at least one lowercase letter.")
+    if not re.search(r'[0-9]', password):
+        errors.append("Password must contain at least one digit.")
+    if not re.search(r'[^A-Za-z0-9]', password):
+        errors.append("Password must contain at least one special character.")
+    return errors
+
+
+def update_password(email: str, new_hash: str) -> bool:
+    """Update user password hash in database."""
+    users = repo.get_user_by_email(email)
+    if not users:
+        return False
+    user = users[0]
+    user_id = user.get("id")
+    if not user_id:
+        return False
+    return repo.update_user(user_id, {"password_hash": new_hash})
+
+
+def update_password_by_id(user_id: int, new_hash: str) -> bool:
+    """Update user password hash by user ID."""
+    if not user_id:
+        return False
+    return repo.update_user(user_id, {"password_hash": new_hash})
 
 
 def get_user_profile(email: str) -> dict:

@@ -29,26 +29,80 @@ _GALLERY_MOUNT_DIR = "/home/sufian/dev/NCT_Stocks_Inventory/PROJ INF"
 app.mount("/Gallery", StaticFiles(directory=_GALLERY_MOUNT_DIR), name="gallery")
 
 
-# ----- Auth bypass -----
+# ----- Auth -----
 class LoginRequest(BaseModel):
     email: str
     password: str
 
 
-# Password hashing
+class MfaVerifyRequest(BaseModel):
+    temporary_token: str
+    totp_code: str
+
+
+class MfaSetupRequest(BaseModel):
+    email: str
+    secret: str
+
+
+class MfaDisableRequest(BaseModel):
+    email: str
+
+
+class MfaVerifySetupRequest(BaseModel):
+    email: str
+    code: str
+
+
 @app.post("/api/auth/login")
 def login(req: LoginRequest):
     user = svc.authenticate_user(req.email, req.password)
-    if user:
+    if not user:
+        return JSONResponse(status_code=401, content={"success": False, "message": "Invalid credentials"})
+
+    # Check if user has MFA enabled
+    if svc.user_requires_mfa(req.email):
+        # Create temporary token for MFA verification
+        temp_token = svc.create_mfa_temp_token(req.email)
+        return {
+            "success": True,
+            "requires_mfa": True,
+            "temporary_token": temp_token,
+            "user": req.email,
+        }
+
+    # No MFA - complete login normally
+    return {
+        "success": True,
+        "token": "bypass-token-nct-v3",
+        "user": req.email,
+        "user_type": user.get("user_type"),
+        "name": user.get("name"),
+        "role": user.get("role"),
+    }
+
+
+@app.post("/api/auth/mfa/verify")
+def mfa_verify(req: MfaVerifyRequest):
+    """Verify MFA TOTP code after login."""
+    # Validate temporary token
+    email = svc.validate_mfa_temp_token(req.temporary_token)
+    if not email:
+        return JSONResponse(status_code=401, content={"success": False, "message": "Session expired. Please log in again."})
+
+    # Verify TOTP code
+    if svc.verify_mfa_for_user(email, req.totp_code):
+        user = svc.get_user_profile(email)
         return {
             "success": True,
             "token": "bypass-token-nct-v3",
-            "user": req.email,
-            "user_type": user.get("user_type"),
-            "name": user.get("name"),
-            "role": user.get("role"),
+            "user": email,
+            "user_type": user.get("user_type_raw") if user else None,
+            "name": user.get("name") if user else None,
+            "role": user.get("role") if user else None,
         }
-    return JSONResponse(status_code=401, content={"success": False, "message": "Invalid credentials"})
+
+    return JSONResponse(status_code=401, content={"success": False, "message": "Invalid verification code."})
 
 
 @app.get("/api/auth/verify")
@@ -67,6 +121,140 @@ def get_current_user(email: str = Query("")):
     if user:
         return user
     return JSONResponse(status_code=404, content={"error": "User not found"})
+
+
+class ChangePasswordRequest(BaseModel):
+    email: str
+    new_password: str
+
+
+@app.post("/api/auth/change-password")
+def change_password(req: ChangePasswordRequest):
+    """Change user password. User must be authenticated via session."""
+    if not req.email:
+        return JSONResponse(status_code=400, content={"success": False, "message": "Email required"})
+    
+    # Validate new password requirements
+    pw_errors = svc.validate_password(req.new_password)
+    if pw_errors:
+        return JSONResponse(status_code=400, content={"success": False, "message": pw_errors[0]})
+    
+    try:
+        new_hash = svc.hash_password(req.new_password)
+        success = svc.update_password(req.email, new_hash)
+        if success:
+            return {"success": True, "message": "Password updated successfully."}
+        else:
+            return JSONResponse(status_code=500, content={"success": False, "message": "Failed to update password."})
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"success": False, "message": str(e)})
+
+
+class VerifyPasswordRequest(BaseModel):
+    email: str
+    password: str
+
+
+@app.post("/api/auth/verify-password")
+def verify_password(req: VerifyPasswordRequest):
+    """Verify current password for security page."""
+    if not req.email or not req.password:
+        return JSONResponse(status_code=400, content={"success": False, "message": "Email and password required"})
+    
+    try:
+        user = svc.authenticate_user(req.email, req.password)
+        if user:
+            return {"success": True, "message": "Password verified."}
+        else:
+            return JSONResponse(status_code=400, content={"success": False, "message": "Current password is incorrect."})
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"success": False, "message": str(e)})
+
+
+class AdminResetPasswordRequest(BaseModel):
+    email: str
+    user_id: int
+    new_password: str
+
+
+@app.post("/api/admin/reset-password")
+def admin_reset_password(req: AdminResetPasswordRequest):
+    """Admin reset user password. nct_admin only."""
+    if not req.email:
+        return JSONResponse(status_code=401, content={"success": False, "error": "Email required"})
+    user = svc.get_user_by_email_raw(req.email)
+    if not user or user.get("user_type") != "nct_admin":
+        return JSONResponse(status_code=403, content={"success": False, "error": "Access denied"})
+    
+    # Validate password requirements
+    pw_errors = svc.validate_password(req.new_password)
+    if pw_errors:
+        return JSONResponse(status_code=400, content={"success": False, "message": pw_errors[0]})
+    
+    try:
+        new_hash = svc.hash_password(req.new_password)
+        success = svc.update_password_by_id(req.user_id, new_hash)
+        if success:
+            return {"success": True, "message": "Password reset successfully."}
+        else:
+            return JSONResponse(status_code=500, content={"success": False, "message": "Failed to reset password."})
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"success": False, "message": str(e)})
+
+
+# ----- MFA Management endpoints -----
+@app.get("/api/auth/mfa/status")
+def mfa_status(email: str = Query("")):
+    """Get MFA status for a user."""
+    if not email:
+        return JSONResponse(status_code=400, content={"error": "Email required"})
+    status = svc.get_mfa_status(email)
+    # Never expose the actual secret to the frontend
+    return {
+        "mfa_enabled": status["mfa_enabled"],
+    }
+
+
+@app.post("/api/auth/mfa/setup")
+def mfa_setup(req: MfaSetupRequest):
+    """Save MFA secret and enable MFA for a user."""
+    svc.enable_mfa_for_user(req.email, req.secret)
+    return {"success": True, "message": "MFA enabled successfully."}
+
+
+@app.post("/api/auth/mfa/verify-setup")
+def mfa_verify_setup(req: MfaVerifySetupRequest):
+    """Verify TOTP code during MFA setup."""
+    # Get the user's current MFA secret from DB
+    mfa_data = svc.get_mfa_status(req.email)
+    if not mfa_data or not mfa_data["mfa_secret"]:
+        return JSONResponse(status_code=400, content={"success": False, "message": "MFA not set up yet."})
+    
+    if svc.verify_totp_code(mfa_data["mfa_secret"], req.code):
+        return {"success": True, "message": "Verification successful."}
+    
+    return JSONResponse(status_code=400, content={"success": False, "message": "Invalid code. Please try again."})
+
+
+@app.post("/api/auth/mfa/disable")
+def mfa_disable(req: MfaDisableRequest):
+    """Disable MFA for a user."""
+    svc.disable_mfa_for_user(req.email)
+    return {"success": True, "message": "MFA disabled successfully."}
+
+
+@app.get("/api/auth/mfa/generate-secret")
+def mfa_generate_secret(email: str = Query("")):
+    """Generate a new MFA secret and return it with the TOTP URI."""
+    if not email:
+        return JSONResponse(status_code=400, content={"error": "Email required"})
+    secret = svc.generate_mfa_secret()
+    uri = svc.get_totp_uri(secret, email)
+    return {
+        "success": True,
+        "secret": secret,
+        "uri": uri,
+    }
 
 
 # ----- Data endpoints -----
@@ -145,6 +333,46 @@ def get_nsip_layout_data():
         return {"success": False, "error": str(e), "data": []}
 
 
+@app.get("/api/layout/ncity")
+def get_ncity_layout_data():
+    try:
+        data = svc.get_units_by_project_like("%N-CITY%")
+        return {"success": True, "data": data}
+    except Exception as e:
+        print(f"[main] /api/layout/ncity error: {e}")
+        return {"success": False, "error": str(e), "data": []}
+
+
+@app.get("/api/layout/ibe")
+def get_ibe_layout_data():
+    try:
+        data = svc.get_units_by_project_like("%ION BELIAN GARDEN%")
+        return {"success": True, "data": data}
+    except Exception as e:
+        print(f"[main] /api/layout/ibe error: {e}")
+        return {"success": False, "error": str(e), "data": []}
+
+
+@app.get("/api/layout/ibb")
+def get_ibb_layout_data():
+    try:
+        data = svc.get_units_by_project_like("%ION BELIAN GARDEN%")
+        return {"success": True, "data": data}
+    except Exception as e:
+        print(f"[main] /api/layout/ibb error: {e}")
+        return {"success": False, "error": str(e), "data": []}
+
+
+@app.get("/api/layout/mahkota")
+def get_mahkota_layout_data():
+    try:
+        data = svc.get_units_by_project_like("%MAHKOTA KAMPAR%")
+        return {"success": True, "data": data}
+    except Exception as e:
+        print(f"[main] /api/layout/mahkota error: {e}")
+        return {"success": False, "error": str(e), "data": []}
+
+
 @app.get("/api/chart/projects")
 def get_chart_data():
     try:
@@ -152,6 +380,184 @@ def get_chart_data():
     except Exception as e:
         print(f"[main] /api/chart/projects error: {e}")
         return {"error": str(e), "data": []}
+
+
+# ----- Data Management endpoints (nct_admin only) -----
+class UpdateUnitRequest(BaseModel):
+    email: str
+    data: dict
+
+
+class DeleteUnitRequest(BaseModel):
+    email: str
+    unit_id: int
+
+
+@app.get("/api/admin/units")
+def admin_get_units(email: str = Query("")):
+    """Get ALL units raw. nct_admin only."""
+    if not email:
+        return JSONResponse(status_code=401, content={"success": False, "error": "Email required"})
+    user = svc.get_user_by_email_raw(email)
+    if not user or user.get("user_type") != "nct_admin":
+        return JSONResponse(status_code=403, content={"success": False, "error": "Access denied"})
+    try:
+        data = svc.get_all_units_raw()
+        return {"success": True, "data": data}
+    except Exception as e:
+        return {"success": False, "error": str(e), "data": []}
+
+
+@app.put("/api/admin/units/{unit_id}")
+def admin_update_unit(unit_id: int, req: UpdateUnitRequest):
+    """Update a unit record. nct_admin only."""
+    if not req.email:
+        return JSONResponse(status_code=401, content={"success": False, "error": "Email required"})
+    user = svc.get_user_by_email_raw(req.email)
+    if not user or user.get("user_type") != "nct_admin":
+        return JSONResponse(status_code=403, content={"success": False, "error": "Access denied"})
+    try:
+        svc.update_unit(unit_id, req.data)
+        return {"success": True, "message": "Record updated successfully."}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@app.delete("/api/admin/units/{unit_id}")
+def admin_delete_unit(unit_id: int, req: DeleteUnitRequest):
+    """Delete a unit record. nct_admin only."""
+    if not req.email:
+        return JSONResponse(status_code=401, content={"success": False, "error": "Email required"})
+    user = svc.get_user_by_email_raw(req.email)
+    if not user or user.get("user_type") != "nct_admin":
+        return JSONResponse(status_code=403, content={"success": False, "error": "Access denied"})
+    try:
+        svc.delete_unit(unit_id)
+        return {"success": True, "message": "Record deleted successfully."}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+# ----- User Management endpoints (nct_admin only) -----
+class CreateUserRequest(BaseModel):
+    email: str
+    name: str
+    user_type: str
+    role: str
+    mobile: str = ""
+    password: str
+    status: str = "active"
+    mfa_enabled: int = 0
+    mfa_secret: str = ""
+    mfa_backup_codes: str = ""
+
+
+class UpdateUserRequest(BaseModel):
+    email: str
+    data: dict
+
+
+class DeleteUserRequest(BaseModel):
+    email: str
+    user_id: int
+
+
+@app.get("/api/admin/users")
+def admin_get_users(email: str = Query("")):
+    """Get ALL users. nct_admin only."""
+    if not email:
+        return JSONResponse(status_code=401, content={"success": False, "error": "Email required"})
+    user = svc.get_user_by_email_raw(email)
+    if not user or user.get("user_type") != "nct_admin":
+        return JSONResponse(status_code=403, content={"success": False, "error": "Access denied"})
+    try:
+        data = svc.get_all_users()
+        return {"success": True, "data": data}
+    except Exception as e:
+        return {"success": False, "error": str(e), "data": []}
+
+
+@app.post("/api/admin/users")
+def admin_create_user(req: CreateUserRequest):
+    """Create a new user. nct_admin only."""
+    if not req.email:
+        return JSONResponse(status_code=401, content={"success": False, "error": "Email required"})
+    user = svc.get_user_by_email_raw(req.email)
+    if not user or user.get("user_type") != "nct_admin":
+        return JSONResponse(status_code=403, content={"success": False, "error": "Access denied"})
+    try:
+        password_hash = svc.hash_password(req.password)
+        data = {
+            "name": req.name,
+            "user_type": req.user_type,
+            "role": req.role,
+            "email": req.email,
+            "mobile": req.mobile or "",
+            "password_hash": password_hash,
+            "status": req.status,
+            "mfa_enabled": req.mfa_enabled,
+            "mfa_secret": req.mfa_secret or None,
+            "mfa_backup_codes": req.mfa_backup_codes or None,
+        }
+        svc.create_user(data)
+        return {"success": True, "message": "User created successfully."}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@app.put("/api/admin/users/{user_id}")
+def admin_update_user(user_id: int, req: UpdateUserRequest):
+    """Update a user. nct_admin only."""
+    if not req.email:
+        return JSONResponse(status_code=401, content={"success": False, "error": "Email required"})
+    user = svc.get_user_by_email_raw(req.email)
+    if not user or user.get("user_type") != "nct_admin":
+        return JSONResponse(status_code=403, content={"success": False, "error": "Access denied"})
+    try:
+        svc.update_user(user_id, req.data)
+        return {"success": True, "message": "User updated successfully."}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@app.delete("/api/admin/users/{user_id}")
+def admin_delete_user(user_id: int, req: DeleteUserRequest):
+    """Delete a user. nct_admin only."""
+    if not req.email:
+        return JSONResponse(status_code=401, content={"success": False, "error": "Email required"})
+    user = svc.get_user_by_email_raw(req.email)
+    if not user or user.get("user_type") != "nct_admin":
+        return JSONResponse(status_code=403, content={"success": False, "error": "Access denied"})
+    try:
+        svc.delete_user_by_id(user_id)
+        return {"success": True, "message": "User deleted successfully."}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+# ----- User Management API aliases (/api/users) -----
+@app.get("/api/users")
+def api_users_get(email: str = Query("")):
+    """Alias for /api/admin/users — list all users."""
+    return admin_get_users(email)
+
+
+@app.post("/api/users")
+def api_users_create(req: CreateUserRequest):
+    """Alias for /api/admin/users — create user."""
+    return admin_create_user(req)
+
+
+@app.put("/api/users/{user_id}")
+def api_users_update(user_id: int, req: UpdateUserRequest):
+    """Alias for /api/admin/users/{id} — update user."""
+    return admin_update_user(user_id, req)
+
+
+@app.delete("/api/users/{user_id}")
+def api_users_delete(user_id: int, req: DeleteUserRequest):
+    """Alias for /api/admin/users/{id} — delete user."""
+    return admin_delete_user(user_id, req)
 
 
 @app.get("/api/home/kpi")
