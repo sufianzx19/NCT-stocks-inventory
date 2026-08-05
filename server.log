@@ -1970,3 +1970,86 @@ INFO:     127.0.0.1:59090 - "GET /api/layout/ncity HTTP/1.1" 200 OK
 INFO:     127.0.0.1:59090 - "GET /N-CITY_Rise_Master.svg HTTP/1.1" 304 Not Modified
 INFO:     127.0.0.1:37568 - "GET /api/layout/ncity HTTP/1.1" 200 OK
 INFO:     127.0.0.1:37568 - "GET /N-CITY_Master.svg HTTP/1.1" 304 Not Modified
+INFO:     172.16.1.209:55027 - "GET / HTTP/1.1" 200 OK
+INFO:     172.16.1.209:55027 - "GET /style.css?v=8.0.0 HTTP/1.1" 200 OK
+INFO:     172.16.1.209:51700 - "GET /NCTLogo.png HTTP/1.1" 200 OK
+INFO:     172.16.1.209:60759 - "GET /svg-map.css?v=1.0.5 HTTP/1.1" 200 OK
+INFO:     172.16.1.209:60759 - "GET /app.js?v=8.0.7 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36444 - "GET /api/layout/ibe HTTP/1.1" 200 OK
+INFO:     172.16.1.209:65252 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     172.16.1.209:62550 - "GET /api/auth/me?email=cherrielee%40nctalliance.com HTTP/1.1" 200 OK
+INFO:     172.16.1.209:65252 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     172.16.1.209:64394 - "GET /api/units/all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56360 - "GET /api/layout/ibb HTTP/1.1" 200 OK
+INFO:     172.16.1.209:56967 - "GET /api/layout/ibe HTTP/1.1" 200 OK
+INFO:     172.16.1.209:59477 - "GET /api/gallery/images?path=MAHKOTA%20KAMPAR HTTP/1.1" 200 OK
+INFO:     172.16.1.209:58312 - "GET /api/layout/mahkota HTTP/1.1" 200 OK
+INFO:     172.16.1.209:52061 - "GET /api/gallery/images?path=MAHKOTA%20KAMPAR HTTP/1.1" 200 OK
+INFO:     172.16.1.209:57952 - "GET /api/layout/mahkota HTTP/1.1" 200 OK
+INFO:     172.16.1.209:57952 - "GET /api/layout/ibb HTTP/1.1" 200 OK
+INFO:     172.16.1.209:61271 - "GET /api/layout/ibe HTTP/1.1" 200 OK
+INFO:     172.16.1.209:51887 - "GET /api/layout/ncity HTTP/1.1" 200 OK
+INFO:     172.16.1.209:52954 - "GET /N-CITY/N-CITY_RISE.jpeg HTTP/1.1" 200 OK
+INFO:     172.16.1.209:62380 - "GET /N-CITY/N-City%20Rise_Layout.png HTTP/1.1" 200 OK
+INFO:     172.16.1.209:58348 - "GET / HTTP/1.1" 200 OK
+INFO:     172.16.1.209:59373 - "GET /style.css?v=8.0.0 HTTP/1.1" 200 OK
+INFO:     172.16.1.209:57489 - "GET /NCTLogo.png HTTP/1.1" 200 OK
+INFO:     172.16.1.209:58348 - "GET /svg-map.css?v=1.0.5 HTTP/1.1" 200 OK
+INFO:     172.16.1.209:58348 - "GET /app.js?v=8.0.7 HTTP/1.1" 200 OK
+INFO:     172.16.1.209:58348 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     172.16.1.209:58995 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     172.16.1.209:55715 - "GET /api/auth/me?email=cherrielee%40nctalliance.com HTTP/1.1" 200 OK
+INFO:     172.16.1.209:58995 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     172.16.1.209:49666 - "GET /api/units/all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36164 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36164 - "GET /style.css?v=8.0.0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36164 - "GET /svg-map.css?v=1.0.5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36174 - "GET /app.js?v=8.0.7 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36174 - "GET /NCTLogo.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36174 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:36174 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36164 - "GET /api/auth/me?email=nctadmin%40nctalliance.com HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36186 - "GET /api/units/all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36174 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37966 - "GET /N-CITY/N-CITY_COMM.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37950 - "GET /api/layout/ncity HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37966 - "GET /N-CITY_Master.svg HTTP/1.1" 200 OK
+INFO:     172.16.1.209:50439 - "GET /api/gallery/images?path=NSIP HTTP/1.1" 200 OK
+INFO:     172.16.1.209:50439 - "GET /NSIP/NSIP.png HTTP/1.1" 200 OK
+INFO:     172.16.1.209:59630 - "GET /api/layout/nsip HTTP/1.1" 200 OK
+INFO:     172.16.1.209:59630 - "GET /NSIP_Master.svg HTTP/1.1" 200 OK
+INFO:     172.16.1.209:59630 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57922 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44336 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44336 - "GET /api/gallery/images?path=NSIP HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44352 - "GET /api/layout/nsip HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44336 - "GET /NSIP/NSIP.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44352 - "GET /NSIP_Master.svg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53682 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53688 - "GET /ION%20BELIAN%20GARDEN/IBG_Comm.jpeg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53682 - "GET /api/layout/ibe HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53682 - "GET /IBE_Master.svg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47776 - "GET /api/gallery/images?path=MAHKOTA%20KAMPAR HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47776 - "GET /MAHKOTA%20KAMPAR/MKT.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47788 - "GET /api/layout/mahkota HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47788 - "GET /Mahkota_Master.svg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48870 - "GET /api/gallery/images?path=NCT%20INNOSPHERE HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48870 - "GET /NCT%20INNOSPHERE/NIS.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48870 - "GET /api/gallery/images?path=N-CITY HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48870 - "GET /N-CITY/Asset%20List%20Hall_N-City.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48892 - "GET /N-CITY/Hall_N-City_Layout.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48900 - "GET /N-CITY/Hall_N-City_Layout1.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48916 - "GET /N-CITY/N-CITY_HALL.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48930 - "GET /N-CITY/N-CITY_RISE.jpeg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48940 - "GET /N-CITY/N-CITY_RISE.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48930 - "GET /N-CITY/N-City%20Rise_Layout.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42964 - "GET /api/admin/users?email=nctadmin%40nctalliance.com HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42964 - "GET /api/admin/units?email=nctadmin%40nctalliance.com HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [2226]
+INFO:     Started server process [2332]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
