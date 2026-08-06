@@ -269,7 +269,47 @@ function bindSidebarToggle() {
     s.classList.toggle("collapsed");
     m.classList.toggle("expanded");
     if(i) i.className = s.classList.contains("collapsed") ? "fas fa-chevron-right" : "fas fa-chevron-left";
+    // Recalculate grouped KPI borders after sidebar animation completes
+    setTimeout(updateGroupedCardBorders, 300);
   });
+}
+
+// Responsive border recalculation using ResizeObserver
+function initResponsiveBorderUpdate() {
+  var kpiContainer = document.querySelector('.dashboard-kpi-container');
+  if (!kpiContainer) return;
+  
+  var resizeObserver = new ResizeObserver(function() {
+    updateGroupedCardBorders();
+  });
+  
+  resizeObserver.observe(kpiContainer);
+}
+
+// Initialize responsive border updates on app startup
+function initApp() {
+  try {
+    console.log("NCT V3 - initApp starting...");
+    renderHomeDashboard();
+    bindHeaderUserDropdown();
+    // Recalculate grouped KPI borders after initial render completes
+    setTimeout(updateGroupedCardBorders, 300);
+    // Initialize ResizeObserver for responsive border updates
+    initResponsiveBorderUpdate();
+    // Show admin sidebar if user is nct_admin
+    var userEmail = sessionStorage.getItem("nct_user_email") || localStorage.getItem("nct_user_email") || "";
+    if (userEmail) {
+      fetch("/api/auth/me?email=" + encodeURIComponent(userEmail))
+        .then(function(res) { return res.json(); })
+        .then(function(userData) {
+          if (userData && userData.user_type_raw === "nct_admin") {
+            showAdminSidebar();
+          }
+        })
+        .catch(function() {});
+    }
+    console.log("NCT V3 - initApp loaded");
+  } catch(e) { console.error("initApp fatal:", e); }
 }
 
 function activateSidebarItem(view) {
@@ -1256,7 +1296,24 @@ function renderDashboardSections(kpiData) {
     }
   });
 
+  // Group IBG and N-City cards
+  var ibgCards = [];
+  var ncityCards = [];
+  var normalCards = [];
+
   allProjects.forEach(function(proj) {
+    var nameUpper = (proj.project_name || "").toString().trim().toUpperCase();
+    if (nameUpper.indexOf("ION BELIAN GARDEN") > -1) {
+      ibgCards.push(proj);
+    } else if (nameUpper.indexOf("N-CITY") > -1 || nameUpper.indexOf("RISE INTERNATIONAL SCHOOL") > -1 || nameUpper.indexOf("CONVENTION HALL") > -1) {
+      ncityCards.push(proj);
+    } else {
+      normalCards.push(proj);
+    }
+  });
+
+  // Render normal cards
+  normalCards.forEach(function(proj) {
     var card = createDashboardCard(proj);
     if (proj.project_status === "Ongoing") {
       ongoingGrid.appendChild(card);
@@ -1264,6 +1321,43 @@ function renderDashboardSections(kpiData) {
       completedGrid.appendChild(card);
     }
   });
+
+  // Render IBG cards with grouping borders
+  ibgCards.forEach(function(proj, idx) {
+    var card = createDashboardCard(proj);
+    if (ibgCards.length === 1) {
+      card.classList.add("group-first", "group-last");
+    } else {
+      if (idx === 0) card.classList.add("group-first");
+      else if (idx === ibgCards.length - 1) card.classList.add("group-last");
+      else card.classList.add("group-middle");
+    }
+    if (proj.project_status === "Ongoing") {
+      ongoingGrid.appendChild(card);
+    } else {
+      completedGrid.appendChild(card);
+    }
+  });
+
+  // Render N-City cards with grouping borders
+  ncityCards.forEach(function(proj, idx) {
+    var card = createDashboardCard(proj);
+    if (ncityCards.length === 1) {
+      card.classList.add("group-first", "group-last");
+    } else {
+      if (idx === 0) card.classList.add("group-first");
+      else if (idx === ncityCards.length - 1) card.classList.add("group-last");
+      else card.classList.add("group-middle");
+    }
+    if (proj.project_status === "Ongoing") {
+      ongoingGrid.appendChild(card);
+    } else {
+      completedGrid.appendChild(card);
+    }
+  });
+
+  // After all cards rendered, update continuous border widths for grouped cards
+  setTimeout(updateGroupedCardBorders, 300);
 
   // Dashboard Grand Total KPIs aggregate the EXACT displayed project KPI cards (single source of truth)
   var grandAvail = 0;
@@ -1285,6 +1379,74 @@ function renderDashboardSections(kpiData) {
   }
 }
 
+function updateGroupedCardBorders() {
+  // Update IBG group borders - find ALL cards in the group
+  var ibgCards = document.querySelectorAll('.dashboard-kpi-card.group-first, .dashboard-kpi-card.group-middle, .dashboard-kpi-card.group-last');
+  var ibgFirst = document.querySelector('.dashboard-kpi-card.group-first');
+  
+  if (ibgFirst && ibgCards.length > 1) {
+    var minLeft = Infinity, maxRight = -Infinity, minTop = Infinity, maxBottom = -Infinity;
+    
+    ibgCards.forEach(function(card) {
+      var rect = card.getBoundingClientRect();
+      if (rect.left < minLeft) minLeft = rect.left;
+      if (rect.right > maxRight) maxRight = rect.right;
+      if (rect.top < minTop) minTop = rect.top;
+      if (rect.bottom > maxBottom) maxBottom = rect.bottom;
+    });
+    
+    var firstRect = ibgFirst.getBoundingClientRect();
+    var groupWidth = maxRight - minLeft;
+    var groupHeight = maxBottom - minTop;
+    var offsetX = firstRect.left - minLeft;
+    var offsetY = firstRect.top - minTop;
+    
+    ibgFirst.style.setProperty('--group-border-width', groupWidth + 'px');
+    ibgFirst.style.setProperty('--group-border-height', groupHeight + 'px');
+    ibgFirst.style.setProperty('--group-border-offset-x', offsetX + 'px');
+    ibgFirst.style.setProperty('--group-border-offset-y', offsetY + 'px');
+  }
+
+  // Update N-City group borders - find ALL cards in each group
+  var ncityGroups = {};
+  var allNcityCards = document.querySelectorAll('.dashboard-kpi-card.group-first, .dashboard-kpi-card.group-middle, .dashboard-kpi-card.group-last');
+  
+  allNcityCards.forEach(function(card) {
+    var parent = card.parentElement;
+    if (!parent) return;
+    var parentId = parent.id || 'default';
+    if (!ncityGroups[parentId]) ncityGroups[parentId] = { first: null, cards: [] };
+    ncityGroups[parentId].cards.push(card);
+    if (card.classList.contains('group-first')) ncityGroups[parentId].first = card;
+  });
+
+  Object.keys(ncityGroups).forEach(function(groupKey) {
+    var group = ncityGroups[groupKey];
+    if (!group.first || group.cards.length <= 1) return;
+    
+    var minLeft = Infinity, maxRight = -Infinity, minTop = Infinity, maxBottom = -Infinity;
+    
+    group.cards.forEach(function(card) {
+      var rect = card.getBoundingClientRect();
+      if (rect.left < minLeft) minLeft = rect.left;
+      if (rect.right > maxRight) maxRight = rect.right;
+      if (rect.top < minTop) minTop = rect.top;
+      if (rect.bottom > maxBottom) maxBottom = rect.bottom;
+    });
+    
+    var firstRect = group.first.getBoundingClientRect();
+    var groupWidth = maxRight - minLeft;
+    var groupHeight = maxBottom - minTop;
+    var offsetX = firstRect.left - minLeft;
+    var offsetY = firstRect.top - minTop;
+    
+    group.first.style.setProperty('--group-border-width', groupWidth + 'px');
+    group.first.style.setProperty('--group-border-height', groupHeight + 'px');
+    group.first.style.setProperty('--group-border-offset-x', offsetX + 'px');
+    group.first.style.setProperty('--group-border-offset-y', offsetY + 'px');
+  });
+}
+
 function createDashboardCard(proj) {
   var card = document.createElement("div");
   card.className = "dashboard-kpi-card";
@@ -1299,9 +1461,8 @@ function createDashboardCard(proj) {
     displayName = "N-CITY RISE INTERNATIONAL SCHOOL";
   }
 
-  // Apply project border color
-  var borderColor = getProjectBorderColor(proj.project_name);
-  card.style.border = "2px solid " + borderColor;
+  // Remove colored border - use CSS default shadow card style
+  // Do not set any border inline, let .dashboard-kpi-card CSS handle it
   
   var availableUnits = proj.available_units;
   var totalListPrice = proj.total_list_price;
@@ -1387,8 +1548,8 @@ function renderHomeKPIRow(units) {
     var displayName = dbProjectName === "NSIP" ? "NSIP KM1" : dbProjectName;
 
     // Apply project border color
-    var borderColor = getProjectBorderColor(dbProjectName);
-    card.style.border = "2px solid " + borderColor;
+    // Colored borders removed - using default card styling
+    // Cards are now grouped visually via group-first/group-last CSS classes
 
     card.innerHTML =
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">' +
@@ -1888,7 +2049,7 @@ function renderStaticAssetTable(slug, projectUnits) {
     var isNsipKm1 = (slug === "nsip");
     var isHighrise = HIGHRISE_PROJECTS[projectNameForCheck.toString().trim().toUpperCase()];
     var isGid = (slug === "grand-ion-delemen");
-    var showBumiStatus = (slug === "n-city-commercial");
+    var showBumiStatus = false;  // Hide Bumi Status column for all projects (including N-City Commercial)
     var colGroups, headers;
     if (isHighrise && isGid) {
       // GID: Property Owner column removed
@@ -1939,7 +2100,7 @@ function renderStaticAssetTable(slug, projectUnits) {
     pageUnits.forEach(function(u, i) {
       var status = getDisplayStatus(u);
       var statusClass = (status || "").toLowerCase() === "available" ? ' style="color:#16a34a;font-weight:600;"' : '';
-    var remark = getUnitRemark(u);
+    var remark = (slug === "n-city-commercial") ? "" : getUnitRemark(u);
     var unitNoCell = esc(u.Unit_No) + (remark ? '<br><span style="color:#dc2626;font-size:11px;font-style:italic;display:block;margin-top:2px;">' + remark + '</span>' : '');
     if (isHighrise && isGid) {
         if (showBumiStatus) {
@@ -5029,26 +5190,12 @@ function bindHeaderUserDropdown() {
 /* ==========================================================================
    APP ENTRY POINT
    ========================================================================== */
-window.initApp = function() {
-  try {
-    console.log("NCT V3 - initApp starting...");
-    renderHomeDashboard();
-    bindHeaderUserDropdown();
-    // Show admin sidebar if user is nct_admin
-    var userEmail = sessionStorage.getItem("nct_user_email") || localStorage.getItem("nct_user_email") || "";
-    if (userEmail) {
-      fetch("/api/auth/me?email=" + encodeURIComponent(userEmail))
-        .then(function(res) { return res.json(); })
-        .then(function(userData) {
-          if (userData && userData.user_type_raw === "nct_admin") {
-            showAdminSidebar();
-          }
-        })
-        .catch(function() {});
-    }
-    console.log("NCT V3 - initApp loaded");
-  } catch(e) { console.error("initApp fatal:", e); }
-};
+// Initialize app when DOM is ready
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initApp);
+} else {
+  initApp();
+}
 
 // Close dropdown when clicking outside
 document.addEventListener("click", function(e) {

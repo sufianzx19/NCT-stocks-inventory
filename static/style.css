@@ -564,9 +564,9 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  margin-bottom: 24px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--border-light);
+  margin-bottom: 16px;
+  padding-bottom: 0;
+  border-bottom: none;
 }
 
 .page-header .header-logo {
@@ -579,7 +579,7 @@ body {
   font-size: 15px;
   font-weight: 500;
   color: var(--text-secondary);
-  margin-bottom: 4px;
+  margin-bottom: 12px;
 }
 
 .page-header h1 {
@@ -594,6 +594,16 @@ body {
   color: var(--text-secondary);
   font-size: 13px;
   margin-top: 2px;
+}
+
+/* Dashboard-specific header spacing for home view */
+.page-header .welcome-message + .header-sub {
+  margin-top: 0;
+}
+
+/* Balance vertical spacing: reduce gap between title and Grand Total KPIs */
+#grandTotalKpiContainer {
+  margin-top: 12px;
 }
 
 /* ----- CARDS ----- */
@@ -1794,6 +1804,14 @@ table .status-signed {
   margin: 0 auto;
 }
 
+/* Grouped KPI cards should match normal card sizing */
+.dashboard-kpi-card.group-first,
+.dashboard-kpi-card.group-last,
+.dashboard-kpi-card:not(.group-first):not(.group-last) {
+  min-width: auto;
+  flex: none;
+}
+
 @media (max-width: 1200px) {
   .dashboard-kpi-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1819,13 +1837,47 @@ table .status-signed {
   border: 1px solid var(--border-light);
   border-left: none;
   box-shadow: var(--shadow-sm);
-  transition: box-shadow 0.2s, transform 0.15s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
   cursor: pointer;
 }
 
 .dashboard-kpi-card:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(244, 114, 23, 0.18);
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(255, 193, 7, 0.45);
+}
+
+/* Grouped KPI cards - remove individual borders */
+.dashboard-kpi-card.group-first,
+.dashboard-kpi-card.group-middle,
+.dashboard-kpi-card.group-last {
+  border: none !important;
+  border-radius: 0 !important;
+}
+
+/* Continuous border using pseudo-element on first card */
+.dashboard-kpi-card.group-first {
+  position: relative;
+}
+
+.dashboard-kpi-card.group-first::before {
+  content: '';
+  position: absolute;
+  top: var(--group-border-offset-y, 0);
+  left: var(--group-border-offset-x, 0);
+  width: var(--group-border-width, 100%);
+  height: var(--group-border-height, 100%);
+  border: 2px solid #000;
+  border-radius: 8px;
+  pointer-events: none;
+  z-index: 1000;
+  box-sizing: border-box;
+}
+
+/* Ensure grouped cards have no gap between them */
+.dashboard-kpi-card.group-first,
+.dashboard-kpi-card.group-middle,
+.dashboard-kpi-card.group-last {
+  margin-right: -1px;
 }
 
 .dash-kpi-header {
