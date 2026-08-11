@@ -9433,3 +9433,40 @@ INFO:     127.0.0.1:55338 - "GET /NCTLogo.png HTTP/1.1" 304 Not Modified
 INFO:     127.0.0.1:55326 - "GET /api/units/all HTTP/1.1" 200 OK
 INFO:     127.0.0.1:60982 - "GET /api/auth/me?email=nctadmin%40nctalliance.com HTTP/1.1" 200 OK
 INFO:     127.0.0.1:55338 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35594 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:35598 - "GET /api/outputs HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:57806 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57806 - "GET /style.css?v=8.0.0 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:57830 - "GET /app.js?v=8.0.7 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:57816 - "GET /svg-map.css?v=1.0.5 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:57830 - "GET /NCTLogo.png HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:57806 - "GET /api/auth/me?email=nctadmin%40nctalliance.com HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57816 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57830 - "GET /api/units/all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48494 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48502 - "GET /api/auth/me?email=nctadmin%40nctalliance.com HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48494 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48804 - "GET /api/gallery/images?path=NSIP HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48818 - "GET /api/layout/nsip HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48804 - "GET /NSIP/NSIP.png HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:48818 - "GET /NSIP_Master.svg HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:57710 - "GET /api/gallery/images?path=SALAK%20PERDANA%20BUSINESS%20PARK HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57710 - "GET /SALAK%20PERDANA%20BUSINESS%20PARK/SPBP.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55836 - "GET /api/gallery/images?path=GRAND%20ION%20DELEMEN HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55836 - "GET /GID_Layout.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55836 - "GET /GRAND%20ION%20DELEMEN/GID.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34098 - "GET /api/gallery/images?path=GRAND%20ION%20MAJESTIC HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34108 - "GET /GIM_Layout.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34108 - "GET /GRAND%20ION%20MAJESTIC/GIM.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34108 - "GET /api/gallery/images?path=GRAND%20ION%20DELEMEN HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34108 - "GET /api/gallery/images?path=GRAND%20ION%20MAJESTIC HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50810 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50810 - "GET /api/gallery/images?path=NSIP HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44984 - "GET /api/layout/nsip HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52126 - "GET /NIS.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52134 - "GET /NIS_Layout.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52334 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [2255]
