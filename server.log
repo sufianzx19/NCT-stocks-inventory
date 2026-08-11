@@ -9470,3 +9470,13 @@ INFO:     Shutting down
 INFO:     Waiting for application shutdown.
 INFO:     Application shutdown complete.
 INFO:     Finished server process [2255]
+INFO:     Started server process [2270]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:34084 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34084 - "GET /style.css?v=8.0.0 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:34098 - "GET /app.js?v=8.0.7 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:34084 - "GET /api/units/all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34100 - "GET /api/auth/me?email=nctadmin%40nctalliance.com HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34098 - "GET /api/home/kpi HTTP/1.1" 200 OK
