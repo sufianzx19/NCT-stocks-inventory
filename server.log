@@ -9480,3 +9480,30 @@ INFO:     127.0.0.1:34098 - "GET /app.js?v=8.0.7 HTTP/1.1" 304 Not Modified
 INFO:     127.0.0.1:34084 - "GET /api/units/all HTTP/1.1" 200 OK
 INFO:     127.0.0.1:34100 - "GET /api/auth/me?email=nctadmin%40nctalliance.com HTTP/1.1" 200 OK
 INFO:     127.0.0.1:34098 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48420 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48428 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48428 - "GET /api/auth/me?email=nctadmin%40nctalliance.com HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48438 - "GET /api/auth/me?email=nctadmin%40nctalliance.com HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48420 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48438 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34092 - "GET /api/gallery/images?path=NSIP HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34108 - "GET /api/layout/nsip HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34092 - "GET /NSIP/NSIP.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34092 - "GET /NSIP_Master.svg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48830 - "GET /api/gallery/images?path=SALAK%20PERDANA%20BUSINESS%20PARK HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48830 - "GET /SALAK%20PERDANA%20BUSINESS%20PARK/SPBP.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48830 - "GET /api/gallery/images?path=GRAND%20ION%20MAJESTIC HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48830 - "GET /GIM_Layout.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48830 - "GET /GRAND%20ION%20MAJESTIC/GIM.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47844 - "GET /N-CITY/N-CITY_COMM.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47842 - "GET /api/layout/ncity HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47844 - "GET /N-CITY_Master.svg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47856 - "GET /N-CITY/N-CITY_RISE.jpeg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47858 - "GET /N-CITY/N-City%20Rise_Layout.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47848 - "GET /api/layout/ncity HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47858 - "GET /N-CITY_Rise_Master.svg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42582 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [2270]
