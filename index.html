@@ -67,7 +67,7 @@ function showMfaVerificationOverlay() {
     if (!loginContent) return;
     
     loginContent.innerHTML = `
-      <img src="/static/NCTLogo.png" alt="NCT Logo" style="height:56px;margin-bottom:24px;display:block;">
+      <img src="/static/NCTGroupLogo.jpeg" alt="NCT Logo" style="height:56px;margin-bottom:24px;display:block;">
       <h1 style="color:#1a1d23;margin:0 0 4px 0;font-size:22px;font-weight:600;letter-spacing:-0.3px;">Verify Your Identity</h1>
       <p style="color:#5e6778;margin:0 0 8px 0;font-size:13px;font-weight:400;">Enter the 6-digit code from your Authenticator App</p>
       <p id="mfaTimer" style="color:#9ca3af;margin:0 0 24px 0;font-size:12px;">Token expires in 5:00</p>
@@ -238,7 +238,7 @@ if (sessionStorage.getItem("nct_authenticated") === "true") {
   <!-- LOGIN OVERLAY (fully inline-styled — zero CSS dependency) -->
   <div id="loginOverlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#f4f6fa;z-index:999999;display:flex;align-items:center;justify-content:center;">
     <div style="background:#ffffff;padding:48px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.08);width:100%;max-width:420px;text-align:left;border-top:4px solid #f47217;font-family:Inter,system-ui,-apple-system,sans-serif;">
-      <img src="/static/NCTLogo.png" alt="NCT Logo" style="height:56px;margin-bottom:24px;display:block;">
+      <img src="/static/NCTGroupLogo.jpeg" alt="NCT Logo" style="height:56px;margin-bottom:24px;display:block;">
       <h1 style="color:#1a1d23;margin:0 0 4px 0;font-size:22px;font-weight:600;letter-spacing:-0.3px;">NCT Stocks & Inventory</h1>
       <p style="color:#5e6778;margin:0 0 32px 0;font-size:13px;font-weight:400;">Company: NCT Alliance Berhad</p>
 
@@ -265,8 +265,7 @@ if (sessionStorage.getItem("nct_authenticated") === "true") {
   <!-- CORPORATE HEADER -->
   <header class="app-header" id="appHeader">
     <div class="header-left">
-      <img src="/static/NCTLogo.png" alt="NCT" class="header-logo">
-          <span class="header-title">NCT</span>
+      <img src="/static/NCTGroupLogo.jpeg" alt="NCT" class="header-logo">
     </div>
     <div class="header-right">
       <div class="header-user-btn" id="headerUserBtn">
@@ -528,8 +527,11 @@ if (sessionStorage.getItem("nct_authenticated") === "true") {
 
 </div>
 
-<link rel="stylesheet" href="/static/svg-map.css?v=1.0.5">
-<script src="/static/app.js?v=8.0.7"></script>
+  <link rel="stylesheet" href="/static/svg-map.css?v=1.0.5">
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="/static/app.js?v=8.0.7"></script>
 
 </body>
 </html>

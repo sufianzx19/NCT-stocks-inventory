@@ -474,7 +474,7 @@ function renderWaitingForData(view) {
    HARDCODED LAYOUT PLAN BALANCE (No database, no API, no calculation)
    ========================================================================== */
 var PROJECT_LAYOUT_BALANCE = {
-  "NCT SMART INDUSTRIAL PARK KM1": "Bal 63 / 270 units",
+  "NCT SMART INDUSTRIAL PARK KM1": "Bal 63/280 units",
   "ION BELIAN GARDEN — COMMERCIAL": "Bal 1 / 9 units",
   "ION BELIAN GARDEN — RESIDENTIAL": "1/1167 units",
   "MAHKOTA KAMPAR": "Bal 23/24 units",
@@ -533,14 +533,14 @@ var PROJECT_DETAILS_DATA = {
     salesCommission: "TBC"
   },
   "NCT SMART INDUSTRIAL PARK KM1": {
-    tenure: "Leasehold",
+    tenure: "Leasehold (Bal 95 years, Exp : 6 December 2121)",
     vpDate: "-",
     bookingFee: "RM5,000",
     bumiDiscount: "-",
     salePackage: [
       "Semi D, Cluster, Detached",
       "10% Downpayment Rebate",
-      "Additional 2% rebate if buyer executes the SPA & Loan Agreement, or submits a Cash Purchase Letter, within 60 days from the Booking Date",
+      "Additional 2% if buyer can execute SPA & LA/ Cash purchase letter within 60 days from Booking date",
       "Free Legal Fees for SPA & Loan Agreement",
       "Free Loan Agreement Stamp Duty",
       "Free MOT (maximum capped at 4% of SPA price)"
@@ -624,8 +624,293 @@ function getLayoutBalance(projectName) {
   return PROJECT_LAYOUT_BALANCE[projectName] || '';
 }
 
-function renderLayoutPlanHeader(balanceText) {
-  return '<div class="card" style="padding:12px 16px;margin-bottom:0;background:#f8fafc;border:1px solid #eef0f4;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,0.06);display:flex;align-items:center;"><span class="card-title" style="flex-shrink:0;"><i class="fas fa-map"></i> LAYOUT PLAN</span><span style="margin-left:auto;font-size:14px;font-weight:700;color:#0f2042;white-space:nowrap;">' + balanceText + '</span></div>';
+function renderLayoutPlanHeader(balanceText, stageId) {
+  return '<div class="card" style="padding:12px 16px;margin-bottom:0;background:#f8fafc;border:1px solid #eef0f4;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,0.06);display:flex;align-items:center;" data-layout-stage="' + (stageId || '') + '">' +
+    '<span class="card-title" style="flex-shrink:0;"><i class="fas fa-map"></i> LAYOUT PLAN</span>' +
+    '<span style="margin-left:auto;font-size:14px;font-weight:700;color:#0f2042;white-space:nowrap;">' + balanceText + '</span>' +
+    '<button class="layout-download-btn" data-layout-stage="' + (stageId || '') + '" style="margin-left:12px;padding:6px 12px;border:1px solid var(--border-light);border-radius:4px;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:#0f2042;white-space:nowrap;"><i class="fas fa-download" style="margin-right:4px;"></i>Download</button>' +
+    '</div>';
+}
+
+/* ==========================================================================
+   LAYOUT PLAN EXPORT (PDF & Image) — Reusable across all project pages
+   ========================================================================== */
+
+// Get the project display name for a given stage ID
+function getProjectNameForStage(stageId) {
+  var activePanel = document.querySelector('.view-panel.active');
+  if (activePanel) {
+    var h1 = activePanel.querySelector('.page-header h1');
+    if (h1) {
+      var text = h1.textContent.trim();
+      return text.replace(/\s*\(.*\)\s*$/, '').trim() || 'Layout';
+    }
+  }
+  return 'Layout';
+}
+
+// Temporarily normalize the layout container so the complete rendered layout can be captured.
+// Saves current state, expands container to natural content dimensions, and returns a restore function.
+function prepareLayoutForCapture(stage) {
+  if (!stage) return null;
+
+  // Find the SVG or image inside the stage
+  var svg = stage.querySelector('svg');
+  var img = stage.querySelector('img');
+
+  // Save original state of stage and inner element
+  var saved = {
+    stage: {
+      style: stage.getAttribute('style') || '',
+      className: stage.className || '',
+      scrollLeft: stage.scrollLeft || 0,
+      scrollTop: stage.scrollTop || 0
+    },
+    svg: null,
+    img: null
+  };
+
+  if (svg) {
+    saved.svg = {
+      style: svg.getAttribute('style') || '',
+      width: svg.getAttribute('width'),
+      height: svg.getAttribute('height'),
+      transform: svg.style.transform || '',
+      transformOrigin: svg.style.transformOrigin || ''
+    };
+  }
+  if (img) {
+    saved.img = {
+      style: img.getAttribute('style') || '',
+      transform: img.style.transform || '',
+      transformOrigin: img.style.transformOrigin || ''
+    };
+  }
+
+  // Determine natural content dimensions
+  var naturalWidth = 0, naturalHeight = 0;
+  if (svg) {
+    var vb = svg.viewBox;
+    if (vb && vb.baseVal && vb.baseVal.width) {
+      naturalWidth = vb.baseVal.width;
+      naturalHeight = vb.baseVal.height;
+    } else {
+      naturalWidth = svg.getBoundingClientRect().width || 800;
+      naturalHeight = svg.getBoundingClientRect().height || 600;
+    }
+  } else if (img) {
+    naturalWidth = img.naturalWidth || img.width || 800;
+    naturalHeight = img.naturalHeight || img.height || 600;
+  } else {
+    naturalWidth = stage.scrollWidth || stage.getBoundingClientRect().width || 800;
+    naturalHeight = stage.scrollHeight || stage.getBoundingClientRect().height || 600;
+  }
+
+  // Temporarily normalize the stage container
+  stage.style.width = naturalWidth + 'px';
+  stage.style.height = naturalHeight + 'px';
+  stage.style.maxWidth = 'none';
+  stage.style.maxHeight = 'none';
+  stage.style.overflow = 'visible';
+  stage.style.position = 'relative';
+  stage.style.transform = 'none';
+  stage.style.transformOrigin = '0 0';
+  stage.style.padding = '0';
+  stage.style.margin = '0 auto';
+  stage.style.background = '#ffffff';
+
+  // Normalize the inner SVG/image
+  if (svg) {
+    svg.setAttribute('width', naturalWidth);
+    svg.setAttribute('height', naturalHeight);
+    svg.style.width = naturalWidth + 'px';
+    svg.style.height = naturalHeight + 'px';
+    svg.style.maxWidth = 'none';
+    svg.style.maxHeight = 'none';
+    svg.style.transform = 'none';
+    svg.style.transformOrigin = '0 0';
+    svg.style.margin = '0';
+    svg.style.display = 'block';
+  }
+  if (img) {
+    img.style.width = naturalWidth + 'px';
+    img.style.height = naturalHeight + 'px';
+    img.style.maxWidth = 'none';
+    img.style.maxHeight = 'none';
+    img.style.transform = 'none';
+    img.style.transformOrigin = '0 0';
+    img.style.margin = '0';
+    img.style.display = 'block';
+  }
+
+  // Return a restore function
+  return function() {
+    stage.setAttribute('style', saved.stage.style);
+    stage.className = saved.stage.className;
+    stage.scrollLeft = saved.stage.scrollLeft;
+    stage.scrollTop = saved.stage.scrollTop;
+    if (saved.svg && svg) {
+      svg.setAttribute('style', saved.svg.style);
+      if (saved.svg.width !== null) svg.setAttribute('width', saved.svg.width); else svg.removeAttribute('width');
+      if (saved.svg.height !== null) svg.setAttribute('height', saved.svg.height); else svg.removeAttribute('height');
+      svg.style.transform = saved.svg.transform;
+      svg.style.transformOrigin = saved.svg.transformOrigin;
+    }
+    if (saved.img && img) {
+      img.setAttribute('style', saved.img.style);
+      img.style.transform = saved.img.transform;
+      img.style.transformOrigin = saved.img.transformOrigin;
+    }
+  };
+}
+
+// Capture the complete rendered Layout Plan as a high-resolution PNG canvas using html2canvas
+function captureLayoutCanvas(stage, callback) {
+  if (typeof html2canvas === 'undefined') {
+    alert('Screenshot library not loaded. Please refresh the page.');
+    return;
+  }
+  var restore = prepareLayoutForCapture(stage);
+  if (!restore) { alert('No layout found to export.'); return; }
+
+  // Allow the browser to finish rendering after temporary changes
+  setTimeout(function() {
+    html2canvas(stage, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: false,
+      backgroundColor: '#ffffff',
+      logging: false,
+      windowWidth: stage.scrollWidth || stage.getBoundingClientRect().width,
+      windowHeight: stage.scrollHeight || stage.getBoundingClientRect().height
+    }).then(function(canvas) {
+      restore();
+      callback(canvas);
+    }).catch(function(err) {
+      restore();
+      console.error('Layout capture error:', err);
+      alert('Failed to capture layout. Please try again.');
+    });
+  }, 100);
+}
+
+// Export the layout as an image (PNG) from the actual rendered DOM
+function exportLayoutAsImage(stage, projectName) {
+  if (!stage) return;
+  captureLayoutCanvas(stage, function(canvas) {
+    if (!canvas) return;
+    var link = document.createElement('a');
+    link.download = (projectName || 'Layout') + '_Layout.png';
+    link.href = canvas.toDataURL('image/png');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  });
+}
+
+// Export the layout as a PDF using the SAME captured PNG from the rendered DOM
+function exportLayoutAsPdf(stage, projectName) {
+  if (!stage) return;
+  if (typeof window.jspdf === 'undefined') {
+    alert('PDF library not loaded. Please refresh the page.');
+    return;
+  }
+  captureLayoutCanvas(stage, function(canvas) {
+    if (!canvas) return;
+    var imgData = canvas.toDataURL('image/jpeg', 0.95);
+    var orientation = canvas.width >= canvas.height ? 'landscape' : 'portrait';
+    var pdf = new window.jspdf.jsPDF({ orientation: orientation, unit: 'mm', format: 'a4' });
+    var pageWidth = pdf.internal.pageSize.getWidth();
+    var pageHeight = pdf.internal.pageSize.getHeight();
+    var margin = 10;
+    var availWidth = pageWidth - margin * 2;
+    var availHeight = pageHeight - margin * 2;
+    var ratio = Math.min(availWidth / canvas.width, availHeight / canvas.height);
+    var w = canvas.width * ratio;
+    var h = canvas.height * ratio;
+    var x = (pageWidth - w) / 2;
+    var y = (pageHeight - h) / 2;
+    pdf.setFontSize(14);
+    pdf.setTextColor(15, 32, 66);
+    pdf.text(projectName || 'Layout Plan', pageWidth / 2, margin + 5, { align: 'center' });
+    pdf.addImage(imgData, 'JPEG', x, y + 5, w, h);
+    pdf.save((projectName || 'Layout') + '_Layout.pdf');
+  });
+}
+
+// Show format selection for layout export
+function showLayoutExportOptions(stage, projectName) {
+  if (!stage) return;
+  var overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.5);z-index:99999;display:flex;align-items:center;justify-content:center;';
+  overlay.id = 'layout-export-overlay';
+  overlay.innerHTML =
+    '<div style="width:320px;max-width:calc(100vw-32px);background:#ffffff;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,0.35);overflow:hidden;font-family:Inter,system-ui,sans-serif;">' +
+    '  <div style="padding:20px 24px;border-bottom:1px solid #eef0f4;">' +
+    '    <h3 style="margin:0;font-size:16px;font-weight:700;color:#1a1d23;">Export Layout</h3>' +
+    '    <p style="margin:4px 0 0;font-size:13px;color:#5e6778;">Choose a format</p>' +
+    '  </div>' +
+    '  <div style="padding:16px 24px;display:flex;flex-direction:column;gap:10px;">' +
+    '    <button id="layout-export-pdf" style="padding:10px 16px;background:#f47217;color:white;border:none;border-radius:6px;font-weight:600;cursor:pointer;font-size:14px;text-align:left;"><i class="fas fa-file-pdf" style="margin-right:8px;"></i> PDF</button>' +
+    '    <button id="layout-export-image" style="padding:10px 16px;background:#ffffff;color:#1a1d23;border:1px solid #d1d5db;border-radius:6px;font-weight:600;cursor:pointer;font-size:14px;text-align:left;"><i class="fas fa-image" style="margin-right:8px;"></i> Image (PNG)</button>' +
+    '  </div>' +
+    '  <div style="padding:12px 24px;border-top:1px solid #eef0f4;display:flex;justify-content:flex-end;">' +
+    '    <button id="layout-export-cancel" style="padding:8px 18px;background:#ffffff;color:#1a1d23;border:1px solid #d1d5db;border-radius:6px;font-weight:600;cursor:pointer;font-size:13px;">Cancel</button>' +
+    '  </div>' +
+    '</div>';
+  document.body.appendChild(overlay);
+  document.getElementById('layout-export-pdf').addEventListener('click', function() {
+    if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+    exportLayoutAsPdf(stage, projectName);
+  });
+  document.getElementById('layout-export-image').addEventListener('click', function() {
+    if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+    exportLayoutAsImage(stage, projectName);
+  });
+  document.getElementById('layout-export-cancel').addEventListener('click', function() {
+    if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+  });
+  overlay.addEventListener('click', function(e) {
+    if (e.target === overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
+  });
+}
+
+// Bind the layout download button for a given stage ID
+function bindLayoutDownloadButton(stageId, projectName) {
+  if (!stageId) return;
+  var stage = document.getElementById(stageId);
+  if (!stage) return;
+  var header = document.querySelector('[data-layout-stage="' + stageId + '"]');
+  if (!header) return;
+  if (header.getAttribute('data-layout-export-bound') === '1') return;
+  header.setAttribute('data-layout-export-bound', '1');
+  var btn = header.querySelector('.layout-download-btn');
+  if (!btn) {
+    btn = document.createElement('button');
+    btn.className = 'layout-download-btn';
+    btn.innerHTML = '<i class="fas fa-download" style="margin-right:4px;"></i>Download';
+    btn.style.cssText = 'margin-left:12px;padding:6px 12px;border:1px solid var(--border-light);border-radius:4px;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:#0f2042;white-space:nowrap;';
+    header.appendChild(btn);
+  }
+  btn.addEventListener('click', function() {
+    var name = projectName || getProjectNameForStage(stageId);
+    showLayoutExportOptions(stage, name);
+  });
+}
+
+// Add a download button to an inline layout header (for image-based layouts)
+function addLayoutDownloadButton(headerEl, stageEl, projectName) {
+  if (!headerEl || !stageEl) return;
+  if (headerEl.getAttribute('data-layout-export-bound') === '1') return;
+  headerEl.setAttribute('data-layout-export-bound', '1');
+  var btn = document.createElement('button');
+  btn.className = 'layout-download-btn';
+  btn.innerHTML = '<i class="fas fa-download" style="margin-right:4px;"></i>Download';
+  btn.style.cssText = 'margin-left:12px;padding:6px 12px;border:1px solid var(--border-light);border-radius:4px;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:#0f2042;white-space:nowrap;';
+  headerEl.appendChild(btn);
+  btn.addEventListener('click', function() {
+    showLayoutExportOptions(stageEl, projectName);
+  });
 }
 
 /* ==========================================================================
@@ -692,7 +977,11 @@ function getDisplayStatus(u) {
     var unitNo = (u.Unit_No || "").toString().trim().toUpperCase();
     if (GID_SUBSALE_UNITS.has(unitNo)) return "Available";
   }
-  return esc(u.Status || "");
+  // Normalize status display to title case (e.g. AVAILABLE -> Available)
+  // without changing the underlying database status.
+  var raw = (u.Status || "").toString().trim();
+  if (raw === "") return "-";
+  return raw.charAt(0).toUpperCase() + raw.slice(1).toLowerCase();
 }
 
 function formatArea(val) {
@@ -1917,6 +2206,122 @@ var PROJECT_PSF_INFO = {
   "grand-ion-majestic": "RM1770 psf NSA"
 };
 
+/* ==========================================================================
+   AVAILABLE UNIT LIST EXCEL EXPORT — Reusable across all project pages
+   ========================================================================== */
+
+// Export the currently displayed Available Unit List to Excel (.xlsx)
+function exportAvailableUnitsToExcel(slug, projectUnits) {
+  if (typeof XLSX === 'undefined') {
+    alert('Excel library not loaded. Please refresh the page.');
+    return;
+  }
+  var container = document.getElementById("staticLedgerContainer-" + slug);
+  if (!container) return;
+
+  var phaseFilter = document.getElementById("staticFilterPhase-" + slug);
+  var typeFilter = document.getElementById("staticFilterType-" + slug);
+  var blockFilter = document.getElementById("staticFilterBlock-" + slug);
+  var sortState = initSortState(slug);
+
+  // Apply the same filtering logic as the displayed table
+  var filtered = projectUnits.filter(isDisplayAvailable);
+  if (phaseFilter && phaseFilter.value && phaseFilter.style.display !== "none") {
+    filtered = filtered.filter(function(u) { return (u.Phase || "N/A") === phaseFilter.value; });
+  }
+  if (slug === "grand-ion-majestic" && blockFilter && blockFilter.value) {
+    filtered = filtered.filter(function(u) { return (u.Block || "N/A") === blockFilter.value; });
+  }
+  if (typeFilter && typeFilter.value) {
+    filtered = filtered.filter(function(u) { return (u.Unit_Type || "N/A") === typeFilter.value; });
+  }
+
+  // Apply the same sorting logic as the displayed table
+  filtered = sortUnits(filtered, sortState);
+
+  // Determine column structure based on project type (same as renderStaticAssetTable)
+  var isSalakPerdana = (slug === "salak-perdana");
+  var isNsipKm1 = (slug === "nsip");
+  var staticCfg = getProjectConfig(slug);
+  var projectNameForCheck = staticCfg ? staticCfg.name : slug;
+  var isHighrise = HIGHRISE_PROJECTS[projectNameForCheck.toString().trim().toUpperCase()];
+  var isGid = (slug === "grand-ion-delemen");
+
+  var headers = [];
+  if (isHighrise && isGid) {
+    headers = ["No", "Unit No", "Status", "Built Up (sqft)", "SPA Price (RM)"];
+  } else if (isHighrise) {
+    headers = ["No", "Unit No", "Status", "Built Up (sqft)", "SPA Price (RM)"];
+  } else if (isSalakPerdana) {
+    headers = ["No", "Unit No", "Status", "Built Up (sqft)", "SPA Price (RM)"];
+  } else if (isNsipKm1) {
+    headers = ["No", "Unit No", "Status", "Land Area (sqm)", "Built Up (sqm)", "Land Area (sqft)", "Built Up (sqft)", "Unit Type", "SPA Price (RM)"];
+  } else {
+    headers = ["No", "Unit No", "Status", "Land Area (sqft)", "Built Up (sqft)", "SPA Price (RM)"];
+  }
+
+  // Build rows matching the displayed table values
+  var rows = [];
+  filtered.forEach(function(u, i) {
+    var status = getDisplayStatus(u);
+    var row = [i + 1, esc(u.Unit_No), status];
+    if (isHighrise && isGid) {
+      row.push(formatArea(u.Built_Up));
+      row.push(formatPriceValue(u.Listing_Price));
+    } else if (isHighrise) {
+      row.push(formatArea(u.Built_Up));
+      row.push(formatPriceValue(u.Listing_Price));
+    } else if (isSalakPerdana) {
+      row.push(formatArea(u.Built_Up));
+      row.push(formatPriceValue(u.Listing_Price));
+    } else if (isNsipKm1) {
+      var landSqm = formatArea(u.Land_Area);
+      var builtSqm = formatArea(u.Built_Up);
+      var landSqft = (u.Land_Area && !isNaN(Number(u.Land_Area))) ? (Number(u.Land_Area) * 10.7639).toFixed(2) : '-';
+      var builtSqft = (u.Built_Up && !isNaN(Number(u.Built_Up))) ? (Number(u.Built_Up) * 10.7639).toFixed(2) : '-';
+      row.push(landSqm);
+      row.push(builtSqm);
+      row.push(landSqft);
+      row.push(builtSqft);
+      row.push(esc(u.Unit_Type || '-'));
+      row.push(formatPriceValue(u.Listing_Price));
+    } else {
+      row.push(formatArea(u.Land_Area));
+      row.push(formatArea(u.Built_Up));
+      row.push(formatPriceValue(u.Listing_Price));
+    }
+    rows.push(row);
+  });
+
+  // Build worksheet
+  var wsData = [headers].concat(rows);
+  var ws = XLSX.utils.aoa_to_sheet(wsData);
+
+  // Set column widths for readability
+  ws['!cols'] = headers.map(function(h) { return { wch: Math.max(h.length + 2, 14) }; });
+
+  // Build workbook
+  var wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Available Units");
+
+  // Generate project-specific filename
+  var projectName = (staticCfg ? staticCfg.name : slug).replace(/[^\w\s-]/g, '').replace(/\s+/g, '_');
+  var filename = projectName + "_Available_Units.xlsx";
+
+  XLSX.writeFile(wb, filename);
+}
+
+// Bind the Excel Download button for a given project slug
+function bindAvailableUnitsDownloadButton(slug, projectUnits) {
+  var btn = document.getElementById("downloadExcel-" + slug);
+  if (!btn) return;
+  if (btn.getAttribute("data-bound") === "1") return;
+  btn.setAttribute("data-bound", "1");
+  btn.addEventListener("click", function() {
+    exportAvailableUnitsToExcel(slug, projectUnits);
+  });
+}
+
 function renderPsfInfoBox(slug) {
   var text = PROJECT_PSF_INFO[slug];
   if (!text) return;
@@ -2405,7 +2810,7 @@ function renderNsipKm1View() {
   panel.innerHTML =
     '<div class="page-header">' +
     '  <div style="display:flex;justify-content:space-between;align-items:center;flex:1;flex-wrap:wrap;gap:8px;">' +
-    '    <div><h1 style="margin-right:12px;">' + nsipProjectName + ' (230.09 acre)</h1><div class="header-sub">Project Dashboard</div></div>' +
+    '    <div><h1 style="margin-right:12px;">' + nsipProjectName + ' (230.09 acres)</h1><div class="header-sub">Project Dashboard</div></div>' +
     '  </div>' +
     '  <div class="data-extracted-box"><div class="de-label">Updated as of</div><div class="de-date">15 July 2026</div></div></div>' +
     '</div>' +
@@ -2419,7 +2824,7 @@ function renderNsipKm1View() {
     '  <div class="card project-kpi-price-box"><div class="project-kpi-label"><i class="fas fa-dollar-sign" style="color:#2563eb;margin-right:8px;"></i>Total SPA Price</div><div class="project-kpi-value" id="kpi-price-nsip">RM 0</div></div>' +
     '</div>' +
     '<div id="nsip-svg-wrapper" style="width:100%;display:flex;flex-direction:column;gap:20px;box-sizing:border-box;padding:0;margin-bottom:20px;">' +
-    '  ' + renderLayoutPlanHeader(getLayoutBalance("NCT SMART INDUSTRIAL PARK KM1")) + '' +
+    '  ' + renderLayoutPlanHeader(getLayoutBalance("NCT SMART INDUSTRIAL PARK KM1"), "nsip-svg-stage") + '' +
     '  <div id="nsip-svg-stage" style="width:100%;background:#ffffff;border:1px solid #eef0f4;border-radius:10px;padding:12px;box-shadow:0 1px 3px rgba(0,0,0,0.06);overflow:hidden;min-height:200px;">' +
     '    <div style="display:flex;align-items:center;justify-content:center;height:200px;color:#5e6778;font-style:italic;">Loading layout...</div>' +
     '  </div>' +
@@ -2434,6 +2839,7 @@ function renderNsipKm1View() {
     '      <select id="staticFilterPhase-nsip" class="table-filter"><option value="">All Phases</option></select>' +
     '      <select id="staticFilterType-nsip" class="table-filter"><option value="">All Unit Types</option></select>' +
     '      <button id="resetSort-nsip" class="table-filter" style="padding:6px 12px;border:1px solid var(--border-light);border-radius:4px;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:#0f2042;"><i class="fas fa-undo" style="margin-right:4px;"></i>Reset Sort</button>' +
+    '      <button id="downloadExcel-nsip" class="table-filter" style="padding:6px 12px;border:1px solid var(--border-light);border-radius:4px;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:#0f2042;"><i class="fas fa-file-excel" style="margin-right:4px;color:#16a34a;"></i>Download</button>' +
     '    </div>' +
     '  </div>' +
     '  <div id="staticLedgerContainer-nsip" class="asset-table-container"></div>' +
@@ -2468,6 +2874,7 @@ function renderNsipKm1View() {
 
       try { renderNsipHierarchy(__nsipSharedData.units); } catch(e) { console.error("Hierarchy:", e); }
       try { renderStaticAssetTable("nsip", __nsipSharedData.units); } catch(e) { console.error("Static NSIP table:", e); }
+      try { bindAvailableUnitsDownloadButton("nsip", __nsipSharedData.units); } catch(e) { console.error("Bind download:", e); }
       try { renderPsfInfoBox("nsip"); } catch(e) { console.error("PSF info:", e); }
 
       // Use standardized SVG renderer with zoom controls
@@ -2489,6 +2896,8 @@ function renderNsipKm1View() {
           renderNsipLayoutLegends();
         }
       });
+
+      bindLayoutDownloadButton("nsip-svg-stage", "NCT SMART INDUSTRIAL PARK KM1");
     })
     .catch(function(err) {
       console.error("Failed to load NSIP layout data:", err);
@@ -2754,7 +3163,7 @@ function renderNcityView() {
     '  <div class="card project-kpi-price-box"><div class="project-kpi-label"><i class="fas fa-dollar-sign" style="color:#2563eb;margin-right:8px;"></i>Total SPA Price</div><div class="project-kpi-value" id="kpi-price-ncity">RM 0</div></div>' +
     '</div>' +
     '<div id="ncity-svg-wrapper" style="width:100%;display:flex;flex-direction:column;gap:20px;box-sizing:border-box;padding:0;margin-bottom:20px;">' +
-    '  ' + renderLayoutPlanHeader(getLayoutBalance("N-CITY — COMMERCIAL")) + '' +
+    '  ' + renderLayoutPlanHeader(getLayoutBalance("N-CITY — COMMERCIAL"), "ncity-svg-stage") + '' +
     '  <div id="ncity-svg-stage" style="width:100%;background:#ffffff;border:1px solid #eef0f4;border-radius:10px;padding:12px;box-shadow:0 1px 3px rgba(0,0,0,0.06);overflow:hidden;min-height:200px;">' +
     '    <div style="display:flex;align-items:center;justify-content:center;height:200px;color:#5e6778;font-style:italic;">Loading layout...</div>' +
     '  </div>' +
@@ -2768,6 +3177,7 @@ function renderNcityView() {
     '      <select id="staticFilterPhase-ncity" class="table-filter"><option value="">All Phases</option></select>' +
     '      <select id="staticFilterType-ncity" class="table-filter"><option value="">All Unit Types</option></select>' +
     '      <button id="resetSort-ncity" class="table-filter" style="padding:6px 12px;border:1px solid var(--border-light);border-radius:4px;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:#0f2042;"><i class="fas fa-undo" style="margin-right:4px;"></i>Reset Sort</button>' +
+    '      <button id="downloadExcel-ncity" class="table-filter" style="padding:6px 12px;border:1px solid var(--border-light);border-radius:4px;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:#0f2042;"><i class="fas fa-file-excel" style="margin-right:4px;color:#16a34a;"></i>Download</button>' +
     '    </div>' +
     '  </div>' +
     '  <div id="staticLedgerContainer-ncity" class="asset-table-container"></div>' +
@@ -2802,6 +3212,7 @@ function renderNcityView() {
 
       try { renderNcityHierarchy(__ncitySharedData.units); } catch(e) { console.error("Hierarchy:", e); }
       try { renderStaticAssetTable("ncity", __ncitySharedData.units); } catch(e) { console.error("Static table:", e); }
+      try { bindAvailableUnitsDownloadButton("ncity", __ncitySharedData.units); } catch(e) { console.error("Bind download:", e); }
 
       // Use standardized SVG renderer with zoom controls
       renderInteractiveSvg({
@@ -2823,6 +3234,8 @@ function renderNcityView() {
           renderNcityLayoutLegends();
         }
       });
+
+      bindLayoutDownloadButton("ncity-svg-stage", "N-CITY");
     })
     .catch(function(err) {
       console.error("Failed to load N-CITY layout data:", err);
@@ -3091,7 +3504,7 @@ function renderMahkotaKamparView() {
     '  <div class="card project-kpi-price-box"><div class="project-kpi-label"><i class="fas fa-dollar-sign" style="color:#2563eb;margin-right:8px;"></i>Total SPA Price</div><div class="project-kpi-value" id="kpi-price-mahkota">RM 0</div></div>' +
     '</div>' +
     '<div id="mahkota-svg-wrapper" style="width:100%;display:flex;flex-direction:column;gap:20px;box-sizing:border-box;padding:0;margin-bottom:20px;">' +
-    '  ' + renderLayoutPlanHeader(getLayoutBalance("MAHKOTA KAMPAR")) + '' +
+    '  ' + renderLayoutPlanHeader(getLayoutBalance("MAHKOTA KAMPAR"), "mahkota-svg-stage") + '' +
     '  <div id="mahkota-svg-stage" style="width:100%;background:#ffffff;border:1px solid #eef0f4;border-radius:10px;padding:12px;box-shadow:0 1px 3px rgba(0,0,0,0.06);overflow:hidden;min-height:200px;">' +
     '    <div style="display:flex;align-items:center;justify-content:center;height:200px;color:#5e6778;font-style:italic;">Loading layout...</div>' +
     '  </div>' +
@@ -3106,6 +3519,7 @@ function renderMahkotaKamparView() {
     '      <select id="staticFilterPhase-mahkota" class="table-filter"><option value="">All Phases</option></select>' +
     '      <select id="staticFilterType-mahkota" class="table-filter"><option value="">All Unit Types</option></select>' +
     '      <button id="resetSort-mahkota" class="table-filter" style="padding:6px 12px;border:1px solid var(--border-light);border-radius:4px;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:#0f2042;"><i class="fas fa-undo" style="margin-right:4px;"></i>Reset Sort</button>' +
+    '      <button id="downloadExcel-mahkota" class="table-filter" style="padding:6px 12px;border:1px solid var(--border-light);border-radius:4px;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:#0f2042;"><i class="fas fa-file-excel" style="margin-right:4px;color:#16a34a;"></i>Download</button>' +
     '    </div>' +
     '  </div>' +
     '  <div id="staticLedgerContainer-mahkota" class="asset-table-container"></div>' +
@@ -3140,6 +3554,7 @@ function renderMahkotaKamparView() {
 
       try { renderMahkotaHierarchy(__mahkotaSharedData.units); } catch(e) { console.error("Hierarchy:", e); }
       try { renderStaticAssetTable("mahkota", __mahkotaSharedData.units); } catch(e) { console.error("Static table:", e); }
+      try { bindAvailableUnitsDownloadButton("mahkota", __mahkotaSharedData.units); } catch(e) { console.error("Bind download:", e); }
       try { renderPsfInfoBox("mahkota-kampar"); } catch(e) { console.error("PSF info:", e); }
 
       // Use standardized SVG renderer with zoom controls
@@ -3160,6 +3575,8 @@ function renderMahkotaKamparView() {
           renderMahkotaLayoutLegends();
         }
       });
+
+      bindLayoutDownloadButton("mahkota-svg-stage", "MAHKOTA KAMPAR");
     })
     .catch(function(err) {
       console.error("Failed to load MAHKOTA KAMPAR layout data:", err);
