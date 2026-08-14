@@ -10684,3 +10684,154 @@ INFO:     172.16.2.238:59656 - "GET /api/home/kpi HTTP/1.1" 200 OK
 INFO:     172.16.2.238:59656 - "GET /api/gallery/images?path=GRAND%20ION%20DELEMEN HTTP/1.1" 200 OK
 INFO:     172.16.2.238:59656 - "GET /GID_Layout.png HTTP/1.1" 200 OK
 INFO:     172.16.2.238:59656 - "GET /GRAND%20ION%20DELEMEN/GID.png HTTP/1.1" 200 OK
+INFO:     172.16.2.238:36560 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     172.16.2.238:41034 - "GET /api/gallery/images?path=NSIP HTTP/1.1" 200 OK
+INFO:     172.16.2.238:41048 - "GET /api/layout/nsip HTTP/1.1" 200 OK
+INFO:     172.16.2.238:59734 - "GET /api/gallery/images?path=GRAND%20ION%20MAJESTIC HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48962 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48962 - "GET /api/auth/me?email=najihah%40nctalliance.com HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48962 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43846 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43846 - "GET /style.css?v=8.0.0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43846 - "GET /svg-map.css?v=1.0.5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43860 - "GET /app.js?v=8.0.7 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43860 - "GET /NCTGroupLogo.jpeg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43846 - "GET /api/auth/me?email=najihah%40nctalliance.com HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43860 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43870 - "GET /api/units/all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43860 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:43870 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43860 - "GET /api/auth/me?email=cherrielee%40nctalliance.com HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43870 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54030 - "GET /api/gallery/images?path=NSIP HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54032 - "GET /api/layout/nsip HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54030 - "GET /NSIP/NSIP.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54030 - "GET /NSIP_Master.svg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56442 - "GET /ION%20BELIAN%20GARDEN/IBG_Comm.jpeg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56432 - "GET /api/layout/ibe HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56432 - "GET /IBE_Master.svg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56432 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37426 - "GET /api/layout/ibe HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49554 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57524 - "GET /ION%20BELIAN%20GARDEN/IBG_Res.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57520 - "GET /api/layout/ibb HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57520 - "GET /IBB_Master.svg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48600 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37922 - "GET /api/layout/ibb HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42254 - "GET /api/gallery/images?path=NSIP HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42268 - "GET /api/layout/nsip HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42268 - "GET /api/layout/ibe HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43058 - "GET /api/layout/ibb HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51882 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41220 - "GET /api/layout/ibb HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41220 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     172.16.1.225:63597 - "GET / HTTP/1.1" 200 OK
+INFO:     172.16.1.225:63597 - "GET /style.css?v=8.0.0 HTTP/1.1" 200 OK
+INFO:     172.16.1.225:50415 - "GET /NCTGroupLogo.jpeg HTTP/1.1" 200 OK
+INFO:     172.16.1.225:63597 - "GET /svg-map.css?v=1.0.5 HTTP/1.1" 200 OK
+INFO:     172.16.1.225:63597 - "GET /app.js?v=8.0.7 HTTP/1.1" 200 OK
+INFO:     172.16.1.225:63755 - "GET /api/auth/me?email=cherrielee%40nctalliance.com HTTP/1.1" 200 OK
+INFO:     172.16.1.225:58286 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     172.16.1.225:50415 - "GET /api/units/all HTTP/1.1" 200 OK
+INFO:     172.16.1.225:63597 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48212 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48212 - "GET /style.css?v=8.0.0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48212 - "GET /svg-map.css?v=1.0.5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48212 - "GET /app.js?v=8.0.7 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48218 - "GET /NCTGroupLogo.jpeg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48218 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:48218 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48212 - "GET /api/units/all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48212 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48212 - "GET /api/auth/me?email=cherrielee%40nctalliance.com HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48218 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58158 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58158 - "GET /style.css?v=8.0.0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58166 - "GET /svg-map.css?v=1.0.5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58166 - "GET /app.js?v=8.0.7 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58166 - "GET /NCTGroupLogo.jpeg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58158 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:58178 - "GET /api/units/all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58166 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58178 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58166 - "GET /api/auth/me?email=cherrielee%40nctalliance.com HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58178 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47022 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47022 - "GET /style.css?v=8.0.0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47022 - "GET /svg-map.css?v=1.0.5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47022 - "GET /app.js?v=8.0.7 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47022 - "GET /NCTGroupLogo.jpeg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47022 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:47022 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47036 - "GET /api/units/all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47036 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47022 - "GET /api/auth/me?email=cherrielee%40nctalliance.com HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47036 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48242 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48242 - "GET /style.css?v=8.0.0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48242 - "GET /svg-map.css?v=1.0.5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48250 - "GET /app.js?v=8.0.7 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48250 - "GET /NCTGroupLogo.jpeg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48250 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:48252 - "GET /api/units/all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48250 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48252 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48250 - "GET /api/auth/me?email=cherrielee%40nctalliance.com HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48252 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60742 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60742 - "GET /style.css?v=8.0.0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60752 - "GET /svg-map.css?v=1.0.5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60752 - "GET /app.js?v=8.0.7 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60752 - "GET /NCTGroupLogo.jpeg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60752 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:60752 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60742 - "GET /api/units/all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60742 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60742 - "GET /api/auth/me?email=cherrielee%40nctalliance.com HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60752 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55138 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52834 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57566 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57566 - "GET /style.css?v=8.0.0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57566 - "GET /svg-map.css?v=1.0.5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57578 - "GET /app.js?v=8.0.7 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57578 - "GET /NCTGroupLogo.jpeg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57578 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:57572 - "GET /api/units/all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57578 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57572 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57578 - "GET /api/auth/me?email=cherrielee%40nctalliance.com HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57572 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46732 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46732 - "GET /app.js?v=8.0.7 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:46738 - "GET /style.css?v=8.0.0 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:46732 - "GET /api/units/all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46738 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45070 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45082 - "GET /api/auth/me?email=cherrielee%40nctalliance.com HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45070 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37140 - "GET /api/gallery/images?path=NSIP HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37154 - "GET /api/layout/nsip HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37140 - "GET /NSIP/NSIP.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37154 - "GET /NSIP_Master.svg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50250 - "GET /api/gallery/images?path=MAHKOTA%20KAMPAR HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50250 - "GET /MAHKOTA%20KAMPAR/MKT.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50254 - "GET /api/layout/mahkota HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50254 - "GET /Mahkota_Master.svg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54246 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54246 - "GET /api/gallery/images?path=NSIP HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54256 - "GET /api/layout/nsip HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35152 - "GET /api/gallery/images?path=GRAND%20ION%20MAJESTIC HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35152 - "GET /GIM_Layout.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35152 - "GET /GRAND%20ION%20MAJESTIC/GIM.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56846 - "GET /N-CITY/N-CITY_COMM.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56836 - "GET /api/layout/ncity HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56836 - "GET /N-CITY_Master.svg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33260 - "GET /Vortex_Layout.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33244 - "GET /api/gallery/images?path=VORTEX%20BUSINESS%20PARK HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33244 - "GET /VORTEX%20BUSINESS%20PARK/VORTEX.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48904 - "GET /api/layout/ncity HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [2240]

@@ -1468,12 +1468,10 @@ function renderHomeDashboard() {
 }
 
 function renderDashboardSections(kpiData) {
-  var completedGrid = document.getElementById("completedProjectsGrid");
-  var ongoingGrid = document.getElementById("ongoingProjectsGrid");
-  if (!completedGrid || !ongoingGrid) return;
+  var allGrid = document.getElementById("allProjectsGrid");
+  if (!allGrid) return;
 
-  completedGrid.innerHTML = "";
-  ongoingGrid.innerHTML = "";
+  allGrid.innerHTML = "";
 
   var dataMap = {};
   (Array.isArray(kpiData) ? kpiData : []).forEach(function(proj) {
@@ -1560,11 +1558,7 @@ function renderDashboardSections(kpiData) {
   // Render normal cards
   normalCards.forEach(function(proj) {
     var card = createDashboardCard(proj);
-    if (proj.project_status === "Ongoing") {
-      ongoingGrid.appendChild(card);
-    } else {
-      completedGrid.appendChild(card);
-    }
+    allGrid.appendChild(card);
   });
 
   // Render IBG cards with grouping borders
@@ -1577,11 +1571,7 @@ function renderDashboardSections(kpiData) {
       else if (idx === ibgCards.length - 1) card.classList.add("group-last");
       else card.classList.add("group-middle");
     }
-    if (proj.project_status === "Ongoing") {
-      ongoingGrid.appendChild(card);
-    } else {
-      completedGrid.appendChild(card);
-    }
+    allGrid.appendChild(card);
   });
 
   // Render N-City cards with grouping borders
@@ -1594,11 +1584,7 @@ function renderDashboardSections(kpiData) {
       else if (idx === ncityCards.length - 1) card.classList.add("group-last");
       else card.classList.add("group-middle");
     }
-    if (proj.project_status === "Ongoing") {
-      ongoingGrid.appendChild(card);
-    } else {
-      completedGrid.appendChild(card);
-    }
+    allGrid.appendChild(card);
   });
 
   // After all cards rendered, update continuous border widths for grouped cards
@@ -1616,12 +1602,6 @@ function renderDashboardSections(kpiData) {
   if (grandAvailEl) grandAvailEl.textContent = grandAvail;
   if (grandValueEl) grandValueEl.textContent = formatPrice(grandValue);
 
-  if (completedGrid.children.length === 0) {
-    completedGrid.innerHTML = '<div class="dashboard-empty">No completed projects</div>';
-  }
-  if (ongoingGrid.children.length === 0) {
-    ongoingGrid.innerHTML = '<div class="dashboard-empty">No ongoing projects</div>';
-  }
 }
 
 function updateGroupedCardBorders() {
@@ -2770,7 +2750,7 @@ function renderNsipKm1View() {
     '  <div style="display:flex;justify-content:space-between;align-items:center;flex:1;flex-wrap:wrap;gap:8px;">' +
     '    <div><h1 style="margin-right:12px;">' + nsipProjectName + ' (230.09 acres)</h1><div class="header-sub">Project Dashboard</div></div>' +
     '  </div>' +
-    '  <div class="data-extracted-box"><div class="de-label">Updated as of</div><div class="de-date">15 July 2026</div></div></div>' +
+    '  <div class="data-extracted-box"><div class="de-label">Updated as of</div><div class="de-date">12 August 2026</div></div></div>' +
     '</div>' +
     '<div class="project-image-banner" id="project-image-nsip" style="background:#000000;border-radius:10px;overflow:hidden;margin-bottom:20px;position:relative;cursor:pointer;" title="Double-click to view full image">' +
     '  <div style="display:flex;align-items:center;justify-content:center;min-height:200px;max-height:400px;padding:20px;">' +
