@@ -474,7 +474,7 @@ function renderWaitingForData(view) {
    HARDCODED LAYOUT PLAN BALANCE (No database, no API, no calculation)
    ========================================================================== */
 var PROJECT_LAYOUT_BALANCE = {
-  "NCT SMART INDUSTRIAL PARK KM1": "Bal 63/280 units",
+  "NCT SMART INDUSTRIAL PARK KM1": "Bal 64/280 units",
   "ION BELIAN GARDEN — COMMERCIAL": "Bal 1 / 9 units",
   "ION BELIAN GARDEN — RESIDENTIAL": "1/1167 units",
   "MAHKOTA KAMPAR": "Bal 23/24 units",
@@ -633,7 +633,9 @@ function renderLayoutPlanHeader(balanceText, stageId) {
 }
 
 /* ==========================================================================
-   LAYOUT PLAN EXPORT (PDF & Image) — Reusable across all project pages
+   LAYOUT PLAN EXPORT (PDF) — Reusable across all project pages
+   Uses the actual SVG/layout content (not a browser screenshot) to generate
+   the PDF, preserving the full layout, overlay, labels and aspect ratio.
    ========================================================================== */
 
 // Get the project display name for a given stage ID
@@ -649,175 +651,122 @@ function getProjectNameForStage(stageId) {
   return 'Layout';
 }
 
-// Temporarily normalize the layout container so the complete rendered layout can be captured.
-// Saves current state, expands container to natural content dimensions, and returns a restore function.
-function prepareLayoutForCapture(stage) {
-  if (!stage) return null;
-
-  // Find the SVG or image inside the stage
+// Serialize the SVG element with the overlay styles inlined so the exported
+// PDF preserves the available/not-available highlighting, unit boundaries,
+// labels and all other visible layout information.
+function serializeSvgForExport(stage) {
   var svg = stage.querySelector('svg');
-  var img = stage.querySelector('img');
+  if (!svg) return null;
 
-  // Save original state of stage and inner element
-  var saved = {
-    stage: {
-      style: stage.getAttribute('style') || '',
-      className: stage.className || '',
-      scrollLeft: stage.scrollLeft || 0,
-      scrollTop: stage.scrollTop || 0
-    },
-    svg: null,
-    img: null
-  };
+  // Clone the SVG so we don't mutate the live DOM
+  var clone = svg.cloneNode(true);
 
-  if (svg) {
-    saved.svg = {
-      style: svg.getAttribute('style') || '',
-      width: svg.getAttribute('width'),
-      height: svg.getAttribute('height'),
-      transform: svg.style.transform || '',
-      transformOrigin: svg.style.transformOrigin || ''
-    };
-  }
-  if (img) {
-    saved.img = {
-      style: img.getAttribute('style') || '',
-      transform: img.style.transform || '',
-      transformOrigin: img.style.transformOrigin || ''
-    };
-  }
-
-  // Determine natural content dimensions
-  var naturalWidth = 0, naturalHeight = 0;
-  if (svg) {
-    var vb = svg.viewBox;
-    if (vb && vb.baseVal && vb.baseVal.width) {
-      naturalWidth = vb.baseVal.width;
-      naturalHeight = vb.baseVal.height;
-    } else {
-      naturalWidth = svg.getBoundingClientRect().width || 800;
-      naturalHeight = svg.getBoundingClientRect().height || 600;
-    }
-  } else if (img) {
-    naturalWidth = img.naturalWidth || img.width || 800;
-    naturalHeight = img.naturalHeight || img.height || 600;
+  // Determine natural dimensions from the viewBox (preserve aspect ratio)
+  var vb = clone.viewBox;
+  var naturalWidth = 800, naturalHeight = 600;
+  if (vb && vb.baseVal && vb.baseVal.width) {
+    naturalWidth = vb.baseVal.width;
+    naturalHeight = vb.baseVal.height;
   } else {
-    naturalWidth = stage.scrollWidth || stage.getBoundingClientRect().width || 800;
-    naturalHeight = stage.scrollHeight || stage.getBoundingClientRect().height || 600;
+    var rect = svg.getBoundingClientRect();
+    naturalWidth = rect.width || 800;
+    naturalHeight = rect.height || 600;
   }
+  clone.setAttribute('width', naturalWidth);
+  clone.setAttribute('height', naturalHeight);
+  clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+  clone.style.width = naturalWidth + 'px';
+  clone.style.height = naturalHeight + 'px';
+  clone.style.maxWidth = 'none';
+  clone.style.maxHeight = 'none';
+  clone.style.transform = 'none';
+  clone.style.background = '#ffffff';
 
-  // Temporarily normalize the stage container
-  stage.style.width = naturalWidth + 'px';
-  stage.style.height = naturalHeight + 'px';
-  stage.style.maxWidth = 'none';
-  stage.style.maxHeight = 'none';
-  stage.style.overflow = 'visible';
-  stage.style.position = 'relative';
-  stage.style.transform = 'none';
-  stage.style.transformOrigin = '0 0';
-  stage.style.padding = '0';
-  stage.style.margin = '0 auto';
-  stage.style.background = '#ffffff';
-
-  // Normalize the inner SVG/image
-  if (svg) {
-    svg.setAttribute('width', naturalWidth);
-    svg.setAttribute('height', naturalHeight);
-    svg.style.width = naturalWidth + 'px';
-    svg.style.height = naturalHeight + 'px';
-    svg.style.maxWidth = 'none';
-    svg.style.maxHeight = 'none';
-    svg.style.transform = 'none';
-    svg.style.transformOrigin = '0 0';
-    svg.style.margin = '0';
-    svg.style.display = 'block';
-  }
-  if (img) {
-    img.style.width = naturalWidth + 'px';
-    img.style.height = naturalHeight + 'px';
-    img.style.maxWidth = 'none';
-    img.style.maxHeight = 'none';
-    img.style.transform = 'none';
-    img.style.transformOrigin = '0 0';
-    img.style.margin = '0';
-    img.style.display = 'block';
-  }
-
-  // Return a restore function
-  return function() {
-    stage.setAttribute('style', saved.stage.style);
-    stage.className = saved.stage.className;
-    stage.scrollLeft = saved.stage.scrollLeft;
-    stage.scrollTop = saved.stage.scrollTop;
-    if (saved.svg && svg) {
-      svg.setAttribute('style', saved.svg.style);
-      if (saved.svg.width !== null) svg.setAttribute('width', saved.svg.width); else svg.removeAttribute('width');
-      if (saved.svg.height !== null) svg.setAttribute('height', saved.svg.height); else svg.removeAttribute('height');
-      svg.style.transform = saved.svg.transform;
-      svg.style.transformOrigin = saved.svg.transformOrigin;
+  // IMPORTANT: Make the export fully self-contained and deterministic.
+  // The original SVG artwork contains its own green unit fills. These must be
+  // completely overridden so they cannot leak through underneath the system
+  // status overlay in the PDF.
+  //
+  // 1. Remove ALL <style> elements from the clone so no CSS rules can override
+  //    the inline fills.
+  // 2. Remove class attributes from all shapes so no class-based CSS applies.
+  // 3. For EVERY unit shape, explicitly override the original fill:
+  //    - Available  → system green #00E676 at 0.75
+  //    - Everything else (Signed/Registered/Sold) → white #FFFFFF at 0.85
+  //    This guarantees the original SVG green can never appear in the PDF.
+  var cloneStyles = clone.querySelectorAll('style');
+  for (var s = 0; s < cloneStyles.length; s++) {
+    if (cloneStyles[s].parentNode) {
+      cloneStyles[s].parentNode.removeChild(cloneStyles[s]);
     }
-    if (saved.img && img) {
-      img.setAttribute('style', saved.img.style);
-      img.style.transform = saved.img.transform;
-      img.style.transformOrigin = saved.img.transformOrigin;
-    }
-  };
-}
-
-// Capture the complete rendered Layout Plan as a high-resolution PNG canvas using html2canvas
-function captureLayoutCanvas(stage, callback) {
-  if (typeof html2canvas === 'undefined') {
-    alert('Screenshot library not loaded. Please refresh the page.');
-    return;
   }
-  var restore = prepareLayoutForCapture(stage);
-  if (!restore) { alert('No layout found to export.'); return; }
 
-  // Allow the browser to finish rendering after temporary changes
-  setTimeout(function() {
-    html2canvas(stage, {
-      scale: 2,
-      useCORS: true,
-      allowTaint: false,
-      backgroundColor: '#ffffff',
-      logging: false,
-      windowWidth: stage.scrollWidth || stage.getBoundingClientRect().width,
-      windowHeight: stage.scrollHeight || stage.getBoundingClientRect().height
-    }).then(function(canvas) {
-      restore();
-      callback(canvas);
-    }).catch(function(err) {
-      restore();
-      console.error('Layout capture error:', err);
-      alert('Failed to capture layout. Please try again.');
-    });
-  }, 100);
+  var liveShapes = svg.querySelectorAll('path, polygon, rect, circle, ellipse');
+  var cloneShapes = clone.querySelectorAll('path, polygon, rect, circle, ellipse');
+  for (var i = 0; i < liveShapes.length; i++) {
+    var liveShape = liveShapes[i];
+    var cloneShape = cloneShapes[i];
+    if (!liveShape || !cloneShape || !liveShape.id) continue;
+    if (liveShape.id === 'svg-background') continue;
+
+    // Remove class attribute and any existing fill/style so the original
+    // SVG green fill cannot remain.
+    cloneShape.removeAttribute('class');
+    cloneShape.removeAttribute('style');
+    cloneShape.removeAttribute('fill');
+    cloneShape.removeAttribute('fill-opacity');
+
+    // Determine the final appearance from the LIVE DOM state.
+    // Use the SAME opacity values as the system Layout Plan CSS
+    // (available=0.45, not-available=0.55) so unit numbers stay readable.
+    if (liveShape.classList.contains('available')) {
+      cloneShape.setAttribute('fill', '#00E676');
+      cloneShape.setAttribute('fill-opacity', '0.45');
+    } else {
+      // Signed / Registered / Sold / any non-available unit → white/clear
+      cloneShape.setAttribute('fill', '#FFFFFF');
+      cloneShape.setAttribute('fill-opacity', '0.55');
+    }
+  }
+
+  // Serialize to string
+  var serializer = new XMLSerializer();
+  return serializer.serializeToString(clone);
 }
 
-// Export the layout as an image (PNG) from the actual rendered DOM
-function exportLayoutAsImage(stage, projectName) {
-  if (!stage) return;
-  captureLayoutCanvas(stage, function(canvas) {
-    if (!canvas) return;
-    var link = document.createElement('a');
-    link.download = (projectName || 'Layout') + '_Layout.png';
-    link.href = canvas.toDataURL('image/png');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  });
-}
-
-// Export the layout as a PDF using the SAME captured PNG from the rendered DOM
+// Export the COMPLETE Layout Plan as a PDF using the actual SVG content.
+// The entire SVG layout (including overlay, unit boundaries, labels and
+// highlights) is embedded, preserving the SVG aspect ratio.
 function exportLayoutAsPdf(stage, projectName) {
   if (!stage) return;
   if (typeof window.jspdf === 'undefined') {
     alert('PDF library not loaded. Please refresh the page.');
     return;
   }
-  captureLayoutCanvas(stage, function(canvas) {
-    if (!canvas) return;
+
+  var svgMarkup = serializeSvgForExport(stage);
+  if (!svgMarkup) {
+    alert('No layout found to export.');
+    return;
+  }
+
+  // Build an SVG data URL from the serialized content
+  var svgDataUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgMarkup);
+
+  // Load the SVG into an Image so we can embed it in the PDF
+  var img = new Image();
+  img.onload = function() {
+    // Render at 8x resolution for true 4K-quality output
+    var scale = 8;
+    var canvas = document.createElement('canvas');
+    canvas.width = img.width * scale;
+    canvas.height = img.height * scale;
+    var ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
     var imgData = canvas.toDataURL('image/jpeg', 0.95);
+
     var orientation = canvas.width >= canvas.height ? 'landscape' : 'portrait';
     var pdf = new window.jspdf.jsPDF({ orientation: orientation, unit: 'mm', format: 'a4' });
     var pageWidth = pdf.internal.pageSize.getWidth();
@@ -834,45 +783,52 @@ function exportLayoutAsPdf(stage, projectName) {
     pdf.setTextColor(15, 32, 66);
     pdf.text(projectName || 'Layout Plan', pageWidth / 2, margin + 5, { align: 'center' });
     pdf.addImage(imgData, 'JPEG', x, y + 5, w, h);
-    pdf.save((projectName || 'Layout') + '_Layout.pdf');
-  });
+    addNctLogoToPdf(pdf, pageWidth, function() {
+      pdf.save((projectName || 'Layout') + '_Layout.pdf');
+    });
+  };
+  img.onerror = function() {
+    alert('Failed to generate the layout PDF. Please try again.');
+  };
+  img.src = svgDataUrl;
 }
 
-// Show format selection for layout export
+// Add the NCT Group logo to the top-right corner of the downloaded PDF only.
+// Uses the existing jsPDF pipeline; does not affect browser rendering.
+function addNctLogoToPdf(pdf, pageWidth, onDone) {
+  var logo = new Image();
+  logo.onload = function() {
+    try {
+      // Reasonable professional size for the PDF header
+      var logoWidth = 22;
+      var logoHeight = logoWidth * (logo.height / logo.width);
+      // Clean margin from top and right edges (independently in the top-right area)
+      var logoX = pageWidth - logoWidth - 10;
+      var logoY = 6;
+      var logoData = '';
+      var tmpCanvas = document.createElement('canvas');
+      tmpCanvas.width = logo.width;
+      tmpCanvas.height = logo.height;
+      var tmpCtx = tmpCanvas.getContext('2d');
+      tmpCtx.drawImage(logo, 0, 0);
+      logoData = tmpCanvas.toDataURL('image/jpeg', 0.95);
+      pdf.addImage(logoData, 'JPEG', logoX, logoY, logoWidth, logoHeight);
+    } catch(e) {
+      console.error('NCT logo placement error:', e);
+    }
+    onDone();
+  };
+  logo.onerror = function() {
+    // Logo could not be loaded — save the PDF without it
+    onDone();
+  };
+  logo.src = '/static/NCTGroupLogo.jpeg';
+}
+
+// Single download option: Download as PDF (no format selector)
 function showLayoutExportOptions(stage, projectName) {
   if (!stage) return;
-  var overlay = document.createElement('div');
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.5);z-index:99999;display:flex;align-items:center;justify-content:center;';
-  overlay.id = 'layout-export-overlay';
-  overlay.innerHTML =
-    '<div style="width:320px;max-width:calc(100vw-32px);background:#ffffff;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,0.35);overflow:hidden;font-family:Inter,system-ui,sans-serif;">' +
-    '  <div style="padding:20px 24px;border-bottom:1px solid #eef0f4;">' +
-    '    <h3 style="margin:0;font-size:16px;font-weight:700;color:#1a1d23;">Export Layout</h3>' +
-    '    <p style="margin:4px 0 0;font-size:13px;color:#5e6778;">Choose a format</p>' +
-    '  </div>' +
-    '  <div style="padding:16px 24px;display:flex;flex-direction:column;gap:10px;">' +
-    '    <button id="layout-export-pdf" style="padding:10px 16px;background:#f47217;color:white;border:none;border-radius:6px;font-weight:600;cursor:pointer;font-size:14px;text-align:left;"><i class="fas fa-file-pdf" style="margin-right:8px;"></i> PDF</button>' +
-    '    <button id="layout-export-image" style="padding:10px 16px;background:#ffffff;color:#1a1d23;border:1px solid #d1d5db;border-radius:6px;font-weight:600;cursor:pointer;font-size:14px;text-align:left;"><i class="fas fa-image" style="margin-right:8px;"></i> Image (PNG)</button>' +
-    '  </div>' +
-    '  <div style="padding:12px 24px;border-top:1px solid #eef0f4;display:flex;justify-content:flex-end;">' +
-    '    <button id="layout-export-cancel" style="padding:8px 18px;background:#ffffff;color:#1a1d23;border:1px solid #d1d5db;border-radius:6px;font-weight:600;cursor:pointer;font-size:13px;">Cancel</button>' +
-    '  </div>' +
-    '</div>';
-  document.body.appendChild(overlay);
-  document.getElementById('layout-export-pdf').addEventListener('click', function() {
-    if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
-    exportLayoutAsPdf(stage, projectName);
-  });
-  document.getElementById('layout-export-image').addEventListener('click', function() {
-    if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
-    exportLayoutAsImage(stage, projectName);
-  });
-  document.getElementById('layout-export-cancel').addEventListener('click', function() {
-    if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
-  });
-  overlay.addEventListener('click', function(e) {
-    if (e.target === overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
-  });
+  exportLayoutAsPdf(stage, projectName);
 }
 
 // Bind the layout download button for a given stage ID
@@ -888,7 +844,7 @@ function bindLayoutDownloadButton(stageId, projectName) {
   if (!btn) {
     btn = document.createElement('button');
     btn.className = 'layout-download-btn';
-    btn.innerHTML = '<i class="fas fa-download" style="margin-right:4px;"></i>Download';
+    btn.innerHTML = '<i class="fas fa-download" style="margin-right:4px;"></i>Download as PDF';
     btn.style.cssText = 'margin-left:12px;padding:6px 12px;border:1px solid var(--border-light);border-radius:4px;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:#0f2042;white-space:nowrap;';
     header.appendChild(btn);
   }
@@ -905,7 +861,7 @@ function addLayoutDownloadButton(headerEl, stageEl, projectName) {
   headerEl.setAttribute('data-layout-export-bound', '1');
   var btn = document.createElement('button');
   btn.className = 'layout-download-btn';
-  btn.innerHTML = '<i class="fas fa-download" style="margin-right:4px;"></i>Download';
+  btn.innerHTML = '<i class="fas fa-download" style="margin-right:4px;"></i>Download as PDF';
   btn.style.cssText = 'margin-left:12px;padding:6px 12px;border:1px solid var(--border-light);border-radius:4px;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:#0f2042;white-space:nowrap;';
   headerEl.appendChild(btn);
   btn.addEventListener('click', function() {
@@ -2095,6 +2051,7 @@ function renderProjectView(slug) {
     '      <select id="staticFilterPhase-' + slug + '" class="table-filter"><option value="">All Phases</option></select>' +
     '      <select id="staticFilterType-' + slug + '" class="table-filter"><option value="">All Unit Types</option></select>' +
     '      <button id="resetSort-' + slug + '" class="table-filter" style="padding:6px 12px;border:1px solid var(--border-light);border-radius:4px;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:#0f2042;"><i class="fas fa-undo" style="margin-right:4px;"></i>Reset Sort</button>' +
+    '      <button id="downloadExcel-' + slug + '" class="table-filter" style="padding:6px 12px;border:1px solid var(--border-light);border-radius:4px;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:#0f2042;"><i class="fas fa-file-excel" style="margin-right:4px;color:#16a34a;"></i>Download</button>' +
     '    </div>' +
     '  </div>' +
     '  <div id="staticLedgerContainer-' + slug + '" class="asset-table-container"></div>' +
@@ -2117,6 +2074,7 @@ function renderProjectView(slug) {
     try { renderProjectTotalPriceKPI(slug, projectUnits); } catch(e) { console.error("Price KPI:", e); }
     
       try { renderStaticAssetTable(slug, projectUnits); } catch(e) { console.error("Static table:", e); }
+      try { bindAvailableUnitsDownloadButton(slug, projectUnits); } catch(e) { console.error("Bind download:", e); }
       try { renderPsfInfoBox(slug); } catch(e) { console.error("PSF info:", e); }
       try { renderProjectHierarchy(slug, projectUnits); } catch(e) { console.error("Hierarchy:", e); }
   });
@@ -2366,7 +2324,7 @@ function renderStaticAssetTable(slug, projectUnits) {
       var blockSelect = document.createElement("select");
       blockSelect.id = "staticFilterBlock-" + slug;
       blockSelect.className = "table-filter";
-      blockSelect.innerHTML = '<option value="">All Blocks</option>';
+      blockSelect.innerHTML = '<option value="">All Towers</option>';
       var controls = phaseFilter ? phaseFilter.parentNode : null;
       if (controls) {
         controls.insertBefore(blockSelect, phaseFilter);
@@ -3080,8 +3038,8 @@ function showNsipUnitModal(unit, svgId) {
     '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-top:1px solid #f4f6fa;"><span style="font-size:12px;color:#5e6778;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;">Block</span><span style="font-size:13px;color:#1a1d23;font-weight:500;text-align:right;">' + (block || '-') + '</span></div>' +
     '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-top:1px solid #f4f6fa;"><span style="font-size:12px;color:#5e6778;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;">Lot No</span><span style="font-size:13px;color:#1a1d23;font-weight:500;text-align:right;">' + (lotNo || '-') + '</span></div>' +
     '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-top:1px solid #f4f6fa;"><span style="font-size:12px;color:#5e6778;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;">Unit Type</span><span style="font-size:13px;color:#1a1d23;font-weight:500;text-align:right;">' + (unitType || '-') + '</span></div>' +
-    '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-top:1px solid #f4f6fa;"><span style="font-size:12px;color:#5e6778;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;">Built Up (sqft)</span><span style="font-size:13px;color:#1a1d23;font-weight:500;text-align:right;">' + (builtUp || '-') + '</span></div>' +
-    '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-top:1px solid #f4f6fa;"><span style="font-size:12px;color:#5e6778;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;">Land Area (sqft)</span><span style="font-size:13px;color:#1a1d23;font-weight:500;text-align:right;">' + (landArea || '-') + '</span></div>' +
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-top:1px solid #f4f6fa;"><span style="font-size:12px;color:#5e6778;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;">Built Up (SQM)</span><span style="font-size:13px;color:#1a1d23;font-weight:500;text-align:right;">' + (builtUp || '-') + '</span></div>' +
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-top:1px solid #f4f6fa;"><span style="font-size:12px;color:#5e6778;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;">Land Area (SQM)</span><span style="font-size:13px;color:#1a1d23;font-weight:500;text-align:right;">' + (landArea || '-') + '</span></div>' +
     '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-top:1px solid #f4f6fa;"><span style="font-size:12px;color:#5e6778;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;">Price</span><span style="font-size:13px;color:#1a1d23;font-weight:500;text-align:right;">' + (price || '-') + '</span></div>';
 
   modalEl.style.display = 'flex';
@@ -3905,6 +3863,8 @@ function renderInteractiveSvg(config) {
       });
 
       // Process ALL polygon elements in the SVG
+      // ONLY Available units receive the application's green highlight.
+      // Non-available units (Signed/Registered/Sold) keep their ORIGINAL SVG appearance.
       var allPolygons = stage.querySelectorAll('path, polygon, rect, circle, ellipse');
       allPolygons.forEach(function(poly) {
         if (!poly.id) return;
@@ -3928,9 +3888,12 @@ function renderInteractiveSvg(config) {
         
         poly._unitData = matchingUnit;
         if (isAvailable) {
+          // Available: add the application's green highlight on top of original SVG
           poly.classList.remove('not-available');
           poly.classList.add('available');
         } else {
+          // Non-available: mask the original green SVG with a WHITE unit appearance.
+          // The unit number and boundary remain visible.
           poly.classList.remove('available');
           poly.classList.add('not-available');
         }
@@ -4311,7 +4274,7 @@ function renderIbgPageStructure(viewId, title, filterFn, imagePath, svgPath, api
     '  <div class="card project-kpi-price-box"><div class="project-kpi-label"><i class="fas fa-dollar-sign" style="color:#2563eb;margin-right:8px;"></i>Total SPA Price</div><div class="project-kpi-value" id="kpi-price-' + viewId + '">RM 0</div></div>' +
     '</div>' +
     '<div id="ibg-svg-wrapper" style="width:100%;display:flex;flex-direction:column;gap:20px;box-sizing:border-box;padding:0;margin-bottom:20px;">' +
-    '  ' + renderLayoutPlanHeader(getLayoutBalance(viewId === "ion-belian-garden-commercial" ? "ION BELIAN GARDEN — COMMERCIAL" : "ION BELIAN GARDEN — RESIDENTIAL")) + '' +
+    '  ' + renderLayoutPlanHeader(getLayoutBalance(viewId === "ion-belian-garden-commercial" ? "ION BELIAN GARDEN — COMMERCIAL" : "ION BELIAN GARDEN — RESIDENTIAL"), "ibg-svg-stage-" + viewId) + '' +
     '  <div id="ibg-svg-stage-' + viewId + '" style="width:100%;background:#ffffff;border:1px solid #eef0f4;border-radius:10px;padding:12px;box-shadow:0 1px 3px rgba(0,0,0,0.06);overflow:hidden;min-height:200px;">' +
     '    <div style="display:flex;align-items:center;justify-content:center;height:200px;color:#5e6778;font-style:italic;">Loading layout...</div>' +
     '  </div>' +
@@ -4326,6 +4289,7 @@ function renderIbgPageStructure(viewId, title, filterFn, imagePath, svgPath, api
     '      <select id="staticFilterPhase-' + viewId + '" class="table-filter"><option value="">All Phases</option></select>' +
     '      <select id="staticFilterType-' + viewId + '" class="table-filter"><option value="">All Unit Types</option></select>' +
     '      <button id="resetSort-' + viewId + '" class="table-filter" style="padding:6px 12px;border:1px solid var(--border-light);border-radius:4px;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:#0f2042;"><i class="fas fa-undo" style="margin-right:4px;"></i>Reset Sort</button>' +
+    '      <button id="downloadExcel-' + viewId + '" class="table-filter" style="padding:6px 12px;border:1px solid var(--border-light);border-radius:4px;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:#0f2042;"><i class="fas fa-file-excel" style="margin-right:4px;color:#16a34a;"></i>Download</button>' +
     '    </div>' +
     '  </div>' +
     '  <div id="staticLedgerContainer-' + viewId + '" class="asset-table-container"></div>' +
@@ -4358,6 +4322,7 @@ function renderIbgPageStructure(viewId, title, filterFn, imagePath, svgPath, api
       console.log("IBG filtered units count:", filteredUnits.length);
       renderIbgKpi(viewId, filteredUnits);
       renderIbgAssetTable(viewId, filteredUnits);
+      try { bindAvailableUnitsDownloadButton(viewId, filteredUnits); } catch(e) { console.error("Bind download:", e); }
       try { renderPsfInfoBox(viewId); } catch(e) { console.error("PSF info:", e); }
       applyPageOverrides(viewId);
 
@@ -4377,6 +4342,8 @@ function renderIbgPageStructure(viewId, title, filterFn, imagePath, svgPath, api
         copyBtnId: "ibg-copy-btn-" + viewId,
         fitToScreen: true,
       });
+
+      bindLayoutDownloadButton("ibg-svg-stage-" + viewId, "ION BELIAN GARDEN — " + title.toUpperCase());
     })
     .catch(function(err) {
       console.error("Failed to load IBG layout data:", err);
@@ -4529,7 +4496,7 @@ function renderNcityCommercialView() {
     '  <div class="card project-kpi-price-box"><div class="project-kpi-label"><i class="fas fa-dollar-sign" style="color:#2563eb;margin-right:8px;"></i>Total SPA Price</div><div class="project-kpi-value" id="kpi-price-' + viewId + '">RM 0</div></div>' +
     '</div>' +
     '<div id="ncity-svg-wrapper" style="width:100%;display:flex;flex-direction:column;gap:20px;box-sizing:border-box;padding:0;margin-bottom:20px;">' +
-    '  ' + renderLayoutPlanHeader(getLayoutBalance("N-CITY — COMMERCIAL")) + '' +
+    '  ' + renderLayoutPlanHeader(getLayoutBalance("N-CITY — COMMERCIAL"), "ncity-svg-stage-" + viewId) + '' +
     '  <div id="ncity-svg-stage-' + viewId + '" style="width:100%;background:#ffffff;border:1px solid #eef0f4;border-radius:10px;padding:12px;box-shadow:0 1px 3px rgba(0,0,0,0.06);overflow:hidden;min-height:200px;">' +
     '    <div style="display:flex;align-items:center;justify-content:center;height:200px;color:#5e6778;font-style:italic;">Loading layout...</div>' +
     '  </div>' +
@@ -4544,6 +4511,7 @@ function renderNcityCommercialView() {
     '      <select id="staticFilterPhase-' + viewId + '" class="table-filter"><option value="">All Phases</option></select>' +
     '      <select id="staticFilterType-' + viewId + '" class="table-filter"><option value="">All Unit Types</option></select>' +
     '      <button id="resetSort-' + viewId + '" class="table-filter" style="padding:6px 12px;border:1px solid var(--border-light);border-radius:4px;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:#0f2042;"><i class="fas fa-undo" style="margin-right:4px;"></i>Reset Sort</button>' +
+    '      <button id="downloadExcel-' + viewId + '" class="table-filter" style="padding:6px 12px;border:1px solid var(--border-light);border-radius:4px;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:#0f2042;"><i class="fas fa-file-excel" style="margin-right:4px;color:#16a34a;"></i>Download</button>' +
     '    </div>' +
     '  </div>' +
     '  <div id="staticLedgerContainer-' + viewId + '" class="asset-table-container"></div>' +
@@ -4573,6 +4541,7 @@ function renderNcityCommercialView() {
 
       renderNcitySubKpi(viewId, filtered);
       renderNcitySubAssetTable(viewId, filtered);
+      try { bindAvailableUnitsDownloadButton(viewId, filtered); } catch(e) { console.error("Bind download:", e); }
       try { renderPsfInfoBox(viewId); } catch(e) { console.error("PSF info:", e); }
       applyPageOverrides(viewId);
 
@@ -4592,6 +4561,8 @@ function renderNcityCommercialView() {
         copyBtnId: "ncity-copy-btn-" + viewId,
         fitToScreen: true,
       });
+
+      bindLayoutDownloadButton("ncity-svg-stage-" + viewId, "N-CITY — COMMERCIAL");
     })
     .catch(function(err) {
       console.error("Failed to load N-City layout data:", err);
@@ -4623,7 +4594,7 @@ function renderNcityRiseView() {
     '  <div class="card project-kpi-price-box"><div class="project-kpi-label"><i class="fas fa-dollar-sign" style="color:#2563eb;margin-right:8px;"></i>Total SPA Price</div><div class="project-kpi-value" id="kpi-price-' + viewId + '">RM 0</div></div>' +
     '</div>' +
     '<div id="ncity-svg-wrapper" style="width:100%;display:flex;flex-direction:column;gap:20px;box-sizing:border-box;padding:0;margin-bottom:20px;">' +
-    '  ' + renderLayoutPlanHeader(getLayoutBalance("N-CITY — RISE INTERNATIONAL SCHOOL")) + '' +
+    '  ' + renderLayoutPlanHeader(getLayoutBalance("N-CITY — RISE INTERNATIONAL SCHOOL"), "ncity-svg-stage-" + viewId) + '' +
     '  <div id="ncity-svg-stage-' + viewId + '" style="width:100%;background:#ffffff;border:1px solid #eef0f4;border-radius:10px;padding:12px;box-shadow:0 1px 3px rgba(0,0,0,0.06);overflow:hidden;min-height:200px;">' +
     '    <div style="display:flex;align-items:center;justify-content:center;height:200px;color:#5e6778;font-style:italic;">Loading layout...</div>' +
     '  </div>' +
@@ -4646,6 +4617,7 @@ function renderNcityRiseView() {
     '      <select id="staticFilterPhase-' + viewId + '" class="table-filter"><option value="">All Phases</option></select>' +
     '      <select id="staticFilterType-' + viewId + '" class="table-filter"><option value="">All Unit Types</option></select>' +
     '      <button id="resetSort-' + viewId + '" class="table-filter" style="padding:6px 12px;border:1px solid var(--border-light);border-radius:4px;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:#0f2042;"><i class="fas fa-undo" style="margin-right:4px;"></i>Reset Sort</button>' +
+    '      <button id="downloadExcel-' + viewId + '" class="table-filter" style="padding:6px 12px;border:1px solid var(--border-light);border-radius:4px;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:#0f2042;"><i class="fas fa-file-excel" style="margin-right:4px;color:#16a34a;"></i>Download</button>' +
     '    </div>' +
     '  </div>' +
     '  <div id="staticLedgerContainer-' + viewId + '" class="asset-table-container"></div>' +
@@ -4773,6 +4745,7 @@ function renderNcityRiseView() {
 
       renderNcitySubKpi(viewId, filtered);
       renderNcitySubAssetTable(viewId, filtered);
+      try { bindAvailableUnitsDownloadButton(viewId, filtered); } catch(e) { console.error("Bind download:", e); }
       applyPageOverrides(viewId);
 
       // Render dedicated N-City Rise SVG with school units only
@@ -4791,6 +4764,8 @@ function renderNcityRiseView() {
         copyBtnId: "ncity-copy-btn-" + viewId,
         fitToScreen: true,
       });
+
+      bindLayoutDownloadButton("ncity-svg-stage-" + viewId, "N-CITY — RISE INTERNATIONAL SCHOOL");
     })
     .catch(function(err) {
       console.error("Failed to load N-City layout data:", err);
@@ -5539,6 +5514,36 @@ function renderCreateUserView() {
 /* ==========================================================================
    HEADER USER DROPDOWN HANDLER
    ========================================================================== */
+
+// Global handler for inline header dropdown actions (used by index.html inline onclick)
+window.__handleHeaderAction = function(action) {
+  if (action === "profile") {
+    var userEmailForProfile = sessionStorage.getItem("nct_user_email") || localStorage.getItem("nct_user_email") || "";
+    if (userEmailForProfile) {
+      fetch("/api/auth/me?email=" + encodeURIComponent(userEmailForProfile))
+        .then(function(res) { return res.json(); })
+        .then(function(userData) {
+          if (userData && userData.user_type_raw === "nct_admin") {
+            activateSidebarItem("admin-profile");
+            loadAdminProfileView();
+          } else {
+            activateSidebarItem("user-profile");
+            loadUserProfileView();
+          }
+        })
+        .catch(function() {
+          activateSidebarItem("user-profile");
+          loadUserProfileView();
+        });
+    } else {
+      activateSidebarItem("user-profile");
+      loadUserProfileView();
+    }
+  } else if (action === "logout") {
+    handleLogout();
+  }
+};
+
 function bindHeaderUserDropdown() {
   var userBtn = document.getElementById("headerUserBtn");
   var dropdown = document.getElementById("headerDropdown");

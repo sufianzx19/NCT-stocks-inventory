@@ -137,15 +137,18 @@
 }
 
 .not-available {
-  fill: #9E9E9E !important;
-  fill-opacity: 0.18;
+  /* Application status overlay for non-available units masks the original
+     green SVG fill with a WHITE/CLEAR unit appearance.
+     The unit number and boundary remain visible. */
+  fill: #FFFFFF !important;
+  fill-opacity: 0.55;
   pointer-events: auto;
   cursor: pointer;
 }
 
 .available {
   fill: #00E676 !important;
-  fill-opacity: 0.75;
+  fill-opacity: 0.45;
   pointer-events: auto;
   cursor: pointer;
 }

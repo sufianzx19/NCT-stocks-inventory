@@ -1854,6 +1854,13 @@ table .status-signed {
   border-radius: 0 !important;
 }
 
+/* Standalone project KPI cards - individual black border
+   matching the IBG/N-CITY grouped border styling (2px #000, radius 8px) */
+.dashboard-kpi-card:not(.group-first):not(.group-middle):not(.group-last) {
+  border: 2px solid #000;
+  border-radius: 8px;
+}
+
 /* Continuous border using pseudo-element on first card */
 .dashboard-kpi-card.group-first {
   position: relative;

@@ -268,18 +268,18 @@ if (sessionStorage.getItem("nct_authenticated") === "true") {
       <img src="/static/NCTGroupLogo.jpeg" alt="NCT" class="header-logo">
     </div>
     <div class="header-right">
-      <div class="header-user-btn" id="headerUserBtn">
+      <div class="header-user-btn" id="headerUserBtn" onclick="event.stopPropagation(); var d=document.getElementById('headerDropdown'); var b=document.getElementById('headerUserBtn'); if(d){d.classList.toggle('open'); b.classList.toggle('active');}">
         <span class="user-avatar" id="headerUserAvatar">U</span>
         <span class="user-name" id="headerUserName">User</span>
         <span class="user-chevron"><i class="fas fa-chevron-down"></i></span>
         <div class="header-dropdown" id="headerDropdown">
-          <button class="header-dropdown-item" data-action="profile">
+          <button class="header-dropdown-item" data-action="profile" onclick="event.stopPropagation(); var d=document.getElementById('headerDropdown'); var b=document.getElementById('headerUserBtn'); if(d){d.classList.remove('open'); b.classList.remove('active');} window.__handleHeaderAction('profile');">
             <span class="dropdown-icon"><i class="fas fa-user"></i></span>
-            Profile
+            User Profile
           </button>
-          <button class="header-dropdown-item logout-item" data-action="logout">
+          <button class="header-dropdown-item logout-item" data-action="logout" onclick="event.stopPropagation(); var d=document.getElementById('headerDropdown'); var b=document.getElementById('headerUserBtn'); if(d){d.classList.remove('open'); b.classList.remove('active');} window.__handleHeaderAction('logout');">
             <span class="dropdown-icon"><i class="fas fa-sign-out-alt"></i></span>
-            Logout
+            Log Out
           </button>
         </div>
       </div>
