@@ -2,11 +2,12 @@
 NCT Stocks & Inventory V3 — FastAPI Backend
 Using MySQL via database.py → repository.py → services.py
 """
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+import shutil
 
 import services as svc
 
@@ -436,6 +437,115 @@ def admin_delete_unit(unit_id: int, req: DeleteUnitRequest):
         return {"success": True, "message": "Record deleted successfully."}
     except Exception as e:
         return {"success": False, "error": str(e)}
+
+
+# ----- Data Upload endpoints (nct_admin only) -----
+import data_upload as du
+import tempfile
+import os as _os_upload
+
+
+def _check_admin(email: str):
+    """Check if the given email belongs to an nct_admin user."""
+    if not email:
+        return JSONResponse(status_code=401, content={"success": False, "error": "Email required"})
+    user = svc.get_user_by_email_raw(email)
+    if not user or user.get("user_type") != "nct_admin":
+        return JSONResponse(status_code=403, content={"success": False, "error": "Access denied"})
+    return None
+
+
+@app.get("/api/data-upload/etl-url")
+def get_etl_url(email: str = Query("")):
+    """Get the NCT IFCA ETL Pipeline System URL. nct_admin only."""
+    auth_error = _check_admin(email)
+    if auth_error:
+        return auth_error
+    return {"success": True, "url": du.ETL_SYSTEM_URL}
+
+
+@app.post("/api/data-upload/validate-file")
+async def validate_upload_file(
+    email: str = Query(""),
+    file: UploadFile = File(...),
+):
+    """Validate an uploaded clean Excel file. nct_admin only."""
+    auth_error = _check_admin(email)
+    if auth_error:
+        return auth_error
+
+    # Save uploaded file to temp
+    suffix = _os_upload.path.splitext(file.filename or "")[1] or ".xlsx"
+    tmp_path = _os_upload.path.join(tempfile.gettempdir(), f"nct_upload_{_os_upload.getpid()}_{suffix}")
+    try:
+        with open(tmp_path, "wb") as f:
+            shutil.copyfileobj(file.file, f)
+
+        result = du.read_excel_file(tmp_path)
+        if not result["success"]:
+            return {"success": False, "errors": result["errors"]}
+
+        # Compare with database
+        comparison = du.compare_with_database(result["data"])
+        return {
+            "success": True,
+            "comparison": comparison,
+            "filename": file.filename,
+        }
+    except Exception as e:
+        print(f"[main] /api/data-upload/validate-file error: {e}")
+        return {"success": False, "errors": [f"Validation failed: {str(e)}"]}
+    finally:
+        if _os_upload.path.exists(tmp_path):
+            _os_upload.remove(tmp_path)
+
+
+@app.post("/api/data-upload/confirm")
+async def confirm_upload(
+    email: str = Query(""),
+    file: UploadFile = File(...),
+):
+    """Confirm and apply the clean data upload. nct_admin only."""
+    auth_error = _check_admin(email)
+    if auth_error:
+        return auth_error
+
+    # Save uploaded file to temp
+    suffix = _os_upload.path.splitext(file.filename or "")[1] or ".xlsx"
+    tmp_path = _os_upload.path.join(tempfile.gettempdir(), f"nct_confirm_{_os_upload.getpid()}_{suffix}")
+    try:
+        with open(tmp_path, "wb") as f:
+            shutil.copyfileobj(file.file, f)
+
+        # Validate first
+        result = du.read_excel_file(tmp_path)
+        if not result["success"]:
+            return {"success": False, "errors": result["errors"]}
+
+        # Apply clean data safely
+        apply_result = du.apply_clean_data(result["data"])
+
+        # Verify after upload
+        verify_result = du.verify_upload()
+
+        return {
+            "success": True,
+            "message": "Data uploaded successfully.",
+            "summary": {
+                "records_processed": apply_result["records_processed"],
+                "new_units": apply_result["new_units"],
+                "updated_units": apply_result["updated_units"],
+                "status_changes": apply_result["status_changes"],
+                "backup_table": apply_result["backup_table"],
+            },
+            "verification": verify_result,
+        }
+    except Exception as e:
+        print(f"[main] /api/data-upload/confirm error: {e}")
+        return {"success": False, "errors": [f"Upload failed: {str(e)}"]}
+    finally:
+        if _os_upload.path.exists(tmp_path):
+            _os_upload.remove(tmp_path)
 
 
 # ----- User Management endpoints (nct_admin only) -----

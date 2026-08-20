@@ -10895,3 +10895,140 @@ INFO:     Started server process [2302]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:57066 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57066 - "GET /style.css?v=8.0.0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57066 - "GET /NCTGroupLogo.jpeg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57076 - "GET /svg-map.css?v=1.0.5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57076 - "GET /app.js?v=8.0.7 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57094 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:57076 - "GET /api/units/all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57080 - "GET /api/auth/me?email=nctadmin%40nctalliance.com HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57066 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34136 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34144 - "GET /api/auth/me?email=nctadmin%40nctalliance.com HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34136 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34170 - "GET /api/gallery/images?path=NSIP HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34160 - "GET /api/layout/nsip HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34170 - "GET /NSIP/NSIP.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34170 - "GET /NSIP_Master.svg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49816 - "GET /NSIP%20KM2_Layout.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33828 - "GET /api/gallery/images?path=NSIP HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33836 - "GET /api/layout/nsip HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40494 - "GET /N-CITY/N-CITY_COMM.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40492 - "GET /api/layout/ncity HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40494 - "GET /N-CITY_Master.svg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55934 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55936 - "GET /api/gallery/images?path=NSIP HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55950 - "GET /api/layout/nsip HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44062 - "GET /api/admin/units?email=nctadmin%40nctalliance.com HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50944 - "GET /api/gallery/images?path=NSIP HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50960 - "GET /api/layout/nsip HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32884 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60196 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60196 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60196 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60212 - "GET /api/units/all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60196 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53638 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53646 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53638 - "GET /api/auth/me?email=nctadmin%40nctalliance.com HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53638 - "GET /api/auth/me?email=nctadmin%40nctalliance.com HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53646 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53646 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51212 - "GET /api/gallery/images?path=NSIP HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51226 - "GET /api/layout/nsip HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60802 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60802 - "GET /style.css?v=8.0.0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60802 - "GET /svg-map.css?v=1.0.5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60802 - "GET /app.js?v=8.0.7 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60802 - "GET /NCTGroupLogo.jpeg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60812 - "GET /api/auth/me?email=cherrielee%40nctalliance.com HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60802 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60804 - "GET /api/units/all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60812 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:60804 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60812 - "GET /api/auth/me?email=nctadmin%40nctalliance.com HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60804 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50212 - "GET /api/data-upload/etl-url?email=nctadmin%40nctalliance.com HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:50212 - "GET /api/data-upload/etl-url?email=nctadmin%40nctalliance.com HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:50212 - "GET /api/data-upload/etl-url?email=nctadmin%40nctalliance.com HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51558 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51558 - "GET /style.css?v=8.0.0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51570 - "GET /svg-map.css?v=1.0.5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51570 - "GET /app.js?v=8.0.7 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51570 - "GET /NCTGroupLogo.jpeg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51570 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51558 - "GET /api/units/all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51570 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51558 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51558 - "GET /api/auth/me?email=nctadmin%40nctalliance.com HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51570 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51558 - "GET /api/data-upload/etl-url?email=nctadmin%40nctalliance.com HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51558 - "GET /api/data-upload/etl-url?email=nctadmin%40nctalliance.com HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59284 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59284 - "GET /style.css?v=8.0.0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59290 - "GET /svg-map.css?v=1.0.5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59284 - "GET /app.js?v=8.0.7 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59290 - "GET /NCTGroupLogo.jpeg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59290 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59292 - "GET /api/units/all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59290 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59292 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59290 - "GET /api/auth/me?email=nctadmin%40nctalliance.com HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59292 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59292 - "GET /api/data-upload/etl-url?email=nctadmin%40nctalliance.com HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59292 - "GET /api/data-upload/etl-url?email=nctadmin%40nctalliance.com HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59292 - "GET /api/data-upload/etl-url?email=nctadmin%40nctalliance.com HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:40892 - "GET /api/auth/me?email=nctadmin%40nctalliance.com HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40884 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40888 - "GET /api/units/all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50444 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50460 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50460 - "GET /api/auth/me?email=nctadmin%40nctalliance.com HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50460 - "GET /api/auth/me?email=nctadmin%40nctalliance.com HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50444 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50444 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45554 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45554 - "GET /style.css?v=8.0.0 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:45554 - "GET /svg-map.css?v=1.0.5 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:45554 - "GET /app.js?v=8.0.7 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45560 - "GET /NCTGroupLogo.jpeg HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:45574 - "GET /api/auth/me?email=nctadmin%40nctalliance.com HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45554 - "GET /api/units/all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45560 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45554 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45574 - "GET /api/auth/me?email=nctadmin%40nctalliance.com HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45560 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45554 - "GET /api/data-upload/etl-url?email=nctadmin%40nctalliance.com HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:60216 - "GET /api/data-upload/etl-url?email=nctadmin%40nctalliance.com HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:60998 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60998 - "GET /style.css?v=8.0.0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32782 - "GET /svg-map.css?v=1.0.5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60998 - "GET /app.js?v=9.0.0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32782 - "GET /NCTGroupLogo.jpeg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32782 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:32796 - "GET /api/units/all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32782 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32796 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32782 - "GET /api/auth/me?email=nctadmin%40nctalliance.com HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32796 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32796 - "GET /api/data-upload/etl-url?email=nctadmin%40nctalliance.com HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:32796 - "GET /api/data-upload/etl-url?email=nctadmin%40nctalliance.com HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:32796 - "GET /api/data-upload/etl-url?email=nctadmin%40nctalliance.com HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55828 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55828 - "GET /style.css?v=8.0.0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55836 - "GET /svg-map.css?v=1.0.5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55850 - "GET /app.js?v=9.0.0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55850 - "GET /NCTGroupLogo.jpeg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55836 - "GET /api/units/all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55856 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55850 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55836 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55850 - "GET /api/auth/me?email=nctadmin%40nctalliance.com HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55836 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55836 - "GET /api/data-upload/etl-url?email=nctadmin%40nctalliance.com HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59876 - "GET /api/data-upload/etl-url?email=nctadmin%40nctalliance.com HTTP/1.1" 404 Not Found
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [2302]

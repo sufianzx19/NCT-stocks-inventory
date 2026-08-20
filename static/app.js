@@ -392,6 +392,7 @@ function bindSidebarNavigation() {
         if (item.classList.contains("nav-parent")) return;
 
         if (view === "data-management") { activateSidebarItem("data-management"); renderDataManagementView(); return; }
+        if (view === "data-upload") { activateSidebarItem("data-upload"); renderDataUploadView(); return; }
         if (view === "user-management") { activateSidebarItem("user-management"); renderUserManagementView(); return; }
         if (view === "head-office") { activateSidebarItem("head-office"); renderHeadOffice(); return; }
         if (view === "nsip-km1") { activateSidebarItem("nsip-km1"); collapseNsipSubmenu(); renderNsipKm1View(); return; }
@@ -4854,9 +4855,11 @@ activateSidebarItem = function(view) {
 function showAdminSidebar() {
   var section = document.getElementById("db-section-label");
   var navDM = document.getElementById("nav-data-management");
+  var navDU = document.getElementById("nav-data-upload");
   var navUM = document.getElementById("nav-user-management");
   if (section) section.style.display = "block";
   if (navDM) navDM.style.display = "flex";
+  if (navDU) navDU.style.display = "flex";
   if (navUM) navUM.style.display = "flex";
 }
 
@@ -5118,6 +5121,364 @@ function showDmDeleteConfirm(unitId) {
       if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
       console.error("Delete error:", err);
     });
+  });
+}
+
+/* ==========================================================================
+   DATA UPLOAD (nct_admin only)
+   ========================================================================== */
+var __dataUploadState = {
+  selectedFile: null,
+  comparison: null,
+  filename: null,
+};
+
+function renderDataUploadView() {
+  var panel = document.getElementById("view-data-upload");
+  if (!panel) return;
+  var userEmail = sessionStorage.getItem("nct_user_email") || localStorage.getItem("nct_user_email") || "";
+
+  // Reset state when re-entering the page
+  __dataUploadState = { selectedFile: null, comparison: null, filename: null };
+
+  panel.innerHTML =
+    '<div class="page-header">' +
+    '  <div><h1>DATA UPLOAD</h1><div class="header-sub">Upload clean IFCA data to update the inventory database.</div></div>' +
+    '</div>' +
+    '<div class="card" style="margin-bottom:16px;">' +
+    '  <div class="card-body" style="padding:24px;">' +
+    '    <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;justify-content:center;padding:20px 0;">' +
+    '      <button id="duCleanDataBtn" style="padding:14px 32px;background:#f47217;color:white;border:none;border-radius:6px;font-weight:600;cursor:pointer;font-size:15px;display:flex;align-items:center;gap:10px;">' +
+    '        <i class="fas fa-broom"></i> Clean Data' +
+    '      </button>' +
+    '      <button id="duUploadBtn" style="padding:14px 32px;background:#ffffff;color:#1a1d23;border:2px solid #f47217;border-radius:6px;font-weight:600;cursor:pointer;font-size:15px;display:flex;align-items:center;gap:10px;">' +
+    '        <i class="fas fa-upload" style="color:#f47217;"></i> Upload Clean Data' +
+    '      </button>' +
+    '    </div>' +
+    '    <div style="text-align:center;color:#5e6778;font-size:13px;margin-top:8px;">' +
+    '      <p style="margin:0 0 4px 0;"><i class="fas fa-info-circle" style="color:#f47217;margin-right:6px;"></i>Step 1: Click <strong>Clean Data</strong> to open the NCT IFCA ETL Pipeline System in a new tab.</p>' +
+    '      <p style="margin:0 0 4px 0;"><i class="fas fa-info-circle" style="color:#f47217;margin-right:6px;"></i>Step 2: Clean the raw IFCA data and download the standardized Excel file.</p>' +
+    '      <p style="margin:0;"><i class="fas fa-info-circle" style="color:#f47217;margin-right:6px;"></i>Step 3: Click <strong>Upload Clean Data</strong> to select and validate the file.</p>' +
+    '    </div>' +
+    '  </div>' +
+    '</div>' +
+    '<div id="duContent"></div>';
+
+  // Bind Clean Data button - opens ETL system in new tab
+  // Browser-safe strategy:
+  //   1. Open a blank tab synchronously on the user's click (avoid popup blocking)
+  //   2. Try to fetch the ETL URL from the backend API
+  //   3. If the API succeeds, use the returned URL
+  //   4. If the API fails, fall back to the default known URL http://localhost:8001
+  //   5. Navigate the opened tab; if the tab couldn't be opened, navigate the CURRENT tab
+  // The system must NEVER leave the user stuck just because a new tab couldn't open.
+  var cleanBtn = document.getElementById("duCleanDataBtn");
+  if (cleanBtn) {
+    cleanBtn.addEventListener("click", function() {
+      console.log("[CLEAN DATA HANDLER - NEW VERSION] click handler started");
+
+      // Default ETL URL fallback (matches NCT IFCA ETL Pipeline System)
+      var DEFAULT_ETL_URL = "http://localhost:8001";
+
+      // Open blank tab synchronously from the click event - this is the browser-safe way
+      var newTab = null;
+      try {
+        newTab = window.open("about:blank", "_blank");
+      } catch (e) {
+        console.warn("[CLEAN DATA] window.open threw exception:", e);
+        newTab = null;
+      }
+      console.log("[CLEAN DATA] New tab opened synchronously:", newTab !== null && !newTab.closed);
+
+      function navigateTo(url) {
+        console.log("[CLEAN DATA] Navigating to ETL URL:", url);
+        if (newTab && !newTab.closed) {
+          // Navigate the already-open tab to the ETL URL
+          try {
+            newTab.location.href = url;
+            console.log("[CLEAN DATA] Navigated NEW tab to:", url);
+          } catch (e) {
+            // Cross-origin restriction may prevent setting location - fall through
+            console.warn("[CLEAN DATA] Could not navigate new tab, falling back to current tab:", e);
+            window.location.href = url;
+          }
+        } else {
+          // Browser blocked the new tab - navigate CURRENT tab instead
+          console.log("[CLEAN DATA] New tab unavailable (blocked) - navigating CURRENT tab to:", url);
+          window.location.href = url;
+        }
+      }
+
+      // Try to get the ETL URL from the backend
+      console.log("[CLEAN DATA] Fetching ETL URL from /api/data-upload/etl-url...");
+      fetch("/api/data-upload/etl-url?email=" + encodeURIComponent(userEmail))
+        .then(function(res) {
+          console.log("[CLEAN DATA] ETL API response status:", res.status);
+          // Even if HTTP error status, try to parse JSON body
+          return res.json().catch(function() {
+            return { success: false, error: "Non-JSON response (HTTP " + res.status + ")" };
+          });
+        })
+        .then(function(data) {
+          console.log("[CLEAN DATA] API response data:", JSON.stringify(data));
+          if (data && data.success && data.url) {
+            console.log("[CLEAN DATA] Using API-provided ETL URL:", data.url);
+            navigateTo(data.url);
+          } else {
+            // API failed or returned no URL - fall back to the known default
+            console.warn("[CLEAN DATA] API did not provide a usable URL. Falling back to default:", DEFAULT_ETL_URL);
+            navigateTo(DEFAULT_ETL_URL);
+          }
+        })
+        .catch(function(err) {
+          // API request failed entirely - close blank tab, fall back to default URL
+          console.error("[CLEAN DATA] API request failed:", err);
+          console.warn("[CLEAN DATA] Falling back to default ETL URL:", DEFAULT_ETL_URL);
+          navigateTo(DEFAULT_ETL_URL);
+        });
+    });
+  }
+
+  // Bind Upload Clean Data button - file picker
+  var uploadBtn = document.getElementById("duUploadBtn");
+  if (uploadBtn) {
+    uploadBtn.addEventListener("click", function() {
+      var fileInput = document.createElement("input");
+      fileInput.type = "file";
+      fileInput.accept = ".xlsx,.xls";
+      fileInput.onchange = function() {
+        if (fileInput.files && fileInput.files.length > 0) {
+          var file = fileInput.files[0];
+          __dataUploadState.selectedFile = file;
+          __dataUploadState.filename = file.name;
+          validateAndCompare(file);
+        }
+      };
+      fileInput.click();
+    });
+  }
+}
+
+function validateAndCompare(file) {
+  var contentEl = document.getElementById("duContent");
+  if (!contentEl) return;
+  var userEmail = sessionStorage.getItem("nct_user_email") || localStorage.getItem("nct_user_email") || "";
+
+  contentEl.innerHTML =
+    '<div class="card" style="text-align:center;padding:40px;">' +
+    '  <i class="fas fa-spinner fa-spin" style="font-size:32px;color:#f47217;margin-bottom:12px;display:block;"></i>' +
+    '  <p style="color:#5e6778;font-size:14px;">Validating file: ' + esc(file.name) + '...</p>' +
+    '</div>';
+
+  var formData = new FormData();
+  formData.append("file", file);
+
+  fetch("/api/data-upload/validate-file?email=" + encodeURIComponent(userEmail), {
+    method: "POST",
+    body: formData
+  })
+  .then(function(res) { return res.json(); })
+  .then(function(json) {
+    if (!json.success) {
+      // Show validation errors
+      var errors = json.errors || ["Validation failed."];
+      var errorHtml = errors.map(function(e) { return '<div style="padding:8px 12px;background:#fee2e2;border:1px solid #dc2626;border-radius:4px;color:#991b1b;font-size:13px;margin-bottom:6px;"><i class="fas fa-exclamation-circle" style="margin-right:6px;"></i>' + esc(e) + '</div>'; }).join("");
+      contentEl.innerHTML =
+        '<div class="card">' +
+        '  <div class="card-header"><span class="card-title"><i class="fas fa-times-circle" style="color:#dc2626;"></i> Upload Failed</span></div>' +
+        '  <div class="card-body" style="padding:16px;">' +
+        '    <div style="padding:10px 14px;background:#fee2e2;border:1px solid #dc2626;border-radius:4px;color:#991b1b;font-size:14px;font-weight:600;margin-bottom:12px;">Upload failed. The file does not match the required clean data format.</div>' +
+        '    ' + errorHtml +
+        '    <div style="margin-top:16px;text-align:center;">' +
+        '      <button id="duBackBtn" style="padding:8px 20px;background:#f47217;color:white;border:none;border-radius:4px;font-weight:600;cursor:pointer;font-size:13px;">Back to Data Upload</button>' +
+        '    </div>' +
+        '  </div>' +
+        '</div>';
+      var backBtn = document.getElementById("duBackBtn");
+      if (backBtn) backBtn.addEventListener("click", renderDataUploadView);
+      return;
+    }
+
+    // Validation succeeded - show comparison
+    __dataUploadState.comparison = json.comparison;
+    renderComparison(json.comparison, file);
+  })
+  .catch(function(err) {
+    contentEl.innerHTML =
+      '<div class="card" style="text-align:center;padding:40px;">' +
+      '  <i class="fas fa-exclamation-circle" style="font-size:32px;color:#dc2626;margin-bottom:12px;display:block;"></i>' +
+      '  <p style="color:#dc2626;font-size:14px;">Error: ' + esc(err.message) + '</p>' +
+      '  <button id="duBackBtn" style="padding:8px 20px;background:#f47217;color:white;border:none;border-radius:4px;font-weight:600;cursor:pointer;font-size:13px;margin-top:12px;">Back to Data Upload</button>' +
+      '</div>';
+    var backBtn = document.getElementById("duBackBtn");
+    if (backBtn) backBtn.addEventListener("click", renderDataUploadView);
+  });
+}
+
+function renderComparison(comparison, file) {
+  var contentEl = document.getElementById("duContent");
+  if (!contentEl) return;
+
+  contentEl.innerHTML =
+    '<div class="card" style="margin-bottom:16px;">' +
+    '  <div class="card-header"><span class="card-title"><i class="fas fa-balance-scale"></i> Data Comparison</span></div>' +
+    '  <div class="card-body" style="padding:16px;">' +
+    '    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">' +
+    '      <div style="background:#f8fafc;border:1px solid #eef0f4;border-radius:8px;padding:16px;text-align:center;">' +
+    '        <div style="font-size:11px;color:#5e6778;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:4px;">Current Database</div>' +
+    '        <div style="font-size:28px;font-weight:700;color:#0f2042;">' + (comparison.current_db_count || 0).toLocaleString() + '</div>' +
+    '        <div style="font-size:12px;color:#5e6778;">units</div>' +
+    '      </div>' +
+    '      <div style="background:#f8fafc;border:1px solid #eef0f4;border-radius:8px;padding:16px;text-align:center;">' +
+    '        <div style="font-size:11px;color:#5e6778;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:4px;">New Clean Data</div>' +
+    '        <div style="font-size:28px;font-weight:700;color:#f47217;">' + (comparison.clean_data_count || 0).toLocaleString() + '</div>' +
+    '        <div style="font-size:12px;color:#5e6778;">units</div>' +
+    '      </div>' +
+    '    </div>' +
+    '    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">' +
+    '      <div style="display:flex;justify-content:space-between;padding:10px 14px;background:#ffffff;border:1px solid #eef0f4;border-radius:6px;">' +
+    '        <span style="font-size:13px;color:#5e6778;font-weight:600;">New Units</span>' +
+    '        <span style="font-size:14px;font-weight:700;color:#16a34a;">' + (comparison.new_units || 0) + '</span>' +
+    '      </div>' +
+    '      <div style="display:flex;justify-content:space-between;padding:10px 14px;background:#ffffff;border:1px solid #eef0f4;border-radius:6px;">' +
+    '        <span style="font-size:13px;color:#5e6778;font-weight:600;">Removed/Missing Units</span>' +
+    '        <span style="font-size:14px;font-weight:700;color:#dc2626;">' + (comparison.removed_units || 0) + '</span>' +
+    '      </div>' +
+    '      <div style="display:flex;justify-content:space-between;padding:10px 14px;background:#ffffff;border:1px solid #eef0f4;border-radius:6px;">' +
+    '        <span style="font-size:13px;color:#5e6778;font-weight:600;">Status Changes</span>' +
+    '        <span style="font-size:14px;font-weight:700;color:#f59e0b;">' + (comparison.status_changes || 0) + '</span>' +
+    '      </div>' +
+    '      <div style="display:flex;justify-content:space-between;padding:10px 14px;background:#ffffff;border:1px solid #eef0f4;border-radius:6px;">' +
+    '        <span style="font-size:13px;color:#5e6778;font-weight:600;">Data Changes</span>' +
+    '        <span style="font-size:14px;font-weight:700;color:#3b82f6;">' + (comparison.data_changes || 0) + '</span>' +
+    '      </div>' +
+    '      <div style="display:flex;justify-content:space-between;padding:10px 14px;background:#ffffff;border:1px solid #eef0f4;border-radius:6px;">' +
+    '        <span style="font-size:13px;color:#5e6778;font-weight:600;">Errors</span>' +
+    '        <span style="font-size:14px;font-weight:700;color:#dc2626;">' + (comparison.errors || 0) + '</span>' +
+    '      </div>' +
+    '    </div>' +
+    '    <div style="margin-top:16px;padding:10px 14px;background:#fef9e7;border:1px solid #fde68a;border-radius:6px;font-size:12px;color:#92400e;">' +
+    '      <i class="fas fa-info-circle" style="margin-right:6px;"></i>Review the comparison above. The database will NOT be changed until you click <strong>Confirm Upload</strong>.' +
+    '    </div>' +
+    '  </div>' +
+    '</div>' +
+    '<div style="display:flex;gap:12px;justify-content:center;margin-bottom:20px;">' +
+    '  <button id="duCancelBtn" style="padding:10px 28px;background:#ffffff;color:#1a1d23;border:1px solid #d1d5db;border-radius:6px;font-weight:600;cursor:pointer;font-size:14px;">Cancel</button>' +
+    '  <button id="duConfirmBtn" style="padding:10px 28px;background:#f47217;color:white;border:none;border-radius:6px;font-weight:600;cursor:pointer;font-size:14px;">Confirm Upload</button>' +
+    '</div>';
+
+  // Bind Cancel button
+  var cancelBtn = document.getElementById("duCancelBtn");
+  if (cancelBtn) {
+    cancelBtn.addEventListener("click", function() {
+      __dataUploadState = { selectedFile: null, comparison: null, filename: null };
+      renderDataUploadView();
+    });
+  }
+
+  // Bind Confirm Upload button
+  var confirmBtn = document.getElementById("duConfirmBtn");
+  if (confirmBtn) {
+    confirmBtn.addEventListener("click", function() {
+      confirmUpload(file);
+    });
+  }
+}
+
+function confirmUpload(file) {
+  var contentEl = document.getElementById("duContent");
+  if (!contentEl) return;
+  var userEmail = sessionStorage.getItem("nct_user_email") || localStorage.getItem("nct_user_email") || "";
+
+  contentEl.innerHTML =
+    '<div class="card" style="text-align:center;padding:40px;">' +
+    '  <i class="fas fa-spinner fa-spin" style="font-size:32px;color:#f47217;margin-bottom:12px;display:block;"></i>' +
+    '  <p style="color:#5e6778;font-size:14px;">Uploading data to database...</p>' +
+    '</div>';
+
+  var formData = new FormData();
+  formData.append("file", file);
+
+  fetch("/api/data-upload/confirm?email=" + encodeURIComponent(userEmail), {
+    method: "POST",
+    body: formData
+  })
+  .then(function(res) { return res.json(); })
+  .then(function(json) {
+    if (!json.success) {
+      var errors = json.errors || ["Upload failed."];
+      var errorHtml = errors.map(function(e) { return '<div style="padding:8px 12px;background:#fee2e2;border:1px solid #dc2626;border-radius:4px;color:#991b1b;font-size:13px;margin-bottom:6px;"><i class="fas fa-exclamation-circle" style="margin-right:6px;"></i>' + esc(e) + '</div>'; }).join("");
+      contentEl.innerHTML =
+        '<div class="card">' +
+        '  <div class="card-header"><span class="card-title"><i class="fas fa-times-circle" style="color:#dc2626;"></i> Upload Failed</span></div>' +
+        '  <div class="card-body" style="padding:16px;">' +
+        '    ' + errorHtml +
+        '    <div style="margin-top:16px;text-align:center;">' +
+        '      <button id="duBackBtn" style="padding:8px 20px;background:#f47217;color:white;border:none;border-radius:4px;font-weight:600;cursor:pointer;font-size:13px;">Back to Data Upload</button>' +
+        '    </div>' +
+        '  </div>' +
+        '</div>';
+      var backBtn = document.getElementById("duBackBtn");
+      if (backBtn) backBtn.addEventListener("click", renderDataUploadView);
+      return;
+    }
+
+    // Success - show success message
+    var summary = json.summary || {};
+    contentEl.innerHTML =
+      '<div class="card" style="margin-bottom:16px;border:2px solid #10b981;">' +
+      '  <div class="card-body" style="padding:32px;text-align:center;">' +
+      '    <i class="fas fa-check-circle" style="font-size:48px;color:#10b981;margin-bottom:16px;display:block;"></i>' +
+      '    <h2 style="font-size:22px;font-weight:700;color:#065f46;margin:0 0 8px 0;">Data uploaded successfully.</h2>' +
+      '    <p style="color:#5e6778;font-size:14px;margin:0;">' + esc(json.message || "The database has been updated with the clean data.") + '</p>' +
+      '  </div>' +
+      '</div>' +
+      '<div class="card" style="margin-bottom:16px;">' +
+      '  <div class="card-header"><span class="card-title"><i class="fas fa-check-circle" style="color:#10b981;"></i> Data Upload Successful</span></div>' +
+      '  <div class="card-body" style="padding:16px;">' +
+      '    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">' +
+      '      <div style="display:flex;justify-content:space-between;padding:10px 14px;background:#f8fafc;border:1px solid #eef0f4;border-radius:6px;">' +
+      '        <span style="font-size:13px;color:#5e6778;font-weight:600;">Records processed</span>' +
+      '        <span style="font-size:14px;font-weight:700;color:#0f2042;">' + (summary.records_processed || 0).toLocaleString() + '</span>' +
+      '      </div>' +
+      '      <div style="display:flex;justify-content:space-between;padding:10px 14px;background:#f8fafc;border:1px solid #eef0f4;border-radius:6px;">' +
+      '        <span style="font-size:13px;color:#5e6778;font-weight:600;">New units</span>' +
+      '        <span style="font-size:14px;font-weight:700;color:#16a34a;">' + (summary.new_units || 0) + '</span>' +
+      '      </div>' +
+      '      <div style="display:flex;justify-content:space-between;padding:10px 14px;background:#f8fafc;border:1px solid #eef0f4;border-radius:6px;">' +
+      '        <span style="font-size:13px;color:#5e6778;font-weight:600;">Updated units</span>' +
+      '        <span style="font-size:14px;font-weight:700;color:#3b82f6;">' + (summary.updated_units || 0) + '</span>' +
+      '      </div>' +
+      '      <div style="display:flex;justify-content:space-between;padding:10px 14px;background:#f8fafc;border:1px solid #eef0f4;border-radius:6px;">' +
+      '        <span style="font-size:13px;color:#5e6778;font-weight:600;">Status changes</span>' +
+      '        <span style="font-size:14px;font-weight:700;color:#f59e0b;">' + (summary.status_changes || 0) + '</span>' +
+      '      </div>' +
+      '    </div>' +
+      '    <div style="margin-top:12px;padding:10px 14px;background:#f0fdf4;border:1px solid #86efac;border-radius:6px;font-size:12px;color:#166534;">' +
+      '      <i class="fas fa-database" style="margin-right:6px;"></i>Backup table: <strong>' + esc(summary.backup_table || "N/A") + '</strong>' +
+      '    </div>' +
+      '  </div>' +
+      '</div>' +
+      '<div style="text-align:center;margin-bottom:20px;">' +
+      '  <button id="duBackBtn" style="padding:10px 28px;background:#f47217;color:white;border:none;border-radius:6px;font-weight:600;cursor:pointer;font-size:14px;">Back to Data Upload</button>' +
+      '</div>';
+
+    var backBtn = document.getElementById("duBackBtn");
+    if (backBtn) backBtn.addEventListener("click", renderDataUploadView);
+
+    // Clear cached units so the dashboard refreshes with new data
+    window.__allUnits = null;
+    window.__allUnitsPromise = null;
+  })
+  .catch(function(err) {
+    contentEl.innerHTML =
+      '<div class="card" style="text-align:center;padding:40px;">' +
+      '  <i class="fas fa-exclamation-circle" style="font-size:32px;color:#dc2626;margin-bottom:12px;display:block;"></i>' +
+      '  <p style="color:#dc2626;font-size:14px;">Error: ' + esc(err.message) + '</p>' +
+      '  <button id="duBackBtn" style="padding:8px 20px;background:#f47217;color:white;border:none;border-radius:4px;font-weight:600;cursor:pointer;font-size:13px;margin-top:12px;">Back to Data Upload</button>' +
+      '</div>';
+    var backBtn = document.getElementById("duBackBtn");
+    if (backBtn) backBtn.addEventListener("click", renderDataUploadView);
   });
 }
 

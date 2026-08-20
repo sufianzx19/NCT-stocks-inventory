@@ -398,6 +398,10 @@ if (sessionStorage.getItem("nct_authenticated") === "true") {
           <span class="nav-icon"><i class="fas fa-database"></i></span>
           <span class="nav-label">Data Management</span>
         </div>
+        <div class="nav-item" id="nav-data-upload" data-view="data-upload" style="display:none;">
+          <span class="nav-icon"><i class="fas fa-upload"></i></span>
+          <span class="nav-label">Data Upload</span>
+        </div>
         <div class="nav-item" id="nav-user-management" data-view="user-management" style="display:none;">
           <span class="nav-icon"><i class="fas fa-users-cog"></i></span>
           <span class="nav-label">User Management</span>
@@ -501,6 +505,9 @@ if (sessionStorage.getItem("nct_authenticated") === "true") {
     <!-- Data Management (nct_admin only) -->
     <div class="view-panel" id="view-data-management"></div>
 
+    <!-- Data Upload (nct_admin only) -->
+    <div class="view-panel" id="view-data-upload"></div>
+
     <!-- User Management (nct_admin only) -->
     <div class="view-panel" id="view-user-management"></div>
 
@@ -514,7 +521,7 @@ if (sessionStorage.getItem("nct_authenticated") === "true") {
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-  <script src="/static/app.js?v=8.0.7"></script>
+  <script src="/static/app.js?v=9.0.0"></script>
 
 </body>
 </html>

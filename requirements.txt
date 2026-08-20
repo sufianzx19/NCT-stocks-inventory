@@ -3,3 +3,5 @@ uvicorn==0.24.0
 mysql-connector-python==9.7.0
 python-dotenv==1.2.2
 pydantic
+pandas
+openpyxl
