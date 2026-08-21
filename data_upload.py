@@ -2,10 +2,13 @@
 Data Upload Module — NCT IFCA ETL Pipeline Integration
 Handles validation, comparison, and safe database update for clean Excel data.
 """
+import math
 import os
 import shutil
 import tempfile
-from datetime import datetime
+import json
+from datetime import date, datetime
+from decimal import Decimal
 
 import pandas as pd
 
@@ -44,6 +47,7 @@ COLUMN_MAP = {
     "spa_date": "spa_date",
     "sale_date": "sale_date",
     "owner_name": "owner_name",
+    "name": "owner_name",
     "identity_no": "identity_no",
     "identity_no_foreign": "identity_no_foreign",
     "unit_address": "unit_address",
@@ -60,6 +64,60 @@ COLUMN_MAP = {
 
 # Valid status values
 VALID_STATUSES = {"Available", "Signed", "Sold", "Registered", "Not Available"}
+
+# ---------------------------------------------------------------------------
+# Updated As Of — Persistent System-Wide Date
+# ---------------------------------------------------------------------------
+
+# File used to persist the last successful Clean Data upload date.
+# This survives page refreshes and server restarts without requiring
+# a new database table.
+_SYSTEM_CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "system_config.json")
+
+
+def get_updated_as_of() -> str:
+    """
+    Return the last successful Clean Data upload date as a formatted string.
+    Returns "Not Available" if no successful upload has been recorded yet.
+    """
+    try:
+        if os.path.exists(_SYSTEM_CONFIG_FILE):
+            with open(_SYSTEM_CONFIG_FILE, "r") as f:
+                data = json.load(f)
+            raw = data.get("updated_as_of")
+            if raw:
+                # raw is stored as YYYY-MM-DD; format to "DD Month YYYY"
+                try:
+                    d = datetime.strptime(raw, "%Y-%m-%d")
+                    return d.strftime("%d %B %Y")
+                except Exception:
+                    return raw
+        return "N/A"
+    except Exception as e:
+        print(f"[data_upload] get_updated_as_of error: {e}")
+        return "N/A"
+
+
+def set_updated_as_of(dt: datetime = None) -> str:
+    """
+    Persist the date of a successful Clean Data upload.
+    Only called AFTER the upload has been successfully applied to the database.
+    Returns the formatted date string.
+    """
+    if dt is None:
+        dt = datetime.now()
+    try:
+        data = {}
+        if os.path.exists(_SYSTEM_CONFIG_FILE):
+            with open(_SYSTEM_CONFIG_FILE, "r") as f:
+                data = json.load(f)
+        data["updated_as_of"] = dt.strftime("%Y-%m-%d")
+        with open(_SYSTEM_CONFIG_FILE, "w") as f:
+            json.dump(data, f, indent=2)
+        return dt.strftime("%d %B %Y")
+    except Exception as e:
+        print(f"[data_upload] set_updated_as_of error: {e}")
+        return dt.strftime("%d %B %Y")
 
 
 # ---------------------------------------------------------------------------
@@ -91,7 +149,27 @@ def read_excel_file(file_path: str) -> dict:
         return {"success": False, "errors": ["The uploaded file is empty."]}
 
     # 3. Normalize column names
-    df.columns = [str(c).strip().replace(" ", "_").replace("-", "_") for c in df.columns]
+    # The real cleaned Excel file uses display-style headers such as:
+    #   "Unit No."  -> unit_no
+    #   "Built-up Area" -> built_up_area
+    #   "List Price" -> list_price
+    #   "HSD/HSM No" -> hsd_hsm_no
+    #   "Identity No. (Foreign)" -> identity_no_foreign
+    #   "Master Title/Geran No." -> master_title_geran_no
+    #   "Sub-Product?" -> sub_product
+    # Normalize to lowercase internal names matching REQUIRED_COLUMNS / COLUMN_MAP.
+    df.columns = [
+        str(c).strip()
+        .lower()
+        .replace(" ", "_")
+        .replace("-", "_")
+        .replace("/", "_")
+        .replace(".", "")
+        .replace("(", "")
+        .replace(")", "")
+        .replace("?", "")
+        for c in df.columns
+    ]
 
     # 4. Check required columns
     missing = [c for c in REQUIRED_COLUMNS if c not in df.columns]
@@ -141,12 +219,9 @@ def read_excel_file(file_path: str) -> dict:
     if invalid_areas:
         errors.append(f"Row(s) {', '.join(str(i + 2) for i in invalid_areas[:5])} have negative Built Up Area.")
 
-    # 6. Check for duplicate unit numbers within the file
-    dup_units = df[df.duplicated(subset=["unit_no", "project"], keep=False)]
-    if not dup_units.empty:
-        dup_list = dup_units[["unit_no", "project"]].drop_duplicates().head(5)
-        dup_str = ", ".join(f"{r['unit_no']} ({r['project']})" for _, r in dup_list.iterrows())
-        errors.append(f"Duplicate unit numbers found in file: {dup_str}")
+    # 6. Duplicate unit/project records within the file are ALLOWED.
+    #    They are detected and reported in the comparison, but do NOT
+    #    cause validation to fail. The user can proceed to Confirm Upload.
 
     if errors:
         return {"success": False, "errors": errors}
@@ -166,20 +241,31 @@ def compare_with_database(clean_df: pd.DataFrame) -> dict:
     # Fetch current database records
     db_rows = execute_query("SELECT * FROM units_master")
     db_units = {}
+    db_key_counts = {}
     for row in db_rows:
         key = _unit_key(row.get("unit_no"), row.get("project"))
-        db_units[key] = row
+        # Keep the first row per key for comparison logic
+        if key not in db_units:
+            db_units[key] = row
+        # Track how many physical database rows exist per key so we
+        # do NOT silently lose duplicate database rows during comparison.
+        db_key_counts[key] = db_key_counts.get(key, 0) + 1
 
-    # Build clean data map
+    # Build clean data map (deduplicated for delta classification)
     clean_units = {}
+    clean_key_counts = {}
     for _, row in clean_df.iterrows():
         key = _unit_key(row.get("unit_no"), row.get("project"))
         clean_units[key] = row
+        # Track how many physical Excel rows exist per key so we can
+        # report uploaded duplicates without discarding or merging them.
+        clean_key_counts[key] = clean_key_counts.get(key, 0) + 1
 
     new_units = []
     removed_units = []
     status_changes = []
     data_changes = []
+    unchanged_units = 0
     errors = []
 
     # Find new units (in clean but not in DB)
@@ -201,7 +287,8 @@ def compare_with_database(clean_df: pd.DataFrame) -> dict:
         # Status change
         db_status = str(db_row.get("status") or "").strip()
         clean_status = str(clean_row.get("status") or "").strip()
-        if db_status != clean_status:
+        status_changed = db_status != clean_status
+        if status_changed:
             status_changes.append({
                 "unit_no": clean_row.get("unit_no"),
                 "project": clean_row.get("project"),
@@ -232,18 +319,72 @@ def compare_with_database(clean_df: pd.DataFrame) -> dict:
                 "changed_fields": changed_fields,
             })
 
+        # Unchanged: exists in both, no status change, no data changes
+        if not status_changed and not changed_fields:
+            unchanged_units += 1
+
+    # Column counts for the comparison table
+    db_column_count = len(db_rows[0]) if db_rows else 0
+    clean_column_count = len(clean_df.columns)
+
+    # Existing database duplicate records (informational only).
+    # These are NOT classified as new/removed/status/data changes because
+    # they are an existing database condition, not a comparison delta.
+    db_dup_pairs = [
+        {"unit_no": db_units[k].get("unit_no"),
+         "project": db_units[k].get("project"),
+         "db_records": cnt}
+        for k, cnt in sorted(db_key_counts.items())
+        if cnt > 1
+    ]
+    db_dup_pair_count = len(db_dup_pairs)
+    db_dup_rows_involved = sum(p["db_records"] for p in db_dup_pairs)
+
+    # Uploaded Clean Data duplicate records (informational only).
+    # These are NOT classified as new/removed/status/data changes because
+    # they are an uploaded-file condition, not a comparison delta.
+    # The duplicate rows are preserved exactly as supplied by the file.
+    uploaded_dup_pairs = [
+        {"unit_no": clean_units[k].get("unit_no"),
+         "project": clean_units[k].get("project"),
+         "count": cnt}
+        for k, cnt in sorted(clean_key_counts.items())
+        if cnt > 1
+    ]
+    uploaded_dup_pair_count = len(uploaded_dup_pairs)
+    uploaded_dup_rows_involved = sum(p["count"] for p in uploaded_dup_pairs)
+
     return {
-        "current_db_count": len(db_units),
-        "clean_data_count": len(clean_units),
+        # The headline Current Database total is the ACTUAL number of rows
+        # returned from MySQL (physical rows), NOT the deduplicated dict size.
+        "current_db_count": len(db_rows),
+        # The headline New Clean Data total is the ACTUAL number of physical
+        # rows in the uploaded Excel file, NOT the deduplicated dict size.
+        "clean_data_count": len(clean_df),
         "new_units": len(new_units),
         "removed_units": len(removed_units),
         "status_changes": len(status_changes),
         "data_changes": len(data_changes),
+        "unchanged_units": unchanged_units,
         "errors": len(errors),
+        "db_column_count": db_column_count,
+        "clean_column_count": clean_column_count,
         "new_unit_list": new_units[:20],
         "removed_unit_list": removed_units[:20],
         "status_change_list": status_changes[:20],
         "data_change_list": data_changes[:20],
+        # Informational existing-database-dup report (does NOT affect new/removed/status/data change counts)
+        "database_duplicates": {
+            "duplicate_pairs_count": db_dup_pair_count,
+            "duplicate_rows_involved": db_dup_rows_involved,
+            "pairs": db_dup_pairs[:200],
+        },
+        # Informational uploaded-clean-data-dup report (does NOT affect new/removed/status/data change counts)
+        "uploaded_duplicates": {
+            "duplicate_pairs_count": uploaded_dup_pair_count,
+            "duplicate_rows_involved": uploaded_dup_rows_involved,
+            "duplicate_list": uploaded_dup_pairs[:200],
+        },
     }
 
 
@@ -253,13 +394,34 @@ def _unit_key(unit_no, project):
 
 
 def _normalize_value(val):
-    """Normalize a value for comparison."""
+    """
+    Normalize a value for comparison between MySQL and Excel sources.
+
+    Rules:
+      - None / NULL / NaN / NaT / empty -> "" (empty string)
+      - Numeric (int, float, Decimal) -> float (numeric comparison)
+      - date / datetime / Timestamp -> "YYYY-MM-DD" string
+      - Everything else -> stripped string
+    """
+    # NULL / NaN / NaT / empty -> empty string
     if val is None:
         return ""
-    if isinstance(val, float):
-        return round(val, 2)
-    if isinstance(val, pd.Timestamp):
+    if isinstance(val, float) and math.isnan(val):
+        return ""
+    if isinstance(val, pd.Timestamp) and pd.isna(val):
+        return ""
+    if isinstance(val, (datetime, date)) and str(val).strip() in ("NaT", ""):
+        return ""
+
+    # Numeric values -> float for numeric comparison
+    if isinstance(val, (int, float, Decimal)):
+        return float(val)
+
+    # Dates -> YYYY-MM-DD string
+    if isinstance(val, (datetime, date, pd.Timestamp)):
         return str(val.date())
+
+    # Strings -> stripped
     return str(val).strip()
 
 

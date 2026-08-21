@@ -12,10 +12,12 @@ import repository as repo
 
 PROJECT_NAME_MAP = {
     "NCT SMART INDUSTRIAL PARK PHASE 1": "NCT SMART INDUSTRIAL PARK KM1",
+    "NCT SMART INDUSTRIAL PARK PHASE 2": "NCT SMART INDUSTRIAL PARK KM2",
 }
 
 PROJECT_STATUS_MAP = {
     "NCT SMART INDUSTRIAL PARK PHASE 1": "Ongoing",
+    "NCT SMART INDUSTRIAL PARK PHASE 2": "Ongoing",
 }
 
 # Unit Type display name mapping - Presentation layer only
@@ -48,6 +50,7 @@ def _reverse_map_project_name(name: str) -> str:
     """Map API project filter names back to MySQL project names."""
     reverse_mapping = {
         "NCT SMART INDUSTRIAL PARK KM1": "NCT SMART INDUSTRIAL PARK PHASE 1",
+        "NCT SMART INDUSTRIAL PARK KM2": "NCT SMART INDUSTRIAL PARK PHASE 2",
     }
     return reverse_mapping.get(name, name)
 
@@ -148,6 +151,7 @@ def get_project_status(mysql_name: str) -> str:
     """
     status_map = {
         "NCT SMART INDUSTRIAL PARK PHASE 1": "Ongoing",
+        "NCT SMART INDUSTRIAL PARK PHASE 2": "Ongoing",
         "NCT INNOSPHERE": "Ongoing",
     }
     return status_map.get(mysql_name, "Completed")

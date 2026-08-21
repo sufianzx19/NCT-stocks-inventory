@@ -528,6 +528,10 @@ async def confirm_upload(
         # Verify after upload
         verify_result = du.verify_upload()
 
+        # Capture the upload date as the system-wide "Updated As Of" date.
+        # This is ONLY called after the upload has been successfully applied.
+        updated_as_of = du.set_updated_as_of()
+
         return {
             "success": True,
             "message": "Data uploaded successfully.",
@@ -539,6 +543,7 @@ async def confirm_upload(
                 "backup_table": apply_result["backup_table"],
             },
             "verification": verify_result,
+            "updated_as_of": updated_as_of,
         }
     except Exception as e:
         print(f"[main] /api/data-upload/confirm error: {e}")
@@ -677,6 +682,16 @@ def get_home_kpi():
     except Exception as e:
         print(f"[main] /api/home/kpi error: {e}")
         return {"error": str(e), "data": []}
+
+
+@app.get("/api/system/updated-as-of")
+def get_updated_as_of():
+    """Get the system-wide Updated As Of date (last successful Clean Data upload)."""
+    try:
+        return {"success": True, "updated_as_of": du.get_updated_as_of()}
+    except Exception as e:
+        print(f"[main] /api/system/updated-as-of error: {e}")
+        return {"success": False, "updated_as_of": "N/A"}
 
 
 @app.get("/api/projects")

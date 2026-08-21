@@ -3,6 +3,28 @@
    ========================================================================== */
 
 /* ==========================================================================
+   GLOBAL UPDATED AS OF — System-wide date from last successful Clean Data upload
+   ========================================================================== */
+var __updatedAsOf = "20 August 2026";
+
+function fetchUpdatedAsOf() {
+  // Hardcoded per requirement: "Updated As Of" always displays "20 August 2026"
+  __updatedAsOf = "20 August 2026";
+  applyUpdatedAsOfToPage();
+}
+
+function applyUpdatedAsOfToPage() {
+  var dateEls = document.querySelectorAll(".de-date");
+  for (var i = 0; i < dateEls.length; i++) {
+    dateEls[i].textContent = __updatedAsOf;
+  }
+}
+
+function getUpdatedAsOf() {
+  return __updatedAsOf;
+}
+
+/* ==========================================================================
    SIDEBAR DISPLAY CONFIGURATION
    ========================================================================== */
 var SIDEBAR_ITEMS = [
@@ -290,6 +312,7 @@ function initResponsiveBorderUpdate() {
 function initApp() {
   try {
     console.log("NCT V3 - initApp starting...");
+    fetchUpdatedAsOf();
     renderHomeDashboard();
     bindHeaderUserDropdown();
     // Recalculate grouped KPI borders after initial render completes
@@ -429,7 +452,7 @@ function renderComingSoon(view) {
   var label = view.indexOf("nsip-") === 0 ? "NSIP " + view.split("-")[1].toUpperCase() : view.toUpperCase().replace(/-/g, " ");
   panel.innerHTML =
     '<div class="page-header"><div><h1>' + label + '</h1><div class="header-sub">Project Dashboard</div></div>' +
-    '  <div class="data-extracted-box"><div class="de-label">Updated as of</div><div class="de-date">15 July 2026</div></div></div>' +
+    '  <div class="data-extracted-box"><div class="de-label">Updated as of</div><div class="de-date">20 August 2026</div></div></div>' +
     '<div class="card staging-placeholder" style="text-align:center;padding:80px 20px;">' +
     '  <i class="fas fa-clock" style="font-size:64px;color:var(--corporate-orange);margin-bottom:20px;display:block;"></i>' +
     '  <h3 style="font-size:24px;margin-bottom:12px;">Coming Soon</h3>' +
@@ -441,7 +464,7 @@ function renderWaitingForData(view) {
   if (!panel) return;
   var label = view.split("-").map(function(w) { return w.charAt(0).toUpperCase() + w.slice(1); }).join(" ");
   var isNctInnosphere = view === "nct-innosphere";
-  var dateText = isNctInnosphere ? "Not Available" : "15 July 2026";
+  var dateText = "20 August 2026";
   var status = isNctInnosphere ? getProjectStatus("NCT INNOSPHERE") : null;
   var statusHtml = status ? renderStatusDot(status) : '';
   var projectName = isNctInnosphere ? "NCT INNOSPHERE" : null;
@@ -628,7 +651,6 @@ function getLayoutBalance(projectName) {
 function renderLayoutPlanHeader(balanceText, stageId) {
   return '<div class="card" style="padding:12px 16px;margin-bottom:0;background:#f8fafc;border:1px solid #eef0f4;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,0.06);display:flex;align-items:center;" data-layout-stage="' + (stageId || '') + '">' +
     '<span class="card-title" style="flex-shrink:0;"><i class="fas fa-map"></i> LAYOUT PLAN</span>' +
-    '<span style="margin-left:auto;font-size:14px;font-weight:700;color:#0f2042;white-space:nowrap;">' + balanceText + '</span>' +
     '<button class="layout-download-btn" data-layout-stage="' + (stageId || '') + '" style="margin-left:12px;padding:6px 12px;border:1px solid var(--border-light);border-radius:4px;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:#0f2042;white-space:nowrap;"><i class="fas fa-download" style="margin-right:4px;"></i>Download</button>' +
     '</div>';
 }
@@ -1498,6 +1520,7 @@ function renderDashboardSections(kpiData) {
 
   var guaranteedOngoing = [
     { project_name: "NCT SMART INDUSTRIAL PARK KM1", project_status: "Ongoing", available_units: 0, total_list_price: 0, project_slug: "nsip" },
+    { project_name: "NCT SMART INDUSTRIAL PARK KM2", project_status: "Ongoing", available_units: 0, total_list_price: 0, project_slug: "nsip-km2" },
     { project_name: "NCT INNOSPHERE", project_status: "Ongoing", available_units: 0, total_list_price: 0, project_slug: "nct-innosphere" }
   ];
 
@@ -1527,6 +1550,8 @@ function renderDashboardSections(kpiData) {
   // Add remaining API projects, excluding parent projects and hardcoded sub-project cards
   var EXCLUDED_PROJECTS = {
     "NCT SMART INDUSTRIAL PARK KM1": true,
+    "NCT SMART INDUSTRIAL PARK KM2": true,
+    "NCT SMART INDUSTRIAL PARK PHASE 2": true,
     "NCT INNOSPHERE": true,
     "N-CITY": true,
     "ION BELIAN GARDEN": true,
@@ -1683,6 +1708,9 @@ function createDashboardCard(proj) {
   if (displayName === "NCT SMART INDUSTRIAL PARK KM1") {
     displayName = "NCT SMART INDUSTRIAL PARK (KM1)";
   }
+  if (displayName === "NCT SMART INDUSTRIAL PARK KM2" || displayName === "NCT SMART INDUSTRIAL PARK PHASE 2") {
+    displayName = "NCT SMART INDUSTRIAL PARK (KM2)";
+  }
   if (displayName === "N-CITY — RISE INTERNATIONAL SCHOOL" || displayName === "N-CITY - RISE INTERNATIONAL SCHOOL" || displayName === "RISE INTERNATIONAL SCHOOL") {
     displayName = "N-CITY RISE INTERNATIONAL SCHOOL";
   }
@@ -1714,6 +1742,10 @@ function createDashboardCard(proj) {
       activateSidebarItem("nsip-km1");
       collapseNsipSubmenu();
       renderNsipKm1View();
+    } else if (slug === "nsip-km2") {
+      activateSidebarItem("nsip-km2");
+      collapseNsipSubmenu();
+      renderNsipKm2View();
     } else if (slug === "n-city-commercial") {
       activateSidebarItem("n-city-commercial");
       collapseNcitySubmenu();
@@ -1962,11 +1994,23 @@ function renderNsipOverallLayoutView() {
 function renderNsipKm2View() {
   var panel = document.getElementById("view-nsip-km2");
   if (!panel) return;
+  var nsipProjectName = "NCT SMART INDUSTRIAL PARK KM2";
 
   panel.innerHTML =
     '<div class="page-header">' +
-    '  <div><h1>NSIP KM2</h1><div class="header-sub">Project Dashboard</div></div>' +
-    '  <div class="data-extracted-box"><div class="de-label">Updated as of</div><div class="de-date">15 July 2026</div></div></div>' +
+    '  <div style="display:flex;justify-content:space-between;align-items:center;flex:1;flex-wrap:wrap;gap:8px;">' +
+    '    <div><h1 style="margin-right:12px;">' + nsipProjectName + '</h1><div class="header-sub">Project Dashboard</div></div>' +
+    '  </div>' +
+    '  <div class="data-extracted-box"><div class="de-label">Updated as of</div><div class="de-date">' + getUpdatedAsOf() + '</div></div></div>' +
+    '</div>' +
+    '<div class="project-image-banner" id="project-image-nsip-km2" style="background:#000000;border-radius:10px;overflow:hidden;margin-bottom:20px;position:relative;cursor:pointer;" title="Double-click to view full image">' +
+    '  <div style="display:flex;align-items:center;justify-content:center;min-height:200px;max-height:400px;padding:20px;">' +
+    '    <div style="color:#9ca3af;font-size:14px;"><i class="fas fa-spinner fa-spin" style="font-size:24px;display:block;margin-bottom:8px;"></i>Loading project image...</div>' +
+    '  </div>' +
+    '</div>' +
+    '<div class="project-kpi-container">' +
+    '  <div class="card project-kpi-box"><div class="project-kpi-label"><i class="fas fa-check-circle" style="color:#10b981;margin-right:8px;"></i>Total Available Units</div><div class="project-kpi-value" id="kpi-nsip-km2">0</div></div>' +
+    '  <div class="card project-kpi-price-box"><div class="project-kpi-label"><i class="fas fa-dollar-sign" style="color:#2563eb;margin-right:8px;"></i>Total SPA Price</div><div class="project-kpi-value" id="kpi-price-nsip-km2">RM 0</div></div>' +
     '</div>' +
     '<div id="nsip-km2-layout-wrapper" style="width:100%;display:flex;flex-direction:column;gap:20px;box-sizing:border-box;padding:0;margin-bottom:20px;">' +
     '  <div class="card" style="padding:12px 16px;margin-bottom:0;background:#f8fafc;border:1px solid #eef0f4;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,0.06);display:flex;align-items:center;">' +
@@ -1976,10 +2020,26 @@ function renderNsipKm2View() {
     '    <img src="/static/NSIP%20KM2_Layout.png" alt="NSIP KM2 Layout" style="width:100%;height:auto;display:block;border-radius:6px;transform-origin:center center;">' +
     '  </div>' +
     '</div>' +
-    '<div class="card staging-placeholder" style="text-align:center;padding:80px 20px;">' +
-    '  <i class="fas fa-clock" style="font-size:64px;color:var(--corporate-orange);margin-bottom:20px;display:block;"></i>' +
-    '  <h3 style="font-size:24px;margin-bottom:12px;">Coming Soon</h3>' +
-    '  <p style="color:var(--text-secondary);font-size:15px;">NSIP KM2 project data will be available in a future update.</p></div>';
+    '' + renderProjectDetails("NCT SMART INDUSTRIAL PARK KM1") + '' +
+    '<div class="card" id="staticAssetList-nsip-km2">' +
+    '  <div class="card-header">' +
+    '    <span class="card-title"><i class="fas fa-table"></i> AVAILABLE UNIT LIST</span>' +
+    '    <div class="table-controls">' +
+    '      <select id="staticFilterPhase-nsip-km2" class="table-filter"><option value="">All Phases</option></select>' +
+    '      <select id="staticFilterType-nsip-km2" class="table-filter"><option value="">All Unit Types</option></select>' +
+    '      <button id="resetSort-nsip-km2" class="table-filter" style="padding:6px 12px;border:1px solid var(--border-light);border-radius:4px;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:#0f2042;"><i class="fas fa-undo" style="margin-right:4px;"></i>Reset Sort</button>' +
+    '      <button id="downloadExcel-nsip-km2" class="table-filter" style="padding:6px 12px;border:1px solid var(--border-light);border-radius:4px;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:#0f2042;"><i class="fas fa-file-excel" style="margin-right:4px;color:#16a34a;"></i>Download</button>' +
+    '    </div>' +
+    '  </div>' +
+    '  <div id="staticLedgerContainer-nsip-km2" class="asset-table-container"></div>' +
+    '  <div id="staticPagination-nsip-km2" style="display:flex;align-items:center;justify-content:center;gap:12px;margin-top:16px;padding-top:12px;border-top:1px solid var(--border-light);"></div>' +
+    '</div>' +
+    '<div class="card">' +
+    '  <div class="card-header"><span class="card-title"><i class="fas fa-list"></i> AVAILABLE UNIT BY PHASE</span></div>' +
+    '  <div id="ledgerContainer-nsip-km2"></div>' +
+    '</div>';
+
+  loadProjectImageBanner("nsip-km2", "NSIP");
 
   // Enable double-click fullscreen on KM2 layout image
   var layoutImg = document.getElementById("nsip-km2-layout-stage").querySelector("img");
@@ -1988,6 +2048,76 @@ function renderNsipKm2View() {
       openImageModal("/static/NSIP%20KM2_Layout.png", "NSIP KM2 Layout");
     });
   }
+
+  // Fetch KM2 (Phase 2) units only
+  fetch("/api/layout/nsip")
+    .then(function(res) { if (!res.ok) throw new Error("HTTP " + res.status); return res.json(); })
+    .then(function(json) {
+      var allUnits = (json && json.data) ? json.data : [];
+      if (!Array.isArray(allUnits)) allUnits = [];
+
+      // Filter to Phase 2 only (KM2)
+      var km2Units = allUnits.filter(function(u) {
+        var phase = String(u.Phase || "").trim().toUpperCase();
+        return phase.indexOf("2") > -1 || phase.indexOf("TWO") > -1 || phase.indexOf("II") > -1;
+      });
+
+      // If phase filtering doesn't match, fall back to all units for this project
+      if (km2Units.length === 0) km2Units = allUnits;
+
+      var kpiEl = document.getElementById("kpi-nsip-km2");
+      if (kpiEl) kpiEl.textContent = computeAvailableUnits(km2Units);
+      var priceEl = document.getElementById("kpi-price-nsip-km2");
+      if (priceEl) priceEl.textContent = formatPrice(computeDisplayedTotalPrice(km2Units));
+
+      try { renderNsipKm2Hierarchy(km2Units); } catch(e) { console.error("Hierarchy:", e); }
+      try { renderStaticAssetTable("nsip-km2", km2Units); } catch(e) { console.error("Static KM2 table:", e); }
+      try { bindAvailableUnitsDownloadButton("nsip-km2", km2Units); } catch(e) { console.error("Bind download:", e); }
+    })
+    .catch(function(err) {
+      console.error("Failed to load NSIP KM2 layout data:", err);
+    });
+}
+
+function renderNsipKm2Hierarchy(projectUnits) {
+  var container = document.getElementById("ledgerContainer-nsip-km2");
+  if (!container) return;
+
+  var availableUnits = projectUnits.filter(isDisplayAvailable);
+  var state = getOrInitState("project-nsip-km2");
+
+  var projKey = "proj:nsip-km2";
+  if (state[projKey] === undefined) state[projKey] = false;
+
+  var header = createGroupHeader("NCT SMART INDUSTRIAL PARK KM2", computeAvailableUnits(availableUnits), false, "group-header-project", "Project");
+  container.appendChild(header);
+
+  var content = document.createElement("div");
+  content.className = "group-content";
+  content.style.display = "none";
+  container.appendChild(content);
+
+  var childrenRendered = false;
+  header.addEventListener("click", function() {
+    var now = toggleLevel(state, projKey);
+    if (now) {
+      if (!childrenRendered) {
+        renderProjectPhasesAccordion(content, availableUnits, "nsip-km2", "NCT SMART INDUSTRIAL PARK KM2");
+        childrenRendered = true;
+      }
+      content.style.display = "block";
+    } else {
+      content.style.display = "none";
+      for (var k in state) {
+        if (k.indexOf("phase:nsip-km2:") === 0 || k.indexOf("ut:nsip-km2:") === 0) {
+          state[k] = false;
+        }
+      }
+      collapseChildren(content);
+    }
+    var chev = header.querySelector(".group-chevron i");
+    if (chev) chev.className = "fas " + (now ? "fa-chevron-down" : "fa-chevron-right");
+  });
 }
 
 /* ==========================================================================
@@ -2007,7 +2137,7 @@ function renderProjectView(slug) {
 
   if (slug === "nsip") { renderNsipKm1View(); return; }
 
-  var dateText = "15 July 2026";
+  var dateText = "20 August 2026";
 
   panel.innerHTML =
     '<div class="page-header">' +
@@ -2751,7 +2881,7 @@ function renderNsipKm1View() {
     '  <div style="display:flex;justify-content:space-between;align-items:center;flex:1;flex-wrap:wrap;gap:8px;">' +
     '    <div><h1 style="margin-right:12px;">' + nsipProjectName + ' (230.09 acres)</h1><div class="header-sub">Project Dashboard</div></div>' +
     '  </div>' +
-    '  <div class="data-extracted-box"><div class="de-label">Updated as of</div><div class="de-date">12 August 2026</div></div></div>' +
+    '  <div class="data-extracted-box"><div class="de-label">Updated as of</div><div class="de-date">' + getUpdatedAsOf() + '</div></div></div>' +
     '</div>' +
     '<div class="project-image-banner" id="project-image-nsip" style="background:#000000;border-radius:10px;overflow:hidden;margin-bottom:20px;position:relative;cursor:pointer;" title="Double-click to view full image">' +
     '  <div style="display:flex;align-items:center;justify-content:center;min-height:200px;max-height:400px;padding:20px;">' +
@@ -2794,16 +2924,25 @@ function renderNsipKm1View() {
   fetch("/api/layout/nsip")
     .then(function(res) { if (!res.ok) throw new Error("HTTP " + res.status); return res.json(); })
     .then(function(json) {
-      var layoutUnits = (json && json.data) ? json.data : [];
-      if (!Array.isArray(layoutUnits)) layoutUnits = [];
+      var allUnits = (json && json.data) ? json.data : [];
+      if (!Array.isArray(allUnits)) allUnits = [];
+
+      // Filter to Phase 1 only (KM1)
+      var km1Units = allUnits.filter(function(u) {
+        var phase = String(u.Phase || "").trim().toUpperCase();
+        return phase.indexOf("1") > -1 || phase.indexOf("ONE") > -1 || phase.indexOf("I") > -1;
+      });
+
+      // If phase filtering doesn't match, fall back to all units for this project
+      if (km1Units.length === 0) km1Units = allUnits;
 
       __nsipSharedData = {
-        units: layoutUnits,
-        available: layoutUnits.filter(function(u) { return String(u.Status).trim().toLowerCase() === 'available'; }).length,
-        signed: layoutUnits.filter(function(u) { return String(u.Status).trim().toLowerCase() === 'signed'; }).length,
-        sold: layoutUnits.filter(function(u) { return String(u.Status).trim().toLowerCase() === 'sold'; }).length,
-        registered: layoutUnits.filter(function(u) { return String(u.Status).trim().toLowerCase() === 'registered'; }).length,
-        total: layoutUnits.length
+        units: km1Units,
+        available: km1Units.filter(function(u) { return String(u.Status).trim().toLowerCase() === 'available'; }).length,
+        signed: km1Units.filter(function(u) { return String(u.Status).trim().toLowerCase() === 'signed'; }).length,
+        sold: km1Units.filter(function(u) { return String(u.Status).trim().toLowerCase() === 'sold'; }).length,
+        registered: km1Units.filter(function(u) { return String(u.Status).trim().toLowerCase() === 'registered'; }).length,
+        total: km1Units.length
       };
 
       var kpiEl = document.getElementById("kpi-nsip");
@@ -5319,53 +5458,254 @@ function renderComparison(comparison, file) {
   var contentEl = document.getElementById("duContent");
   if (!contentEl) return;
 
-  contentEl.innerHTML =
-    '<div class="card" style="margin-bottom:16px;">' +
-    '  <div class="card-header"><span class="card-title"><i class="fas fa-balance-scale"></i> Data Comparison</span></div>' +
-    '  <div class="card-body" style="padding:16px;">' +
-    '    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">' +
-    '      <div style="background:#f8fafc;border:1px solid #eef0f4;border-radius:8px;padding:16px;text-align:center;">' +
-    '        <div style="font-size:11px;color:#5e6778;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:4px;">Current Database</div>' +
-    '        <div style="font-size:28px;font-weight:700;color:#0f2042;">' + (comparison.current_db_count || 0).toLocaleString() + '</div>' +
-    '        <div style="font-size:12px;color:#5e6778;">units</div>' +
-    '      </div>' +
-    '      <div style="background:#f8fafc;border:1px solid #eef0f4;border-radius:8px;padding:16px;text-align:center;">' +
-    '        <div style="font-size:11px;color:#5e6778;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:4px;">New Clean Data</div>' +
-    '        <div style="font-size:28px;font-weight:700;color:#f47217;">' + (comparison.clean_data_count || 0).toLocaleString() + '</div>' +
-    '        <div style="font-size:12px;color:#5e6778;">units</div>' +
-    '      </div>' +
-    '    </div>' +
-    '    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">' +
-    '      <div style="display:flex;justify-content:space-between;padding:10px 14px;background:#ffffff;border:1px solid #eef0f4;border-radius:6px;">' +
-    '        <span style="font-size:13px;color:#5e6778;font-weight:600;">New Units</span>' +
-    '        <span style="font-size:14px;font-weight:700;color:#16a34a;">' + (comparison.new_units || 0) + '</span>' +
-    '      </div>' +
-    '      <div style="display:flex;justify-content:space-between;padding:10px 14px;background:#ffffff;border:1px solid #eef0f4;border-radius:6px;">' +
-    '        <span style="font-size:13px;color:#5e6778;font-weight:600;">Removed/Missing Units</span>' +
-    '        <span style="font-size:14px;font-weight:700;color:#dc2626;">' + (comparison.removed_units || 0) + '</span>' +
-    '      </div>' +
-    '      <div style="display:flex;justify-content:space-between;padding:10px 14px;background:#ffffff;border:1px solid #eef0f4;border-radius:6px;">' +
-    '        <span style="font-size:13px;color:#5e6778;font-weight:600;">Status Changes</span>' +
-    '        <span style="font-size:14px;font-weight:700;color:#f59e0b;">' + (comparison.status_changes || 0) + '</span>' +
-    '      </div>' +
-    '      <div style="display:flex;justify-content:space-between;padding:10px 14px;background:#ffffff;border:1px solid #eef0f4;border-radius:6px;">' +
-    '        <span style="font-size:13px;color:#5e6778;font-weight:600;">Data Changes</span>' +
-    '        <span style="font-size:14px;font-weight:700;color:#3b82f6;">' + (comparison.data_changes || 0) + '</span>' +
-    '      </div>' +
-    '      <div style="display:flex;justify-content:space-between;padding:10px 14px;background:#ffffff;border:1px solid #eef0f4;border-radius:6px;">' +
-    '        <span style="font-size:13px;color:#5e6778;font-weight:600;">Errors</span>' +
-    '        <span style="font-size:14px;font-weight:700;color:#dc2626;">' + (comparison.errors || 0) + '</span>' +
-    '      </div>' +
-    '    </div>' +
-    '    <div style="margin-top:16px;padding:10px 14px;background:#fef9e7;border:1px solid #fde68a;border-radius:6px;font-size:12px;color:#92400e;">' +
-    '      <i class="fas fa-info-circle" style="margin-right:6px;"></i>Review the comparison above. The database will NOT be changed until you click <strong>Confirm Upload</strong>.' +
-    '    </div>' +
-    '  </div>' +
+  // --- Helper: format difference with + / - sign ---
+  function fmtDiff(val) {
+    if (val > 0) return "+" + val.toLocaleString();
+    if (val < 0) return "-" + Math.abs(val).toLocaleString();
+    return "0";
+  }
+
+  // --- Helper: parse "UNIT_NO|PROJECT" key from new_unit_list / removed_unit_list ---
+  function parseUnitKey(key) {
+    if (!key) return { unit_no: "", project: "" };
+    var parts = String(key).split("|");
+    return { unit_no: parts[0] || "", project: parts[1] || "" };
+  }
+
+  // --- Helper: build a detail table with scrollable body ---
+  function detailTable(headers, rows) {
+    var html = '<div class="table-wrapper" style="overflow:auto;max-height:320px;border:1px solid #eef0f4;border-radius:6px;">';
+    html += '<table class="asset-table" style="width:100%;border-collapse:collapse;font-size:12px;">';
+    html += '<thead><tr style="position:sticky;top:0;z-index:2;">';
+    headers.forEach(function(h) {
+      html += '<th style="white-space:nowrap;padding:8px 12px;text-align:left;background:#f4f6fa;border-bottom:1px solid #eef0f4;font-weight:600;color:#5e6778;font-size:11px;text-transform:uppercase;letter-spacing:0.3px;">' + h + '</th>';
+    });
+    html += '</tr></thead><tbody>';
+    if (rows.length === 0) {
+      html += '<tr><td colspan="' + headers.length + '" style="padding:16px;text-align:center;color:#9ca3af;font-size:13px;">No records</td></tr>';
+    } else {
+      rows.forEach(function(r) {
+        html += '<tr>';
+        r.forEach(function(cell) {
+          html += '<td style="padding:7px 12px;border-bottom:1px solid #f3f4f6;color:#1a1d23;white-space:nowrap;">' + cell + '</td>';
+        });
+        html += '</tr>';
+      });
+    }
+    html += '</tbody></table></div>';
+    return html;
+  }
+
+  // --- Helper: build a section card with title and body ---
+  function sectionCard(icon, title, bodyHtml) {
+    return '<div class="card" style="margin-bottom:16px;">' +
+      '  <div class="card-header"><span class="card-title"><i class="' + icon + '"></i> ' + title + '</span></div>' +
+      '  <div class="card-body" style="padding:16px;">' + bodyHtml + '</div>' +
+      '</div>';
+  }
+
+  // --- Helper: "Showing X of Y" note for limited lists ---
+  function limitNote(shown, total) {
+    if (total > shown) {
+      return '<div style="margin-top:8px;padding:6px 10px;background:#f8fafc;border:1px solid #eef0f4;border-radius:4px;font-size:11px;color:#5e6778;">' +
+        '<i class="fas fa-info-circle" style="margin-right:4px;"></i>Showing ' + shown + ' of ' + total + ' records. The list is limited by the backend response.</div>';
+    }
+    return '';
+  }
+
+  // --- Data extraction ---
+  var currentDbCount = comparison.current_db_count || 0;
+  var cleanDataCount = comparison.clean_data_count || 0;
+  var totalDiff = cleanDataCount - currentDbCount;
+  var dbColCount = comparison.db_column_count || 0;
+  var cleanColCount = comparison.clean_column_count || 0;
+  var colDiff = cleanColCount - dbColCount;
+
+  var newUnits = comparison.new_units || 0;
+  var removedUnits = comparison.removed_units || 0;
+  var statusChanges = comparison.status_changes || 0;
+  var dataChanges = comparison.data_changes || 0;
+  var unchangedUnits = comparison.unchanged_units !== undefined ? comparison.unchanged_units : 0;
+
+  // Existing database duplicate records (informational only — NOT part of the change summary)
+  var dbDup = comparison.database_duplicates || {};
+  var dbDupPairCount = dbDup.duplicate_pairs_count || 0;
+  var dbDupRowsInvolved = dbDup.duplicate_rows_involved || 0;
+  var dbDupPairs = dbDup.pairs || [];
+
+  // Uploaded Clean Data duplicate records (informational only — NOT part of the change summary)
+  var upDup = comparison.uploaded_duplicates || {};
+  var upDupPairCount = upDup.duplicate_pairs_count || 0;
+  var upDupRowsInvolved = upDup.duplicate_rows_involved || 0;
+  var upDupList = upDup.duplicate_list || [];
+
+  // --- Build detail tables ---
+
+  // New Units
+  var newUnitsHtml = '';
+  if (newUnits > 0) {
+    var newRows = (comparison.new_unit_list || []).map(function(k) {
+      var u = parseUnitKey(k);
+      return [esc(u.unit_no), esc(u.project)];
+    });
+    newUnitsHtml = detailTable(["Unit No.", "Project"], newRows) + limitNote(newRows.length, newUnits);
+  } else {
+    newUnitsHtml = '<div style="padding:12px 14px;background:#f8fafc;border:1px solid #eef0f4;border-radius:6px;font-size:13px;color:#5e6778;"><i class="fas fa-check-circle" style="color:#10b981;margin-right:6px;"></i>No new units.</div>';
+  }
+
+  // Removed / Missing Units
+  var removedHtml = '';
+  if (removedUnits > 0) {
+    var removedRows = (comparison.removed_unit_list || []).map(function(k) {
+      var u = parseUnitKey(k);
+      return [esc(u.unit_no), esc(u.project)];
+    });
+    removedHtml = detailTable(["Unit No.", "Project"], removedRows) + limitNote(removedRows.length, removedUnits);
+  } else {
+    removedHtml = '<div style="padding:12px 14px;background:#f8fafc;border:1px solid #eef0f4;border-radius:6px;font-size:13px;color:#5e6778;"><i class="fas fa-check-circle" style="color:#10b981;margin-right:6px;"></i>No removed or missing units.</div>';
+  }
+
+  // Status Changes
+  var statusHtml = '';
+  if (statusChanges > 0) {
+    var statusRows = (comparison.status_change_list || []).map(function(s) {
+      return [esc(s.unit_no), esc(s.project), esc(s.old_status), esc(s.new_status)];
+    });
+    statusHtml = detailTable(["Unit No.", "Project", "Current Status", "New Status"], statusRows) + limitNote(statusRows.length, statusChanges);
+  } else {
+    statusHtml = '<div style="padding:12px 14px;background:#f8fafc;border:1px solid #eef0f4;border-radius:6px;font-size:13px;color:#5e6778;"><i class="fas fa-check-circle" style="color:#10b981;margin-right:6px;"></i>No status changes.</div>';
+  }
+
+  // Data Changes
+  var dataHtml = '';
+  if (dataChanges > 0) {
+    var dataRows = (comparison.data_change_list || []).map(function(d) {
+      var fields = (d.changed_fields || []).join(", ");
+      return [esc(d.unit_no), esc(d.project), esc(fields)];
+    });
+    dataHtml = detailTable(["Unit No.", "Project", "Changed Fields"], dataRows) + limitNote(dataRows.length, dataChanges);
+  } else {
+    dataHtml = '<div style="padding:12px 14px;background:#f8fafc;border:1px solid #eef0f4;border-radius:6px;font-size:13px;color:#5e6778;"><i class="fas fa-check-circle" style="color:#10b981;margin-right:6px;"></i>No data changes.</div>';
+  }
+
+  // --- Assemble the full comparison screen ---
+  var html = '';
+
+  // 1. Main comparison table: CURRENT DATABASE vs NEW CLEAN DATA
+  html += sectionCard('fas fa-balance-scale', 'Data Comparison',
+    '<div style="margin-bottom:12px;font-size:13px;color:#5e6778;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;">Current Database vs New Clean Data</div>' +
+    '<div class="table-wrapper" style="overflow:auto;border:1px solid #eef0f4;border-radius:6px;">' +
+    '  <table class="asset-table" style="width:100%;border-collapse:collapse;font-size:13px;">' +
+    '    <thead><tr style="background:#f4f6fa;">' +
+    '      <th style="padding:10px 14px;text-align:left;border-bottom:1px solid #eef0f4;font-weight:600;color:#5e6778;font-size:11px;text-transform:uppercase;letter-spacing:0.3px;">Comparison</th>' +
+    '      <th style="padding:10px 14px;text-align:right;border-bottom:1px solid #eef0f4;font-weight:600;color:#5e6778;font-size:11px;text-transform:uppercase;letter-spacing:0.3px;">Current Database</th>' +
+    '      <th style="padding:10px 14px;text-align:right;border-bottom:1px solid #eef0f4;font-weight:600;color:#5e6778;font-size:11px;text-transform:uppercase;letter-spacing:0.3px;">New Clean Data</th>' +
+    '      <th style="padding:10px 14px;text-align:right;border-bottom:1px solid #eef0f4;font-weight:600;color:#5e6778;font-size:11px;text-transform:uppercase;letter-spacing:0.3px;">Difference</th>' +
+    '    </tr></thead>' +
+    '    <tbody>' +
+    '      <tr>' +
+    '        <td style="padding:10px 14px;border-bottom:1px solid #f3f4f6;color:#1a1d23;font-weight:600;">Total Units</td>' +
+    '        <td style="padding:10px 14px;border-bottom:1px solid #f3f4f6;text-align:right;color:#0f2042;font-weight:600;">' + currentDbCount.toLocaleString() + '</td>' +
+    '        <td style="padding:10px 14px;border-bottom:1px solid #f3f4f6;text-align:right;color:#f47217;font-weight:600;">' + cleanDataCount.toLocaleString() + '</td>' +
+    '        <td style="padding:10px 14px;border-bottom:1px solid #f3f4f6;text-align:right;font-weight:700;' + (totalDiff > 0 ? 'color:#16a34a;' : (totalDiff < 0 ? 'color:#dc2626;' : 'color:#5e6778;')) + '">' + fmtDiff(totalDiff) + '</td>' +
+    '      </tr>' +
+    '      <tr>' +
+    '        <td style="padding:10px 14px;border-bottom:1px solid #f3f4f6;color:#1a1d23;font-weight:600;">Columns</td>' +
+    '        <td style="padding:10px 14px;border-bottom:1px solid #f3f4f6;text-align:right;color:#0f2042;font-weight:600;">' + dbColCount.toLocaleString() + '</td>' +
+    '        <td style="padding:10px 14px;border-bottom:1px solid #f3f4f6;text-align:right;color:#f47217;font-weight:600;">' + cleanColCount.toLocaleString() + '</td>' +
+    '        <td style="padding:10px 14px;border-bottom:1px solid #f3f4f6;text-align:right;font-weight:700;' + (colDiff > 0 ? 'color:#16a34a;' : (colDiff < 0 ? 'color:#dc2626;' : 'color:#5e6778;')) + '">' + fmtDiff(colDiff) + '</td>' +
+    '      </tr>' +
+    '    </tbody>' +
+    '  </table>' +
+    '</div>'
+  );
+
+  // 2. Change Summary table
+  html += sectionCard('fas fa-list-alt', 'Change Summary',
+    '<div class="table-wrapper" style="overflow:auto;border:1px solid #eef0f4;border-radius:6px;">' +
+    '  <table class="asset-table" style="width:100%;border-collapse:collapse;font-size:13px;">' +
+    '    <thead><tr style="background:#f4f6fa;">' +
+    '      <th style="padding:10px 14px;text-align:left;border-bottom:1px solid #eef0f4;font-weight:600;color:#5e6778;font-size:11px;text-transform:uppercase;letter-spacing:0.3px;">Change Type</th>' +
+    '      <th style="padding:10px 14px;text-align:right;border-bottom:1px solid #eef0f4;font-weight:600;color:#5e6778;font-size:11px;text-transform:uppercase;letter-spacing:0.3px;">Quantity</th>' +
+    '    </tr></thead>' +
+    '    <tbody>' +
+    '      <tr>' +
+    '        <td style="padding:9px 14px;border-bottom:1px solid #f3f4f6;color:#1a1d23;">New Units</td>' +
+    '        <td style="padding:9px 14px;border-bottom:1px solid #f3f4f6;text-align:right;color:#16a34a;font-weight:700;">' + newUnits.toLocaleString() + '</td>' +
+    '      </tr>' +
+    '      <tr>' +
+    '        <td style="padding:9px 14px;border-bottom:1px solid #f3f4f6;color:#1a1d23;">Removed/Missing Units</td>' +
+    '        <td style="padding:9px 14px;border-bottom:1px solid #f3f4f6;text-align:right;color:#dc2626;font-weight:700;">' + removedUnits.toLocaleString() + '</td>' +
+    '      </tr>' +
+    '      <tr>' +
+    '        <td style="padding:9px 14px;border-bottom:1px solid #f3f4f6;color:#1a1d23;">Status Changes</td>' +
+    '        <td style="padding:9px 14px;border-bottom:1px solid #f3f4f6;text-align:right;color:#f59e0b;font-weight:700;">' + statusChanges.toLocaleString() + '</td>' +
+    '      </tr>' +
+    '      <tr>' +
+    '        <td style="padding:9px 14px;border-bottom:1px solid #f3f4f6;color:#1a1d23;">Unchanged Units</td>' +
+    '        <td style="padding:9px 14px;border-bottom:1px solid #f3f4f6;text-align:right;color:#5e6778;font-weight:700;">' + unchangedUnits.toLocaleString() + '</td>' +
+    '      </tr>' +
+    '    </tbody>' +
+    '  </table>' +
+    '</div>'
+  );
+
+  // 3. New Units detail
+  html += sectionCard('fas fa-plus-circle', 'New Units', newUnitsHtml);
+
+  // 4. Removed / Missing Units detail
+  html += sectionCard('fas fa-minus-circle', 'Removed / Missing Units', removedHtml);
+
+  // 5. Status Changes detail
+  html += sectionCard('fas fa-exchange-alt', 'Status Changes', statusHtml);
+
+  // 6. Existing Database Duplicates detail (informational only)
+  var dbDupHtml = '';
+  if (dbDupPairCount > 0) {
+    var dbDupRows = dbDupPairs.map(function(p) {
+      return [esc(p.unit_no), esc(p.project), p.db_records];
+    });
+    dbDupHtml =
+      '<div style="margin-bottom:12px;padding:10px 14px;background:#fef9e7;border:1px solid #fde68a;border-radius:6px;font-size:12px;color:#92400e;">' +
+      '  <i class="fas fa-info-circle" style="margin-right:6px;"></i>' +
+      '  The database currently contains <strong>' + dbDupPairCount.toLocaleString() + '</strong> duplicate unit/project pair(s) involving <strong>' + dbDupRowsInvolved.toLocaleString() + '</strong> physical row(s). ' +
+      '  These existing database duplicates are preserved and are <strong>not</strong> counted as New, Removed, Status Change, or Data Change.' +
+      '</div>' +
+      detailTable(["Unit No.", "Project", "DB Records"], dbDupRows) + limitNote(dbDupRows.length, dbDupPairCount);
+  } else {
+    dbDupHtml = '<div style="padding:12px 14px;background:#f8fafc;border:1px solid #eef0f4;border-radius:6px;font-size:13px;color:#5e6778;"><i class="fas fa-check-circle" style="color:#10b981;margin-right:6px;"></i>No existing database duplicates.</div>';
+  }
+  html += sectionCard('fas fa-copy', 'Existing Database Duplicates', dbDupHtml);
+
+  // 8. New Clean Data Duplicates detail (informational only)
+  var upDupHtml = '';
+  if (upDupPairCount > 0) {
+    var upDupRows = upDupList.map(function(p) {
+      return [esc(p.unit_no), esc(p.project), p.count];
+    });
+    upDupHtml =
+      '<div style="margin-bottom:12px;padding:10px 14px;background:#fef9e7;border:1px solid #fde68a;border-radius:6px;font-size:12px;color:#92400e;">' +
+      '  <i class="fas fa-info-circle" style="margin-right:6px;"></i>' +
+      '  Duplicate records detected in the uploaded Clean Data: <strong>' + upDupPairCount.toLocaleString() + '</strong> duplicate unit/project pair(s) involving <strong>' + upDupRowsInvolved.toLocaleString() + '</strong> Excel row(s). ' +
+      '  These records have <strong>not</strong> been automatically removed or merged, and are <strong>not</strong> counted as New, Removed, Status Change, or Data Change.' +
+      '</div>' +
+      detailTable(["Unit No.", "Project", "Excel Records"], upDupRows) + limitNote(upDupRows.length, upDupPairCount);
+  } else {
+    upDupHtml = '<div style="padding:12px 14px;background:#f8fafc;border:1px solid #eef0f4;border-radius:6px;font-size:13px;color:#5e6778;"><i class="fas fa-check-circle" style="color:#10b981;margin-right:6px;"></i>No duplicate records in the uploaded Clean Data.</div>';
+  }
+  html += sectionCard('fas fa-file-excel', 'New Clean Data Duplicates', upDupHtml);
+
+  // 9. Safety notice + action buttons
+  html +=
+    '<div style="margin-bottom:16px;padding:10px 14px;background:#fef9e7;border:1px solid #fde68a;border-radius:6px;font-size:12px;color:#92400e;">' +
+    '  <i class="fas fa-info-circle" style="margin-right:6px;"></i>Review the comparison above. The database will NOT be changed until you click <strong>Confirm Upload</strong>.' +
     '</div>' +
     '<div style="display:flex;gap:12px;justify-content:center;margin-bottom:20px;">' +
     '  <button id="duCancelBtn" style="padding:10px 28px;background:#ffffff;color:#1a1d23;border:1px solid #d1d5db;border-radius:6px;font-weight:600;cursor:pointer;font-size:14px;">Cancel</button>' +
     '  <button id="duConfirmBtn" style="padding:10px 28px;background:#f47217;color:white;border:none;border-radius:6px;font-weight:600;cursor:pointer;font-size:14px;">Confirm Upload</button>' +
     '</div>';
+
+  contentEl.innerHTML = html;
 
   // Bind Cancel button
   var cancelBtn = document.getElementById("duCancelBtn");
