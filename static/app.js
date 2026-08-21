@@ -1518,6 +1518,28 @@ function renderDashboardSections(kpiData) {
     };
   }
 
+  // NSIP KM2 KPI — reuse the exact same source & calculations as the NSIP KM2 Project Dashboard.
+  // The project page consumes the NCT SMART INDUSTRIAL PARK unit data (Phase 2 / KM2) and computes
+  // its KPI using computeAvailableUnits() + computeDisplayedTotalPrice(). We apply the identical
+  // source and identical helpers here so the Dashboard KPI card stays synchronized with the
+  // NSIP KM2 Project Dashboard page (single source of truth). No hardcoded values are used.
+  if (window.__allUnits && window.__allUnits.length) {
+    var nsipKm2Units = window.__allUnits.filter(function(u) {
+      var proj = (u.Project || "").toString().trim().toUpperCase();
+      var phase = String(u.Phase || "").trim().toUpperCase();
+      return proj.indexOf("KM2") > -1 || proj.indexOf("PHASE 2") > -1 || phase === "PHASE 2" || phase === "2";
+    });
+    if (nsipKm2Units.length > 0) {
+      dataMap["NCT SMART INDUSTRIAL PARK KM2"] = {
+        project_name: "NCT SMART INDUSTRIAL PARK KM2",
+        project_status: "Ongoing",
+        available_units: computeAvailableUnits(nsipKm2Units),
+        total_list_price: computeDisplayedTotalPrice(nsipKm2Units),
+        project_slug: "nsip-km2"
+      };
+    }
+  }
+
   var guaranteedOngoing = [
     { project_name: "NCT SMART INDUSTRIAL PARK KM1", project_status: "Ongoing", available_units: 0, total_list_price: 0, project_slug: "nsip" },
     { project_name: "NCT SMART INDUSTRIAL PARK KM2", project_status: "Ongoing", available_units: 0, total_list_price: 0, project_slug: "nsip-km2" },
