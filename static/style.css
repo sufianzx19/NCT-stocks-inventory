@@ -1067,36 +1067,6 @@ table .status-signed {
   color: #000000;
 }
 
-/* ----- DATA EXTRACTED DATE BOX ----- */
-.data-extracted-box {
-  background: var(--bg-card);
-  border-left: 3px solid var(--corporate-orange);
-  border-radius: 8px;
-  padding: 8px 14px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  min-width: 130px;
-  margin-left: auto;
-  flex-shrink: 0;
-}
-
-.data-extracted-box .de-label {
-  font-size: 10px;
-  font-weight: 600;
-  color: #000000;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.data-extracted-box .de-date {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--text-primary);
-  line-height: 1.3;
-}
-
 /* ----- STAGING PLACEHOLDER ----- */
 .staging-placeholder {
   text-align: center;

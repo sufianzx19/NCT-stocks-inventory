@@ -219,10 +219,6 @@ def read_excel_file(file_path: str) -> dict:
     if invalid_areas:
         errors.append(f"Row(s) {', '.join(str(i + 2) for i in invalid_areas[:5])} have negative Built Up Area.")
 
-    # 6. Duplicate unit/project records within the file are ALLOWED.
-    #    They are detected and reported in the comparison, but do NOT
-    #    cause validation to fail. The user can proceed to Confirm Upload.
-
     if errors:
         return {"success": False, "errors": errors}
 
@@ -241,25 +237,15 @@ def compare_with_database(clean_df: pd.DataFrame) -> dict:
     # Fetch current database records
     db_rows = execute_query("SELECT * FROM units_master")
     db_units = {}
-    db_key_counts = {}
     for row in db_rows:
         key = _unit_key(row.get("unit_no"), row.get("project"))
-        # Keep the first row per key for comparison logic
-        if key not in db_units:
-            db_units[key] = row
-        # Track how many physical database rows exist per key so we
-        # do NOT silently lose duplicate database rows during comparison.
-        db_key_counts[key] = db_key_counts.get(key, 0) + 1
+        db_units[key] = row
 
-    # Build clean data map (deduplicated for delta classification)
+    # Build clean data map
     clean_units = {}
-    clean_key_counts = {}
     for _, row in clean_df.iterrows():
         key = _unit_key(row.get("unit_no"), row.get("project"))
         clean_units[key] = row
-        # Track how many physical Excel rows exist per key so we can
-        # report uploaded duplicates without discarding or merging them.
-        clean_key_counts[key] = clean_key_counts.get(key, 0) + 1
 
     new_units = []
     removed_units = []
@@ -327,39 +313,8 @@ def compare_with_database(clean_df: pd.DataFrame) -> dict:
     db_column_count = len(db_rows[0]) if db_rows else 0
     clean_column_count = len(clean_df.columns)
 
-    # Existing database duplicate records (informational only).
-    # These are NOT classified as new/removed/status/data changes because
-    # they are an existing database condition, not a comparison delta.
-    db_dup_pairs = [
-        {"unit_no": db_units[k].get("unit_no"),
-         "project": db_units[k].get("project"),
-         "db_records": cnt}
-        for k, cnt in sorted(db_key_counts.items())
-        if cnt > 1
-    ]
-    db_dup_pair_count = len(db_dup_pairs)
-    db_dup_rows_involved = sum(p["db_records"] for p in db_dup_pairs)
-
-    # Uploaded Clean Data duplicate records (informational only).
-    # These are NOT classified as new/removed/status/data changes because
-    # they are an uploaded-file condition, not a comparison delta.
-    # The duplicate rows are preserved exactly as supplied by the file.
-    uploaded_dup_pairs = [
-        {"unit_no": clean_units[k].get("unit_no"),
-         "project": clean_units[k].get("project"),
-         "count": cnt}
-        for k, cnt in sorted(clean_key_counts.items())
-        if cnt > 1
-    ]
-    uploaded_dup_pair_count = len(uploaded_dup_pairs)
-    uploaded_dup_rows_involved = sum(p["count"] for p in uploaded_dup_pairs)
-
     return {
-        # The headline Current Database total is the ACTUAL number of rows
-        # returned from MySQL (physical rows), NOT the deduplicated dict size.
         "current_db_count": len(db_rows),
-        # The headline New Clean Data total is the ACTUAL number of physical
-        # rows in the uploaded Excel file, NOT the deduplicated dict size.
         "clean_data_count": len(clean_df),
         "new_units": len(new_units),
         "removed_units": len(removed_units),
@@ -373,18 +328,6 @@ def compare_with_database(clean_df: pd.DataFrame) -> dict:
         "removed_unit_list": removed_units[:20],
         "status_change_list": status_changes[:20],
         "data_change_list": data_changes[:20],
-        # Informational existing-database-dup report (does NOT affect new/removed/status/data change counts)
-        "database_duplicates": {
-            "duplicate_pairs_count": db_dup_pair_count,
-            "duplicate_rows_involved": db_dup_rows_involved,
-            "pairs": db_dup_pairs[:200],
-        },
-        # Informational uploaded-clean-data-dup report (does NOT affect new/removed/status/data change counts)
-        "uploaded_duplicates": {
-            "duplicate_pairs_count": uploaded_dup_pair_count,
-            "duplicate_rows_involved": uploaded_dup_rows_involved,
-            "duplicate_list": uploaded_dup_pairs[:200],
-        },
     }
 
 
@@ -418,8 +361,13 @@ def _normalize_value(val):
         return float(val)
 
     # Dates -> YYYY-MM-DD string
-    if isinstance(val, (datetime, date, pd.Timestamp)):
+    # datetime.datetime and pd.Timestamp (a subclass of datetime.datetime)
+    # both expose .date(); but a plain datetime.date does NOT have a
+    # .date() method, so handle it directly to avoid an AttributeError.
+    if isinstance(val, datetime):
         return str(val.date())
+    if isinstance(val, date):
+        return str(val)
 
     # Strings -> stripped
     return str(val).strip()
@@ -553,25 +501,13 @@ def apply_clean_data(clean_df: pd.DataFrame) -> dict:
 def verify_upload() -> dict:
     """
     Verify the database after upload.
-    Checks record count, duplicate unit numbers, and data integrity.
+    Checks record count and data integrity.
     """
     results = {}
 
     # Record count
     count_result = execute_query("SELECT COUNT(*) as total FROM units_master")
     results["record_count"] = count_result[0]["total"] if count_result else 0
-
-    # Duplicate check
-    dup_result = execute_query(
-        """
-        SELECT unit_no, project, COUNT(*) as cnt
-        FROM units_master
-        GROUP BY unit_no, project
-        HAVING COUNT(*) > 1
-        LIMIT 10
-        """
-    )
-    results["duplicates"] = dup_result
 
     # Invalid status check
     status_result = execute_query(

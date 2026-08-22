@@ -3,28 +3,6 @@
    ========================================================================== */
 
 /* ==========================================================================
-   GLOBAL UPDATED AS OF — System-wide date from last successful Clean Data upload
-   ========================================================================== */
-var __updatedAsOf = "20 August 2026";
-
-function fetchUpdatedAsOf() {
-  // Hardcoded per requirement: "Updated As Of" always displays "20 August 2026"
-  __updatedAsOf = "20 August 2026";
-  applyUpdatedAsOfToPage();
-}
-
-function applyUpdatedAsOfToPage() {
-  var dateEls = document.querySelectorAll(".de-date");
-  for (var i = 0; i < dateEls.length; i++) {
-    dateEls[i].textContent = __updatedAsOf;
-  }
-}
-
-function getUpdatedAsOf() {
-  return __updatedAsOf;
-}
-
-/* ==========================================================================
    SIDEBAR DISPLAY CONFIGURATION
    ========================================================================== */
 var SIDEBAR_ITEMS = [
@@ -312,7 +290,6 @@ function initResponsiveBorderUpdate() {
 function initApp() {
   try {
     console.log("NCT V3 - initApp starting...");
-    fetchUpdatedAsOf();
     renderHomeDashboard();
     bindHeaderUserDropdown();
     // Recalculate grouped KPI borders after initial render completes
@@ -452,7 +429,6 @@ function renderComingSoon(view) {
   var label = view.indexOf("nsip-") === 0 ? "NSIP " + view.split("-")[1].toUpperCase() : view.toUpperCase().replace(/-/g, " ");
   panel.innerHTML =
     '<div class="page-header"><div><h1>' + label + '</h1><div class="header-sub">Project Dashboard</div></div>' +
-    '  <div class="data-extracted-box"><div class="de-label">Updated as of</div><div class="de-date">20 August 2026</div></div></div>' +
     '<div class="card staging-placeholder" style="text-align:center;padding:80px 20px;">' +
     '  <i class="fas fa-clock" style="font-size:64px;color:var(--corporate-orange);margin-bottom:20px;display:block;"></i>' +
     '  <h3 style="font-size:24px;margin-bottom:12px;">Coming Soon</h3>' +
@@ -463,11 +439,10 @@ function renderWaitingForData(view) {
   var panel = document.getElementById("view-" + view);
   if (!panel) return;
   var label = view.split("-").map(function(w) { return w.charAt(0).toUpperCase() + w.slice(1); }).join(" ");
-  var isNctInnosphere = view === "nct-innosphere";
-  var dateText = "20 August 2026";
-  var status = isNctInnosphere ? getProjectStatus("NCT INNOSPHERE") : null;
+  var isNcInnosphere = view === "nct-innosphere";
+  var status = isNcInnosphere ? getProjectStatus("NCT INNOSPHERE") : null;
   var statusHtml = status ? renderStatusDot(status) : '';
-  var projectName = isNctInnosphere ? "NCT INNOSPHERE" : null;
+  var projectName = isNcInnosphere ? "NCT INNOSPHERE" : null;
   
   panel.innerHTML =
     '<div class="page-header">' +
@@ -475,7 +450,6 @@ function renderWaitingForData(view) {
     '    <div><h1 style="margin-right:12px;">' + label + '</h1><div class="header-sub">Project Dashboard</div></div>' +
     '    <div style="flex-shrink:0;">' + statusHtml + '</div>' +
     '  </div>' +
-    '  <div class="data-extracted-box"><div class="de-label">Updated as of</div><div class="de-date">' + dateText + '</div></div>' +
     '</div>' +
     '<div class="project-image-banner" id="project-image-' + view + '" style="background:#000000;border-radius:10px;overflow:hidden;margin-bottom:20px;position:relative;cursor:pointer;" title="Double-click to view full image">' +
     '  <div style="display:flex;align-items:center;justify-content:center;min-height:200px;max-height:400px;padding:20px;">' +
@@ -1518,28 +1492,6 @@ function renderDashboardSections(kpiData) {
     };
   }
 
-  // NSIP KM2 KPI — reuse the exact same source & calculations as the NSIP KM2 Project Dashboard.
-  // The project page consumes the NCT SMART INDUSTRIAL PARK unit data (Phase 2 / KM2) and computes
-  // its KPI using computeAvailableUnits() + computeDisplayedTotalPrice(). We apply the identical
-  // source and identical helpers here so the Dashboard KPI card stays synchronized with the
-  // NSIP KM2 Project Dashboard page (single source of truth). No hardcoded values are used.
-  if (window.__allUnits && window.__allUnits.length) {
-    var nsipKm2Units = window.__allUnits.filter(function(u) {
-      var proj = (u.Project || "").toString().trim().toUpperCase();
-      var phase = String(u.Phase || "").trim().toUpperCase();
-      return proj.indexOf("KM2") > -1 || proj.indexOf("PHASE 2") > -1 || phase === "PHASE 2" || phase === "2";
-    });
-    if (nsipKm2Units.length > 0) {
-      dataMap["NCT SMART INDUSTRIAL PARK KM2"] = {
-        project_name: "NCT SMART INDUSTRIAL PARK KM2",
-        project_status: "Ongoing",
-        available_units: computeAvailableUnits(nsipKm2Units),
-        total_list_price: computeDisplayedTotalPrice(nsipKm2Units),
-        project_slug: "nsip-km2"
-      };
-    }
-  }
-
   var guaranteedOngoing = [
     { project_name: "NCT SMART INDUSTRIAL PARK KM1", project_status: "Ongoing", available_units: 0, total_list_price: 0, project_slug: "nsip" },
     { project_name: "NCT SMART INDUSTRIAL PARK KM2", project_status: "Ongoing", available_units: 0, total_list_price: 0, project_slug: "nsip-km2" },
@@ -1726,12 +1678,17 @@ function createDashboardCard(proj) {
   card.style.cursor = "pointer";
 
   var slug = proj.project_slug || "";
-  var displayName = (proj.project_name || "").toUpperCase();
+  var displayName = (proj.project_name || "").toString().toUpperCase();
   if (displayName === "NCT SMART INDUSTRIAL PARK KM1") {
     displayName = "NCT SMART INDUSTRIAL PARK (KM1)";
   }
   if (displayName === "NCT SMART INDUSTRIAL PARK KM2" || displayName === "NCT SMART INDUSTRIAL PARK PHASE 2") {
     displayName = "NCT SMART INDUSTRIAL PARK (KM2)";
+  }
+  // The NCT SMART INDUSTRIAL PARK (KM2) Dashboard card must always navigate
+  // to the NSIP KM2 Project Dashboard, regardless of the API-provided slug.
+  if (displayName === "NCT SMART INDUSTRIAL PARK (KM2)") {
+    slug = "nsip-km2";
   }
   if (displayName === "N-CITY — RISE INTERNATIONAL SCHOOL" || displayName === "N-CITY - RISE INTERNATIONAL SCHOOL" || displayName === "RISE INTERNATIONAL SCHOOL") {
     displayName = "N-CITY RISE INTERNATIONAL SCHOOL";
@@ -1930,7 +1887,6 @@ function renderNctInnosphereView() {
     '  <div style="display:flex;justify-content:space-between;align-items:center;flex:1;">' +
     '    <div><h1 style="margin-right:12px;">NCT INNOSPHERE</h1><div class="header-sub">Project Dashboard</div></div>' +
     '  </div>' +
-    '  <div class="data-extracted-box"><div class="de-label">Updated as of</div><div class="de-date">Not Available</div></div>' +
     '</div>' +
     '<div class="project-image-banner" id="project-image-nct-innosphere" style="background:#000000;border-radius:10px;overflow:hidden;margin-bottom:20px;position:relative;cursor:pointer;" title="Double-click to view full image">' +
     '  <img src="/static/NIS.png" alt="NCT Innosphere" style="width:100%;max-height:400px;object-fit:contain;display:block;background:#000000;">' +
@@ -2023,7 +1979,6 @@ function renderNsipKm2View() {
     '  <div style="display:flex;justify-content:space-between;align-items:center;flex:1;flex-wrap:wrap;gap:8px;">' +
     '    <div><h1 style="margin-right:12px;">' + nsipProjectName + '</h1><div class="header-sub">Project Dashboard</div></div>' +
     '  </div>' +
-    '  <div class="data-extracted-box"><div class="de-label">Updated as of</div><div class="de-date">' + getUpdatedAsOf() + '</div></div></div>' +
     '</div>' +
     '<div class="project-image-banner" id="project-image-nsip-km2" style="background:#000000;border-radius:10px;overflow:hidden;margin-bottom:20px;position:relative;cursor:pointer;" title="Double-click to view full image">' +
     '  <div style="display:flex;align-items:center;justify-content:center;min-height:200px;max-height:400px;padding:20px;">' +
@@ -2159,14 +2114,11 @@ function renderProjectView(slug) {
 
   if (slug === "nsip") { renderNsipKm1View(); return; }
 
-  var dateText = "20 August 2026";
-
   panel.innerHTML =
     '<div class="page-header">' +
     '  <div style="display:flex;justify-content:space-between;align-items:center;flex:1;">' +
     '    <div><h1 style="margin-right:12px;">' + pageTitle.toUpperCase() + '</h1><div class="header-sub">Project Dashboard</div></div>' +
     '  </div>' +
-    '  <div class="data-extracted-box"><div class="de-label">Updated as of</div><div class="de-date">' + dateText + '</div></div>' +
     '</div>' +
     '<div class="project-image-banner" id="project-image-' + slug + '" style="background:#000000;border-radius:10px;overflow:hidden;margin-bottom:20px;position:relative;cursor:pointer;" title="Double-click to view full image">' +
     '  <div style="display:flex;align-items:center;justify-content:center;min-height:200px;max-height:400px;padding:20px;">' +
@@ -2903,7 +2855,6 @@ function renderNsipKm1View() {
     '  <div style="display:flex;justify-content:space-between;align-items:center;flex:1;flex-wrap:wrap;gap:8px;">' +
     '    <div><h1 style="margin-right:12px;">' + nsipProjectName + ' (230.09 acres)</h1><div class="header-sub">Project Dashboard</div></div>' +
     '  </div>' +
-    '  <div class="data-extracted-box"><div class="de-label">Updated as of</div><div class="de-date">' + getUpdatedAsOf() + '</div></div></div>' +
     '</div>' +
     '<div class="project-image-banner" id="project-image-nsip" style="background:#000000;border-radius:10px;overflow:hidden;margin-bottom:20px;position:relative;cursor:pointer;" title="Double-click to view full image">' +
     '  <div style="display:flex;align-items:center;justify-content:center;min-height:200px;max-height:400px;padding:20px;">' +
@@ -3251,7 +3202,6 @@ function renderNcityView() {
     '  <div style="display:flex;justify-content:space-between;align-items:center;flex:1;flex-wrap:wrap;gap:8px;">' +
     '    <div><h1 style="margin-right:12px;">' + ncityProjectName.toUpperCase() + '</h1><div class="header-sub">Project Dashboard</div></div>' +
     '  </div>' +
-    '  <div class="data-extracted-box"><div class="de-label">Updated as of</div><div class="de-date">15 July 2026</div></div></div>' +
     '</div>' +
     '<div class="project-image-banner" id="project-image-ncity" style="background:#000000;border-radius:10px;overflow:hidden;margin-bottom:20px;position:relative;cursor:pointer;" title="Double-click to view full image">' +
     '  <div style="display:flex;align-items:center;justify-content:center;min-height:200px;max-height:400px;padding:20px;">' +
@@ -3592,7 +3542,6 @@ function renderMahkotaKamparView() {
     '  <div style="display:flex;justify-content:space-between;align-items:center;flex:1;flex-wrap:wrap;gap:8px;">' +
     '    <div><h1 style="margin-right:12px;">' + projectName.toUpperCase() + '</h1><div class="header-sub">Project Dashboard</div></div>' +
     '  </div>' +
-    '  <div class="data-extracted-box"><div class="de-label">Updated as of</div><div class="de-date">15 July 2026</div></div></div>' +
     '</div>' +
     '<div class="project-image-banner" id="project-image-mahkota-kampar" style="background:#000000;border-radius:10px;overflow:hidden;margin-bottom:20px;position:relative;cursor:pointer;" title="Double-click to view full image">' +
     '  <div style="display:flex;align-items:center;justify-content:center;min-height:200px;max-height:400px;padding:20px;">' +
@@ -3949,12 +3898,6 @@ function renderInteractiveSvg(config) {
   if (config.sharedDataVar) {
     window[config.sharedDataVar] = sharedData;
   }
-
-  // Update KPI if elements exist (using the SAME displayed dataset as the Available Unit List)
-  var kpiEl = document.getElementById(config.kpiId);
-  var priceEl = document.getElementById(config.kpiPriceId);
-  if (kpiEl) kpiEl.textContent = computeAvailableUnits(units);
-  if (priceEl) priceEl.textContent = formatPrice(computeDisplayedTotalPrice(units));
 
       // Load SVG
       fetch(config.svgUrl)
@@ -4404,7 +4347,6 @@ function renderIbgPageStructure(viewId, title, filterFn, imagePath, svgPath, api
     '  <div style="display:flex;justify-content:space-between;align-items:center;flex:1;flex-wrap:wrap;gap:8px;">' +
     '    <div><h1 style="margin-right:12px;">ION BELIAN GARDEN — ' + title.toUpperCase() + '</h1><div class="header-sub">Project Dashboard</div></div>' +
     '  </div>' +
-    '  <div class="data-extracted-box"><div class="de-label">Updated as of</div><div class="de-date">15 July 2026</div></div>' +
     '</div>' +
     '<div class="project-image-banner" id="project-image-' + viewId + '" style="background:#000000;border-radius:10px;overflow:hidden;margin-bottom:20px;position:relative;cursor:pointer;" title="Double-click to view full image">' +
     '  <div style="display:flex;align-items:center;justify-content:center;min-height:200px;max-height:400px;padding:20px;">' +
@@ -4466,7 +4408,6 @@ function renderIbgPageStructure(viewId, title, filterFn, imagePath, svgPath, api
       renderIbgAssetTable(viewId, filteredUnits);
       try { bindAvailableUnitsDownloadButton(viewId, filteredUnits); } catch(e) { console.error("Bind download:", e); }
       try { renderPsfInfoBox(viewId); } catch(e) { console.error("PSF info:", e); }
-      applyPageOverrides(viewId);
 
       // Render interactive SVG with ALL units (not filtered)
       renderInteractiveSvg({
@@ -4499,18 +4440,6 @@ function renderIbgKpi(viewId, units) {
   var priceEl = document.getElementById("kpi-price-" + viewId);
   if (kpiEl) kpiEl.textContent = computeAvailableUnits(units);
   if (priceEl) priceEl.textContent = formatPrice(computeDisplayedTotalPrice(units));
-}
-
-function overrideIbgKpi(viewId) {
-  var kpiEl = document.getElementById("kpi-" + viewId);
-  var priceEl = document.getElementById("kpi-price-" + viewId);
-  if (viewId === "ion-belian-garden-commercial") {
-    if (kpiEl) kpiEl.textContent = 1;
-    if (priceEl) priceEl.textContent = "RM 758,000";
-  } else if (viewId === "ion-belian-garden-residential") {
-    if (kpiEl) kpiEl.textContent = 1;
-    if (priceEl) priceEl.textContent = "RM 356,000";
-  }
 }
 
 function renderIbgAssetTable(viewId, units) {
@@ -4553,61 +4482,6 @@ function renderIbgResidentialView() {
   console.log("IBG Residential: renderIbgPageStructure called");
 }
 
-function applyPageOverrides(viewId) {
-  var panel = document.getElementById("view-" + viewId);
-  if (!panel) return;
-
-  var configs = {
-    "ion-belian-garden-commercial": { units: 1, price: "RM 758,000" },
-    "ion-belian-garden-residential": { units: 1, price: "RM 356,000" },
-    "n-city-commercial": { units: 30, price: "RM 37,571,660" },
-    "n-city-rise": { units: 10, price: "RM 14,576,760" }
-  };
-
-  var cfg = configs[viewId];
-  if (!cfg) return;
-
-  // Hide original KPI cards
-  var kpiContainer = panel.querySelector(".project-kpi-container");
-  if (kpiContainer) kpiContainer.style.display = "none";
-
-  // Remove existing custom KPI if present (avoid duplicates on re-render)
-  var existingCustom = panel.querySelector("#custom-kpi-container-" + viewId);
-  if (existingCustom) existingCustom.remove();
-
-  // Create new Project Summary section matching original KPI card styling
-  var newKpiHtml =
-    '<div class="project-kpi-container" id="custom-kpi-container-' + viewId + '">' +
-    '  <div class="card project-kpi-box"><div class="project-kpi-label"><i class="fas fa-check-circle" style="color:var(--corporate-orange);margin-right:8px;"></i>Available Units</div><div class="project-kpi-value" id="custom-kpi-' + viewId + '">' + cfg.units + '</div></div>' +
-    '  <div class="card project-kpi-price-box"><div class="project-kpi-label"><i class="fas fa-coins" style="color:#0f2042;margin-right:8px;"></i>Total SPA Price</div><div class="project-kpi-value" id="custom-kpi-price-' + viewId + '">' + cfg.price + '</div></div>' +
-    '</div>';
-
-  var imageBanner = panel.querySelector(".project-image-banner");
-  if (imageBanner) {
-    var tempDiv = document.createElement("div");
-    tempDiv.innerHTML = newKpiHtml;
-    var newNode = tempDiv.firstChild;
-    if (imageBanner.nextSibling) {
-      imageBanner.parentNode.insertBefore(newNode, imageBanner.nextSibling);
-    } else {
-      imageBanner.parentNode.appendChild(newNode);
-    }
-  }
-
-  // Hide lower summary sections
-  var lowerSummaryIds = {
-    "ion-belian-garden-commercial": "ibg-layout-summary-ion-belian-garden-commercial",
-    "ion-belian-garden-residential": "ibg-layout-summary-ion-belian-garden-residential",
-    "n-city-commercial": "ncity-svg-summary-n-city-commercial",
-    "n-city-rise": "ncity-svg-summary-n-city-rise"
-  };
-  var summaryElId = lowerSummaryIds[viewId];
-  if (summaryElId) {
-    var summaryEl = document.getElementById(summaryElId);
-    if (summaryEl) summaryEl.style.display = "none";
-  }
-}
-
 /* ==========================================================================
    N-CITY — Commercial, Rise, Convention Hall Pages
    ========================================================================== */
@@ -4626,7 +4500,6 @@ function renderNcityCommercialView() {
     '  <div style="display:flex;justify-content:space-between;align-items:center;flex:1;flex-wrap:wrap;gap:8px;">' +
     '    <div><h1 style="margin-right:12px;">N-CITY — COMMERCIAL</h1><div class="header-sub">Project Dashboard</div></div>' +
     '  </div>' +
-    '  <div class="data-extracted-box"><div class="de-label">Updated as of</div><div class="de-date">15 July 2026</div></div></div>' +
     '</div>' +
     '<div class="project-image-banner" id="project-image-' + viewId + '" style="background:#000000;border-radius:10px;overflow:hidden;margin-bottom:20px;position:relative;cursor:pointer;" title="Double-click to view full image">' +
     '  <div style="display:flex;align-items:center;justify-content:center;min-height:200px;max-height:400px;padding:20px;">' +
@@ -4685,7 +4558,6 @@ function renderNcityCommercialView() {
       renderNcitySubAssetTable(viewId, filtered);
       try { bindAvailableUnitsDownloadButton(viewId, filtered); } catch(e) { console.error("Bind download:", e); }
       try { renderPsfInfoBox(viewId); } catch(e) { console.error("PSF info:", e); }
-      applyPageOverrides(viewId);
 
       // Render shared N-City SVG with ALL units
       renderInteractiveSvg({
@@ -4724,7 +4596,6 @@ function renderNcityRiseView() {
     '  <div style="display:flex;justify-content:space-between;align-items:center;flex:1;flex-wrap:wrap;gap:8px;">' +
     '    <div><h1 style="margin-right:12px;">N-CITY — RISE INTERNATIONAL SCHOOL</h1><div class="header-sub">Project Dashboard</div></div>' +
     '  </div>' +
-    '  <div class="data-extracted-box"><div class="de-label">Updated as of</div><div class="de-date">15 July 2026</div></div>' +
     '</div>' +
     '<div class="project-image-banner" id="project-image-' + viewId + '" style="background:#000000;border-radius:10px;overflow:hidden;margin-bottom:20px;position:relative;cursor:pointer;" title="Double-click to view full image">' +
     '  <div style="display:flex;align-items:center;justify-content:center;min-height:200px;max-height:400px;padding:20px;">' +
@@ -4888,7 +4759,6 @@ function renderNcityRiseView() {
       renderNcitySubKpi(viewId, filtered);
       renderNcitySubAssetTable(viewId, filtered);
       try { bindAvailableUnitsDownloadButton(viewId, filtered); } catch(e) { console.error("Bind download:", e); }
-      applyPageOverrides(viewId);
 
       // Render dedicated N-City Rise SVG with school units only
       renderInteractiveSvg({
@@ -5549,18 +5419,6 @@ function renderComparison(comparison, file) {
   var dataChanges = comparison.data_changes || 0;
   var unchangedUnits = comparison.unchanged_units !== undefined ? comparison.unchanged_units : 0;
 
-  // Existing database duplicate records (informational only — NOT part of the change summary)
-  var dbDup = comparison.database_duplicates || {};
-  var dbDupPairCount = dbDup.duplicate_pairs_count || 0;
-  var dbDupRowsInvolved = dbDup.duplicate_rows_involved || 0;
-  var dbDupPairs = dbDup.pairs || [];
-
-  // Uploaded Clean Data duplicate records (informational only — NOT part of the change summary)
-  var upDup = comparison.uploaded_duplicates || {};
-  var upDupPairCount = upDup.duplicate_pairs_count || 0;
-  var upDupRowsInvolved = upDup.duplicate_rows_involved || 0;
-  var upDupList = upDup.duplicate_list || [];
-
   // --- Build detail tables ---
 
   // New Units
@@ -5681,43 +5539,7 @@ function renderComparison(comparison, file) {
   // 5. Status Changes detail
   html += sectionCard('fas fa-exchange-alt', 'Status Changes', statusHtml);
 
-  // 6. Existing Database Duplicates detail (informational only)
-  var dbDupHtml = '';
-  if (dbDupPairCount > 0) {
-    var dbDupRows = dbDupPairs.map(function(p) {
-      return [esc(p.unit_no), esc(p.project), p.db_records];
-    });
-    dbDupHtml =
-      '<div style="margin-bottom:12px;padding:10px 14px;background:#fef9e7;border:1px solid #fde68a;border-radius:6px;font-size:12px;color:#92400e;">' +
-      '  <i class="fas fa-info-circle" style="margin-right:6px;"></i>' +
-      '  The database currently contains <strong>' + dbDupPairCount.toLocaleString() + '</strong> duplicate unit/project pair(s) involving <strong>' + dbDupRowsInvolved.toLocaleString() + '</strong> physical row(s). ' +
-      '  These existing database duplicates are preserved and are <strong>not</strong> counted as New, Removed, Status Change, or Data Change.' +
-      '</div>' +
-      detailTable(["Unit No.", "Project", "DB Records"], dbDupRows) + limitNote(dbDupRows.length, dbDupPairCount);
-  } else {
-    dbDupHtml = '<div style="padding:12px 14px;background:#f8fafc;border:1px solid #eef0f4;border-radius:6px;font-size:13px;color:#5e6778;"><i class="fas fa-check-circle" style="color:#10b981;margin-right:6px;"></i>No existing database duplicates.</div>';
-  }
-  html += sectionCard('fas fa-copy', 'Existing Database Duplicates', dbDupHtml);
-
-  // 8. New Clean Data Duplicates detail (informational only)
-  var upDupHtml = '';
-  if (upDupPairCount > 0) {
-    var upDupRows = upDupList.map(function(p) {
-      return [esc(p.unit_no), esc(p.project), p.count];
-    });
-    upDupHtml =
-      '<div style="margin-bottom:12px;padding:10px 14px;background:#fef9e7;border:1px solid #fde68a;border-radius:6px;font-size:12px;color:#92400e;">' +
-      '  <i class="fas fa-info-circle" style="margin-right:6px;"></i>' +
-      '  Duplicate records detected in the uploaded Clean Data: <strong>' + upDupPairCount.toLocaleString() + '</strong> duplicate unit/project pair(s) involving <strong>' + upDupRowsInvolved.toLocaleString() + '</strong> Excel row(s). ' +
-      '  These records have <strong>not</strong> been automatically removed or merged, and are <strong>not</strong> counted as New, Removed, Status Change, or Data Change.' +
-      '</div>' +
-      detailTable(["Unit No.", "Project", "Excel Records"], upDupRows) + limitNote(upDupRows.length, upDupPairCount);
-  } else {
-    upDupHtml = '<div style="padding:12px 14px;background:#f8fafc;border:1px solid #eef0f4;border-radius:6px;font-size:13px;color:#5e6778;"><i class="fas fa-check-circle" style="color:#10b981;margin-right:6px;"></i>No duplicate records in the uploaded Clean Data.</div>';
-  }
-  html += sectionCard('fas fa-file-excel', 'New Clean Data Duplicates', upDupHtml);
-
-  // 9. Safety notice + action buttons
+  // 6. Safety notice + action buttons
   html +=
     '<div style="margin-bottom:16px;padding:10px 14px;background:#fef9e7;border:1px solid #fde68a;border-radius:6px;font-size:12px;color:#92400e;">' +
     '  <i class="fas fa-info-circle" style="margin-right:6px;"></i>Review the comparison above. The database will NOT be changed until you click <strong>Confirm Upload</strong>.' +
