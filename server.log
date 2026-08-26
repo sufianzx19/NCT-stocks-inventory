@@ -22344,3 +22344,58 @@ INFO:     Application startup complete.
 ERROR:    [Errno 98] error while attempting to bind on address ('0.0.0.0', 8000): address already in use
 INFO:     Waiting for application shutdown.
 INFO:     Application shutdown complete.
+INFO:     Started server process [2317]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:52038 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52038 - "GET /style.css?v=8.0.1 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:52042 - "GET /svg-map.css?v=1.0.5 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:52046 - "GET /app.js?v=9.0.3 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:52042 - "GET /NCTGroupLogo.jpeg HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:52046 - "GET /api/system/updated-as-of HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52046 - "GET /api/auth/me?email=nctadmin%40nctalliance.com HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52042 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52038 - "GET /api/units/all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52038 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52042 - "GET /api/system/updated-as-of HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52038 - "GET /api/auth/me?email=nctadmin%40nctalliance.com HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52046 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39354 - "GET /NIS.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39366 - "GET /NIS_Layout.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39354 - "GET /api/system/updated-as-of HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39366 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34982 - "GET /api/gallery/images?path=GRAND%20ION%20DELEMEN HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34982 - "GET /api/system/updated-as-of HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34992 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39240 - "GET /api/gallery/images?path=MAHKOTA%20KAMPAR HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39242 - "GET /api/layout/mahkota HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39240 - "GET /MAHKOTA%20KAMPAR/MKT.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39242 - "GET /Mahkota_Master.svg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36178 - "GET /api/gallery/images?path=NSIP HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36188 - "GET /api/layout/nsip HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36188 - "GET /NSIP_Master.svg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36188 - "GET /api/gallery/images?path=NSIP HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36178 - "GET /api/layout/nsip HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36188 - "GET /api/gallery/images?path=NSIP HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36178 - "GET /api/layout/nsip HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36188 - "GET /api/gallery/images?path=NSIP HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36178 - "GET /api/layout/nsip HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51400 - "GET /api/gallery/images?path=MAHKOTA%20KAMPAR HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51414 - "GET /api/layout/mahkota HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51414 - "GET /api/system/updated-as-of HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51400 - "GET /api/home/kpi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38940 - "GET /api/admin/units?email=nctadmin%40nctalliance.com HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38940 - "GET /api/admin/users?email=nctadmin%40nctalliance.com HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51814 - "GET /api/admin/users?email=nctadmin%40nctalliance.com HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52830 - "POST /api/admin/users HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:52830 - "POST /api/admin/users HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:52830 - "POST /api/admin/users HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:52830 - "POST /api/admin/users HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:52830 - "POST /api/admin/users HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:57714 - "GET /api/admin/users?email=nctadmin%40nctalliance.com HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57714 - "GET /api/admin/units?email=nctadmin%40nctalliance.com HTTP/1.1" 200 OK
+[database] Query error: 1292 (22007): Incorrect date value: '' for column 'vp_billing_date' at row 1
+[database] Query: UPDATE units_master SET status = %s, project = %s, phase_name = %s, block_name = %s, unit_no = %s, hsd_hsm_no = %s, lot_pt_no = %s, identity_no = %s, identity_no_foreign = %s, owner_name = %s, purchaser_name_foreign = %s, unit_address = %s, contract_amt = %s, spa_date = %s, sale_date = %s, unit_type = %s, vp_billing_date = %s, vp_letter_date = %s, unit_layout = %s, master_title_geran_no = %s, built_up_area = %s, land_area = %s, list_price = %s, launch_date = %s, sub_product = %s WHERE id = %s
+[database] Params: ('Available', 'GRAND ION DELEMEN', 'PHASE 3', 'E2', 'E2-03A-01', '', '', '700623-01-5303', '', 'CHONG TUCK YIN', '', '', '534000', '2016-02-17', '2015-12-28', 'STUDIO', '', '', 'A', '', '410', '0', '534000', '2015-01-01', 'N', 1)
+INFO:     127.0.0.1:57694 - "PUT /api/admin/units/1 HTTP/1.1" 200 OK
