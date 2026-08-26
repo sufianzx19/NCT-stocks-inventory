@@ -62,12 +62,11 @@
   object-fit: contain;
 }
 
-/* Image layout containers with black border */
+/* Image layout containers - clean white treatment matching GID. */
 #grand-ion-majestic-layout-wrapper > div,
 #vortex-business-park-layout-wrapper > div,
 #gim-layout-wrapper > div,
 #vortex-layout-wrapper > div {
-  border: 2px solid #000000 !important;
   border-radius: 10px;
 }
 

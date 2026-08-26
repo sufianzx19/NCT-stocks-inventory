@@ -212,10 +212,27 @@ def delete_user(user_id: int) -> bool:
 
 
 # ----- Home KPI repository -----
-# Grand Ion Delemen sub-sale unit numbers (treated as available for display)
-GID_SUBSALE_UNITS = {
-    "E2-22-05","E3-11-01","E3-12-01","E3-18-03","E7-36-01","E7-36-03","E2-13A-09","E3-8-01","E3-8-02","E3-8-03","E3-9-01","E3-9-02","E3-9-03","E4-22-10","E1-23A-03","E1-23A-03A","E2-10-09","E2-22-01","E3-10-03","E3-1-01","E3-1-02","E3-1-03","E3-1-05","E3-1-06","E3-11-02","E3-11-03","E3-11-06","E3-12-02","E3-12-03","E3-13A-01","E3-13A-02","E3-13A-03","E3-15-01","E3-15-03","E3-16-01","E3-16-02","E3-17-01","E3-18-01","E3-19-01","E3-19-03A","E3-20-03","E3-20-06","E3-2-01","E3-2-03","E3-2-03A","E3-2-05","E3-21-01","E3-21-03","E3-22-01","E3-22-03A","E3-23-01","E3-23-03","E3-23A-01","E3-23A-03","E3-23A-03A","E3-3-03","E3-3-03A","E3-3-05","E3-03A-01","E3-03A-02","E3-03A-03","E3-03A-05","E3-5-01","E3-5-02","E3-5-03","E3-5-05","E3-6-02","E3-6-03A","E3-7-01","E3-7-02","E3-7-03","E3-7-03A","E3-7-05","E3-8-03A","E4-6-01","E4-7-01","E4-7-10","E4-9-10","E4-10-01","E4-11-01","E4-12-01","E4-13-01","E4-13A-01","E4-13A-10","E4-15-01","E4-17-01","E4-19-01","E4-21-01","E4-21-10","E4-23-01","E4-23A-01","E4-23A-02"
-}
+# Grand Ion Delemen sub-sale is determined by database fields:
+#   project == "GRAND ION DELEMEN"
+#   AND status == "Sold"
+#   AND owner_name is "NCT HARMONY SDN BHD" (punctuation-normalized,
+#      because the DB stores it as both "NCT HARMONY SDN BHD" and
+#      "NCT HARMONY SDN. BHD.").
+# No hardcoded unit-number list is used.
+GID_DELIV_OWNER_NORMALIZED = "NCT HARMONY SDN BHD"
+
+
+def _normalize_owner(name):
+    """Normalize an owner name for comparison (strip non-alphanumerics, uppercase)."""
+    if not name:
+        return ""
+    return "".join(ch for ch in str(name).upper() if ch.isalnum())
+
+
+def is_gid_sub_sale(project, status, owner_name):
+    return _normalize_owner(project) == "GRANDIONDELEMEN" and \
+           (status or "").strip().lower() == "sold" and \
+           _normalize_owner(owner_name) == _normalize_owner(GID_DELIV_OWNER_NORMALIZED)
 
 def get_home_kpi_data() -> list:
     """
@@ -235,12 +252,13 @@ def get_home_kpi_data() -> list:
         status = (unit.get("status") or "").strip().lower()
         unit_no = (unit.get("unit_no") or "").strip().upper()
         list_price = float(unit.get("list_price") or 0)
-        
-        # For Grand Ion Delemen, also count sub-sale units as available
+
+        # Grand Ion Delemen sub-sale: project==GID AND status==Sold AND
+        # owner==NCT HARMONY SDN BHD (normalized). Fully DB-driven.
         is_available = False
         if status == "available":
             is_available = True
-        elif project == "GRAND ION DELEMEN" and unit_no in GID_SUBSALE_UNITS:
+        elif is_gid_sub_sale(unit.get("project"), unit.get("status"), unit.get("owner_name")):
             is_available = True
         
         if is_available:

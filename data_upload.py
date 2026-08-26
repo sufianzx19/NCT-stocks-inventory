@@ -77,8 +77,18 @@ _SYSTEM_CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "
 
 def get_updated_as_of() -> str:
     """
-    Return the last successful Clean Data upload date as a formatted string.
-    Returns "Not Available" if no successful upload has been recorded yet.
+    Return the last successful inventory data upload/update date as a
+    formatted string ("DD Month YYYY").
+
+    Authoritative source: the timestamp written by set_updated_as_of(),
+    which main.py calls immediately AFTER apply_clean_data() has
+    successfully committed the uploaded inventory into MySQL. This value
+    therefore represents the actual latest successful database
+    upload/update activity - unlike units_master.created_at, which only
+    records when each row was first inserted and does not advance when
+    existing rows are updated by later uploads.
+
+    Returns "N/A" if no successful upload has been recorded yet.
     """
     try:
         if os.path.exists(_SYSTEM_CONFIG_FILE):
@@ -86,7 +96,6 @@ def get_updated_as_of() -> str:
                 data = json.load(f)
             raw = data.get("updated_as_of")
             if raw:
-                # raw is stored as YYYY-MM-DD; format to "DD Month YYYY"
                 try:
                     d = datetime.strptime(raw, "%Y-%m-%d")
                     return d.strftime("%d %B %Y")

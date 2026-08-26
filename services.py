@@ -140,6 +140,16 @@ def _map_unit_row(row: dict) -> dict:
         "unit_status": price_info["unit_status"],
         "price_type": price_info["price_type"],
         "price": price_info["price"],
+        # Authoritative GID sub-sale display flag (backend is source of truth).
+        # Sub-sale = project GID AND status Sold AND owner NCT HARMONY SDN BHD
+        # (normalized), per repository.is_gid_sub_sale().
+        "GID_Subsale": bool(
+            repo.is_gid_sub_sale(
+                row.get("project"),
+                row.get("status"),
+                row.get("owner_name"),
+            )
+        ),
     }
     return result
 
@@ -173,7 +183,10 @@ def get_home_kpi() -> list:
         slug = re.sub(r'[^a-z0-9]+', '-', api_name.lower()).strip('-') if api_name else ""
         # Override slug for NSIP to match frontend navigation
         if api_name and "NCT SMART INDUSTRIAL PARK" in api_name.upper():
-            slug = "nsip"
+            if "KM2" in api_name.upper() or "PHASE 2" in api_name.upper():
+                slug = "nsip-km2"
+            else:
+                slug = "nsip"
         # Override slug for Salak Perdana to match frontend navigation
         if api_name and api_name.upper() == "SALAK PERDANA BUSINESS PARK":
             slug = "salak-perdana"
@@ -189,8 +202,8 @@ def get_home_kpi() -> list:
     # These are derived from the N-CITY project data with specific unit filters
     ncity_units = repo.get_units_by_project_like("%N-CITY%")
     if ncity_units:
-        # N-City Commercial: exclude B5-01 to B5-10
-        ncity_commercial_units = [u for u in ncity_units if not _is_school_unit(u)]
+        # N-City Commercial: exclude the 10 N-City Rise school units
+        ncity_commercial_units = [u for u in ncity_units if not _is_rise_school_unit(u)]
         ncity_commercial_available = [u for u in ncity_commercial_units if (u.get("status") or "").strip().lower() == "available"]
         ncity_commercial_price = sum(float(u.get("list_price") or 0) for u in ncity_commercial_available)
         result.append({
@@ -201,8 +214,8 @@ def get_home_kpi() -> list:
             "project_slug": "n-city-commercial",
         })
 
-        # Rise International School: only B5-01 to B5-10
-        rise_units = [u for u in ncity_units if _is_school_unit(u)]
+        # Rise International School: only the 10 school units
+        rise_units = [u for u in ncity_units if _is_rise_school_unit(u)]
         rise_available = [u for u in rise_units if (u.get("status") or "").strip().lower() == "available"]
         rise_price = sum(float(u.get("list_price") or 0) for u in rise_available)
         result.append({
@@ -213,26 +226,62 @@ def get_home_kpi() -> list:
             "project_slug": "n-city-rise",
         })
 
-    # N-City Convention Hall: fixed value (no database records exist)
+    # Add IBG Commercial / Residential sub-project KPI cards from current DB data.
+    # These use business-rule unit identifiers below; the KPI result is calculated
+    # dynamically from each unit's current database status and price.
+    ibg_units = repo.get_units_by_project_like("%ION BELIAN GARDEN%")
+    ibg_commercial_units = [u for u in ibg_units if _is_ibg_commercial_unit(u)]
+    ibg_commercial_available = [u for u in ibg_commercial_units if (u.get("status") or "").strip().lower() == "available"]
+    ibg_commercial_price = sum(float(u.get("list_price") or 0) for u in ibg_commercial_available)
     result.append({
-        "project_name": "N-City Convention Hall",
-        "project_status": "Completed",
-        "available_units": 1,
-        "total_list_price": 12500000.00,
-        "project_slug": "n-city-convention-hall",
+        "project_name": "ION BELIAN GARDEN — COMMERCIAL",
+        "project_status": "Ongoing",
+        "available_units": len(ibg_commercial_available),
+        "total_list_price": ibg_commercial_price,
+        "project_slug": "ion-belian-garden-commercial",
+    })
+
+    ibg_residential_units = [u for u in ibg_units if _is_ibg_residential_unit(u)]
+    ibg_residential_available = [u for u in ibg_residential_units if (u.get("status") or "").strip().lower() == "available"]
+    ibg_residential_price = sum(float(u.get("list_price") or 0) for u in ibg_residential_available)
+    result.append({
+        "project_name": "ION BELIAN GARDEN — RESIDENTIAL",
+        "project_status": "Ongoing",
+        "available_units": len(ibg_residential_available),
+        "total_list_price": ibg_residential_price,
+        "project_slug": "ion-belian-garden-residential",
     })
 
     return result
 
 
-# School unit numbers for Rise International School (B5-01 to B5-10)
-NCITY_SCHOOL_UNITS = {"B5-01", "B5-02", "B5-03", "B5-03A", "B5-04", "B5-05", "B5-06", "B5-07", "B5-08", "B5-09", "B5-10"}
+# IBG Commercial / Residential business-rule unit PREFIXES.
+# These segment IBG units into business sub-categories by unit-number prefix:
+#   IBE- = Commercial   (e.g. IBE-E1-03)
+#   IBB- = Residential  (e.g. IBB-B26-08)
+# Availability is NOT decided here; it is computed from each unit's current
+# DB status in get_home_kpi() (status == available). This stays database-driven.
+IBG_COMMERCIAL_PREFIX = "IBE-"
+IBG_RESIDENTIAL_PREFIX = "IBB-"
 
 
-def _is_school_unit(unit: dict) -> bool:
-    """Check if a unit belongs to the Rise International School (B5-01 to B5-10)."""
+def _is_ibg_commercial_unit(unit: dict) -> bool:
+    return str(unit.get("unit_no") or "").strip().upper().startswith(IBG_COMMERCIAL_PREFIX)
+
+
+def _is_ibg_residential_unit(unit: dict) -> bool:
+    return str(unit.get("unit_no") or "").strip().upper().startswith(IBG_RESIDENTIAL_PREFIX)
+
+
+# The 10 N-City Rise International School business units (business-rule identifiers,
+# NOT hardcoded KPI results). B5-04 is NOT one of these school units.
+NCITY_RISE_UNITS = {"B5-01", "B5-02", "B5-03", "B5-03A", "B5-05", "B5-06", "B5-07", "B5-08", "B5-09", "B5-10"}
+
+
+def _is_rise_school_unit(unit: dict) -> bool:
+    """Check if a unit is one of the 10 N-City Rise International School units."""
     unit_no = str(unit.get("unit_no") or "").strip().upper()
-    return unit_no in NCITY_SCHOOL_UNITS
+    return unit_no in NCITY_RISE_UNITS
 
 
 def get_projects() -> list:

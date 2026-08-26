@@ -469,24 +469,37 @@ function renderWaitingForData(view) {
 }
 
 /* ==========================================================================
-   HARDCODED LAYOUT PLAN BALANCE (No database, no API, no calculation)
+   LAYOUT PLAN BALANCE — computed dynamically from current database/API units
+   The balance (available / total) is derived from the same unit data used by
+   the project KPI and Available Unit List, so it stays consistent across
+   Excel uploads. No hardcoded unit counts or RM totals live here.
    ========================================================================== */
-var PROJECT_LAYOUT_BALANCE = {
-  "NCT SMART INDUSTRIAL PARK KM1": "Bal 64/280 units",
-  "ION BELIAN GARDEN — COMMERCIAL": "Bal 1 / 9 units",
-  "ION BELIAN GARDEN — RESIDENTIAL": "1/1167 units",
-  "MAHKOTA KAMPAR": "Bal 23/24 units",
-  "N-CITY — COMMERCIAL": "Bal 30 / 122 units",
-  "N-CITY — RISE INTERNATIONAL SCHOOL": "Bal 10 / 122 units",
-  "N-CITY — CONVENTION HALL": "Bal 1 / 1 units",
-  "VORTEX BUSINESS PARK": "Bal 2 / 90 units",
-  "SALAK PERDANA BUSINESS PARK": "Bal 11 / 260 units",
-  "GRAND ION DELEMEN": "Bal 92 / 1148 units",
-  "GRAND ION MAJESTIC": "Bal 96 / 1885 units"
-};
+function computeBalanceText(projectUnits) {
+  if (!projectUnits || !projectUnits.length) return '';
+  var avail = computeAvailableUnits(projectUnits);
+  return 'Bal ' + avail + ' / ' + projectUnits.length + ' units';
+}
+
+function getLayoutBalance(projectName) {
+  var allUnits = window.__allUnits || [];
+  var projectUnits = allUnits.filter(function(u) {
+    return (u.Project || "").toString().trim().toUpperCase() === (projectName || "").toString().trim().toUpperCase();
+  });
+  return computeBalanceText(projectUnits);
+}
+
+function updateLayoutBalanceEl(slug, projectUnits) {
+  var el = document.getElementById("layoutBalance-" + slug);
+  if (!el) return;
+  el.textContent = computeBalanceText(projectUnits);
+}
 
 /* ==========================================================================
-   PROJECT DETAILS DATA
+   PROJECT DETAILS DATA — Intentionally STATIC project metadata.
+   These are genuine fixed project terms (tenure, VP date, booking fee, bumi
+   discount, sales package, sales commission) that do NOT change when new
+   inventory/Excel data is uploaded. They are intentionally informational and
+   are kept as static configuration rather than database-derived values.
    ========================================================================== */
 var PROJECT_DETAILS_DATA = {
   "N-CITY — COMMERCIAL": {
@@ -618,14 +631,10 @@ function renderProjectDetails(projectName) {
     '</div>';
 }
 
-function getLayoutBalance(projectName) {
-  return PROJECT_LAYOUT_BALANCE[projectName] || '';
-}
-
 function renderLayoutPlanHeader(balanceText, stageId) {
-  return '<div class="card" style="padding:12px 16px;margin-bottom:0;background:#f8fafc;border:1px solid #eef0f4;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,0.06);display:flex;align-items:center;" data-layout-stage="' + (stageId || '') + '">' +
+  return '<div class="card" style="padding:12px 16px;margin-bottom:0;background:#f8fafc;border:1px solid #eef0f4;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,0.06);display:flex;align-items:center;position:relative;" data-layout-stage="' + (stageId || '') + '">' +
     '<span class="card-title" style="flex-shrink:0;"><i class="fas fa-map"></i> LAYOUT PLAN</span>' +
-    '<button class="layout-download-btn" data-layout-stage="' + (stageId || '') + '" style="margin-left:12px;padding:6px 12px;border:1px solid var(--border-light);border-radius:4px;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:#0f2042;white-space:nowrap;"><i class="fas fa-download" style="margin-right:4px;"></i>Download</button>' +
+    '<button class="layout-download-btn" data-layout-stage="' + (stageId || '') + '" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);padding:6px 12px;border:1px solid var(--border-light);border-radius:4px;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:#0f2042;white-space:nowrap;"><i class="fas fa-download" style="margin-right:4px;"></i>Download</button>' +
     '</div>';
 }
 
@@ -867,22 +876,25 @@ function addLayoutDownloadButton(headerEl, stageEl, projectName) {
 }
 
 /* ==========================================================================
-    GRAND ION DELEMEN SUBSALE UNITS
-    ========================================================================== */
-var GID_SUBSALE_UNITS = new Set([
-  "E2-22-05","E3-11-01","E3-12-01","E3-18-03","E7-36-01","E7-36-03","E2-13A-09","E3-8-01","E3-8-02","E3-8-03","E3-9-01","E3-9-02","E3-9-03","E4-22-10","E1-23A-03","E1-23A-03A","E2-10-09","E2-22-01","E3-10-03","E3-1-01","E3-1-02","E3-1-03","E3-1-05","E3-1-06","E3-11-02","E3-11-03","E3-11-06","E3-12-02","E3-12-03","E3-13A-01","E3-13A-02","E3-13A-03","E3-15-01","E3-15-03","E3-16-01","E3-16-02","E3-17-01","E3-18-01","E3-19-01","E3-19-03A","E3-20-03","E3-20-06","E3-2-01","E3-2-03","E3-2-03A","E3-2-05","E3-21-01","E3-21-03","E3-22-01","E3-22-03A","E3-23-01","E3-23-03","E3-23A-01","E3-23A-03","E3-23A-03A","E3-3-03","E3-3-03A","E3-3-05","E3-03A-01","E3-03A-02","E3-03A-03","E3-03A-05","E3-5-01","E3-5-02","E3-5-03","E3-5-05","E3-6-02","E3-6-03A","E3-7-01","E3-7-02","E3-7-03","E3-7-03A","E3-7-05","E3-8-03A","E4-6-01","E4-7-01","E4-7-10","E4-9-10","E4-10-01","E4-11-01","E4-12-01","E4-13-01","E4-13A-01","E4-13A-10","E4-15-01","E4-17-01","E4-19-01","E4-21-01","E4-21-10","E4-23-01","E4-23A-01","E4-23A-02"
-]);
+   GRAND ION DELEMEN SUB-SALE BUSINESS RULE
+   ========================================================================== */
+/* The GID sub-sale unit list lives authoritatively in the backend
+   (repository.py -> GID_SUBSALE_UNITS) and is surfaced to the frontend as the
+   per-unit GID_Subsale boolean flag in the API response. It is NOT duplicated
+   in the frontend. isDisplayAvailable()/getDisplayStatus() below read that flag. */
 
+/* GID sub-sale availability is determined authoritatively by the backend
+   (repository.is_gid_sub_sale): project = GRAND ION DELEMEN AND
+   status = Sold AND owner_name = NCT HARMONY SDN BHD. The result is surfaced
+   as the per-unit GID_Subsale boolean flag in the API response, so no unit
+   list or owner string is duplicated in the frontend. A flagged unit is a
+   qualifying sub-sale and therefore counts as Available; all other units
+   follow the normal DB status rule (status == Available). */
 function isDisplayAvailable(unit) {
   if (!unit) return false;
-  var project = (unit.Project || "").toString().trim().toUpperCase();
-  if (project !== "GRAND ION DELEMEN") {
-    var status = (unit.Status || "").toString().trim().toLowerCase();
-    return status === "available";
-  }
-  var isAvailable = (unit.Status || "").toString().trim().toLowerCase() === "available";
-  var unitNo = (unit.Unit_No || "").toString().trim().toUpperCase();
-  return isAvailable || GID_SUBSALE_UNITS.has(unitNo);
+  if (unit.GID_Subsale === true) return true;
+  var status = (unit.Status || "").toString().trim().toLowerCase();
+  return status === "available";
 }
 
 /* ==========================================================================
@@ -922,14 +934,11 @@ function compareUnitType(a, b) {
   return aStr.localeCompare(bStr);
 }
 
-/* GID subsale units display as Available in the frontend only (database unchanged) */
+/* GID qualifying sub-sale units display as Available (backend GID_Subsale flag
+   already encodes Sold + NCT HARMONY owner); otherwise the actual DB status. */
 function getDisplayStatus(u) {
   if (!u) return "-";
-  var project = (u.Project || "").toString().trim().toUpperCase();
-  if (project === "GRAND ION DELEMEN") {
-    var unitNo = (u.Unit_No || "").toString().trim().toUpperCase();
-    if (GID_SUBSALE_UNITS.has(unitNo)) return "Available";
-  }
+  if (u.GID_Subsale === true) return "Available";
   // Normalize status display to title case (e.g. AVAILABLE -> Available)
   // without changing the underlying database status.
   var raw = (u.Status || "").toString().trim();
@@ -1435,6 +1444,20 @@ function updateWelcomeMessage() {
 function renderHomeDashboard() {
   updateWelcomeMessage();
 
+  // Load "Updates As Of" date from the backend/database (authoritative source).
+  fetch("/api/system/updated-as-of")
+    .then(function(res) { if (!res.ok) throw new Error("HTTP " + res.status); return res.json(); })
+    .then(function(data) {
+      var el = document.getElementById("dashboardUpdatedAsOfValue");
+      if (!el) return;
+      el.textContent = (data && data.updated_as_of) ? data.updated_as_of : "N/A";
+    })
+    .catch(function(err) {
+      console.error("Updated As Of fetch error:", err);
+      var el = document.getElementById("dashboardUpdatedAsOfValue");
+      if (el) el.textContent = "N/A";
+    });
+
   var kpiDataCache = null;
 
   fetch("/api/home/kpi")
@@ -1470,73 +1493,25 @@ function renderDashboardSections(kpiData) {
 
   allGrid.innerHTML = "";
 
-  var dataMap = {};
-  (Array.isArray(kpiData) ? kpiData : []).forEach(function(proj) {
-    dataMap[(proj.project_name || "").toString().trim().toUpperCase()] = proj;
-  });
-
-  // Override Grand Ion Delemen with corrected display-available count
-  // to match the Project Page Available Unit List
-  if (window.__allUnits && window.__allUnits.length) {
-    var gidUnits = window.__allUnits.filter(function(u) {
-      return (u.Project || "").toString().trim().toUpperCase() === "GRAND ION DELEMEN";
-    });
-    var gidAvailable = gidUnits.filter(isDisplayAvailable);
-    var gidTotalPrice = gidAvailable.reduce(function(acc, u) { return acc + computePrice(u); }, 0);
-    dataMap["GRAND ION DELEMEN"] = {
-      project_name: "GRAND ION DELEMEN",
-      project_status: "Completed",
-      available_units: gidAvailable.length,
-      total_list_price: gidTotalPrice,
-      project_slug: "grand-ion-delemen"
-    };
-  }
-
-  var guaranteedOngoing = [
-    { project_name: "NCT SMART INDUSTRIAL PARK KM1", project_status: "Ongoing", available_units: 0, total_list_price: 0, project_slug: "nsip" },
-    { project_name: "NCT SMART INDUSTRIAL PARK KM2", project_status: "Ongoing", available_units: 0, total_list_price: 0, project_slug: "nsip-km2" },
-    { project_name: "NCT INNOSPHERE", project_status: "Ongoing", available_units: 0, total_list_price: 0, project_slug: "nct-innosphere" }
-  ];
-
-  // Hardcoded sub-project cards (replacing parent ION BELIAN GARDEN only - N-CITY sub-projects come from API data)
-  var SUB_PROJECT_CARDS = [
-    { project_name: "ION BELIAN GARDEN — COMMERCIAL", project_status: "Ongoing", available_units: 1, total_list_price: 758000, project_slug: "ion-belian-garden-commercial" },
-    { project_name: "ION BELIAN GARDEN — RESIDENTIAL", project_status: "Ongoing", available_units: 1, total_list_price: 356000, project_slug: "ion-belian-garden-residential" }
-  ];
-
   var allProjects = [];
 
-  guaranteedOngoing.forEach(function(gp) {
-    var key = (gp.project_name || "").toString().trim().toUpperCase();
-    var existing = dataMap[key];
-    if (existing) {
-      allProjects.push(existing);
-    } else {
-      allProjects.push(gp);
-    }
-  });
-
-  // Add sub-project cards
-  SUB_PROJECT_CARDS.forEach(function(sp) {
-    allProjects.push(sp);
-  });
-
-  // Add remaining API projects, excluding parent projects and hardcoded sub-project cards
+  // Add all API project KPI cards. KPI values come directly from the backend
+  // (which reads the database) - no hardcoded KPI results are injected here.
+  // Parent container projects are excluded so only the concrete project /
+  // sub-project KPI cards returned by the backend are rendered on the dashboard.
+  // Projects with 0 available units are hidden (not rendered as a card).
   var EXCLUDED_PROJECTS = {
-    "NCT SMART INDUSTRIAL PARK KM1": true,
-    "NCT SMART INDUSTRIAL PARK KM2": true,
     "NCT SMART INDUSTRIAL PARK PHASE 2": true,
     "NCT INNOSPHERE": true,
     "N-CITY": true,
-    "ION BELIAN GARDEN": true,
-    "ION BELIAN GARDEN — COMMERCIAL": true,
-    "ION BELIAN GARDEN — RESIDENTIAL": true
+    "ION BELIAN GARDEN": true
   };
   (Array.isArray(kpiData) ? kpiData : []).forEach(function(proj) {
     var key = (proj.project_name || "").toString().trim().toUpperCase();
-    if (!EXCLUDED_PROJECTS[key]) {
-      allProjects.push(proj);
-    }
+    if (EXCLUDED_PROJECTS[key]) return;
+    // Only render projects that currently have available units (per database/API).
+    if (!(Number(proj.available_units) > 0)) return;
+    allProjects.push(proj);
   });
 
   // Group IBG and N-City cards
@@ -1898,7 +1873,7 @@ function renderNctInnosphereView() {
     '<div id="nis-layout-wrapper" style="width:100%;display:flex;flex-direction:column;gap:20px;box-sizing:border-box;padding:0;margin-bottom:20px;">' +
     '  <div class="card" style="padding:12px 16px;margin-bottom:0;background:#f8fafc;border:1px solid #eef0f4;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,0.06);display:flex;align-items:center;">' +
     '    <span class="card-title" style="flex-shrink:0;"><i class="fas fa-map"></i> LAYOUT PLAN</span>' +
-    '    <span style="margin-left:auto;font-size:14px;font-weight:700;color:#0f2042;white-space:nowrap;">Bal 0 / 0 units</span>' +
+    '    <span id="layoutBalance-nct-innosphere" style="margin-left:auto;font-size:14px;font-weight:700;color:#0f2042;white-space:nowrap;">Bal 0 / 0 units</span>' +
     '  </div>' +
     '  <div style="width:100%;background:#ffffff;border:1px solid #eef0f4;border-radius:10px;padding:12px;box-shadow:0 1px 3px rgba(0,0,0,0.06);overflow:hidden;">' +
     '    <img src="/static/NIS_Layout.png" alt="NCT Innosphere Layout" style="width:100%;height:auto;display:block;border-radius:6px;">' +
@@ -1935,6 +1910,20 @@ function renderNctInnosphereView() {
     '    <span style="font-size:13px;color:#5e6778;">0 units</span>' +
     '  </div>' +
     '</div>';
+
+  // Populate NCT INNOSPHERE KPI + layout balance from current database/API data.
+  fetchAllUnitsCached().then(function(allUnits) {
+    var innUnits = allUnits.filter(function(u) {
+      return (u.Project || "").toString().trim().toUpperCase() === "NCT INNOSPHERE";
+    });
+    var kpiEl = document.getElementById("kpi-nct-innosphere");
+    if (kpiEl) kpiEl.textContent = computeAvailableUnits(innUnits);
+    var priceEl = document.getElementById("kpi-price-nct-innosphere");
+    if (priceEl) priceEl.textContent = formatPrice(computeDisplayedTotalPrice(innUnits));
+    updateLayoutBalanceEl("nct-innosphere", innUnits);
+    var pagEl = document.getElementById("staticPagination-nct-innosphere");
+    if (pagEl) pagEl.innerHTML = '<span style="font-size:13px;color:#5e6778;">' + computeAvailableUnits(innUnits) + ' units</span>';
+  });
 }
 
 /* ==========================================================================
@@ -1967,7 +1956,7 @@ function renderNsipOverallLayoutView() {
 }
 
 /* ==========================================================================
-   NSIP KM2 VIEW (Layout + Coming Soon)
+   NSIP KM2 VIEW (database-driven layout + KPI)
    ========================================================================== */
 function renderNsipKm2View() {
   var panel = document.getElementById("view-nsip-km2");
@@ -1997,7 +1986,6 @@ function renderNsipKm2View() {
     '    <img src="/static/NSIP%20KM2_Layout.png" alt="NSIP KM2 Layout" style="width:100%;height:auto;display:block;border-radius:6px;transform-origin:center center;">' +
     '  </div>' +
     '</div>' +
-    '' + renderProjectDetails("NCT SMART INDUSTRIAL PARK KM1") + '' +
     '<div class="card" id="staticAssetList-nsip-km2">' +
     '  <div class="card-header">' +
     '    <span class="card-title"><i class="fas fa-table"></i> AVAILABLE UNIT LIST</span>' +
@@ -2010,10 +1998,6 @@ function renderNsipKm2View() {
     '  </div>' +
     '  <div id="staticLedgerContainer-nsip-km2" class="asset-table-container"></div>' +
     '  <div id="staticPagination-nsip-km2" style="display:flex;align-items:center;justify-content:center;gap:12px;margin-top:16px;padding-top:12px;border-top:1px solid var(--border-light);"></div>' +
-    '</div>' +
-    '<div class="card">' +
-    '  <div class="card-header"><span class="card-title"><i class="fas fa-list"></i> AVAILABLE UNIT BY PHASE</span></div>' +
-    '  <div id="ledgerContainer-nsip-km2"></div>' +
     '</div>';
 
   loadProjectImageBanner("nsip-km2", "NSIP");
@@ -2047,54 +2031,12 @@ function renderNsipKm2View() {
       var priceEl = document.getElementById("kpi-price-nsip-km2");
       if (priceEl) priceEl.textContent = formatPrice(computeDisplayedTotalPrice(km2Units));
 
-      try { renderNsipKm2Hierarchy(km2Units); } catch(e) { console.error("Hierarchy:", e); }
       try { renderStaticAssetTable("nsip-km2", km2Units); } catch(e) { console.error("Static KM2 table:", e); }
       try { bindAvailableUnitsDownloadButton("nsip-km2", km2Units); } catch(e) { console.error("Bind download:", e); }
     })
     .catch(function(err) {
       console.error("Failed to load NSIP KM2 layout data:", err);
     });
-}
-
-function renderNsipKm2Hierarchy(projectUnits) {
-  var container = document.getElementById("ledgerContainer-nsip-km2");
-  if (!container) return;
-
-  var availableUnits = projectUnits.filter(isDisplayAvailable);
-  var state = getOrInitState("project-nsip-km2");
-
-  var projKey = "proj:nsip-km2";
-  if (state[projKey] === undefined) state[projKey] = false;
-
-  var header = createGroupHeader("NCT SMART INDUSTRIAL PARK KM2", computeAvailableUnits(availableUnits), false, "group-header-project", "Project");
-  container.appendChild(header);
-
-  var content = document.createElement("div");
-  content.className = "group-content";
-  content.style.display = "none";
-  container.appendChild(content);
-
-  var childrenRendered = false;
-  header.addEventListener("click", function() {
-    var now = toggleLevel(state, projKey);
-    if (now) {
-      if (!childrenRendered) {
-        renderProjectPhasesAccordion(content, availableUnits, "nsip-km2", "NCT SMART INDUSTRIAL PARK KM2");
-        childrenRendered = true;
-      }
-      content.style.display = "block";
-    } else {
-      content.style.display = "none";
-      for (var k in state) {
-        if (k.indexOf("phase:nsip-km2:") === 0 || k.indexOf("ut:nsip-km2:") === 0) {
-          state[k] = false;
-        }
-      }
-      collapseChildren(content);
-    }
-    var chev = header.querySelector(".group-chevron i");
-    if (chev) chev.className = "fas " + (now ? "fa-chevron-down" : "fa-chevron-right");
-  });
 }
 
 /* ==========================================================================
@@ -2141,16 +2083,6 @@ function renderProjectView(slug) {
     '  </div>' +
     '  <div id="staticLedgerContainer-' + slug + '" class="asset-table-container"></div>' +
     '  <div id="staticPagination-' + slug + '" style="display:flex;align-items:center;justify-content:center;gap:12px;margin-top:16px;padding-top:12px;border-top:1px solid var(--border-light);"></div>' +
-    '</div>' +
-    '<div class="card" id="assetListContainer-' + slug + '">' +
-    '  <div class="card-header">' +
-    '    <span class="card-title"><i class="fas fa-list"></i> AVAILABLE UNIT BY PHASE</span>' +
-    '    <div class="table-controls">' +
-    '      <select id="filterPhase-' + slug + '"><option value="">All Phases</option></select>' +
-    '      <select id="filterType-' + slug + '"><option value="">All Unit Types</option></select>' +
-    '    </div>' +
-    '  </div>' +
-    '  <div id="ledgerContainer-' + slug + '"></div>' +
     '</div>';
 
   fetchAllUnitsCached().then(function(allUnits) {
@@ -2161,7 +2093,7 @@ function renderProjectView(slug) {
       try { renderStaticAssetTable(slug, projectUnits); } catch(e) { console.error("Static table:", e); }
       try { bindAvailableUnitsDownloadButton(slug, projectUnits); } catch(e) { console.error("Bind download:", e); }
       try { renderPsfInfoBox(slug); } catch(e) { console.error("PSF info:", e); }
-      try { renderProjectHierarchy(slug, projectUnits); } catch(e) { console.error("Hierarchy:", e); }
+      updateLayoutBalanceEl(slug, projectUnits);
   });
 
   loadProjectImageBanner(slug, cfg.name);
@@ -2177,11 +2109,9 @@ function renderProjectView(slug) {
     var layoutWrapper = document.createElement("div");
     layoutWrapper.id = slug + "-layout-wrapper";
     layoutWrapper.style.cssText = "width:100%;display:flex;flex-direction:column;gap:20px;box-sizing:border-box;padding:0;margin-bottom:20px;";
-    var layoutBalance = getLayoutBalance(cfg.name) || '';
     layoutWrapper.innerHTML =
       '<div class="card" style="padding:12px 16px;margin-bottom:0;background:#f8fafc;border:1px solid #eef0f4;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,0.06);display:flex;align-items:center;">' +
       '  <span class="card-title" style="flex-shrink:0;"><i class="fas fa-map"></i> LAYOUT PLAN</span>' +
-      '  <span style="margin-left:auto;font-size:14px;font-weight:700;color:#0f2042;white-space:nowrap;">' + layoutBalance + '</span>' +
       '</div>' +
       '<div style="width:100%;background:#ffffff;border:1px solid #eef0f4;border-radius:10px;padding:12px;box-shadow:0 1px 3px rgba(0,0,0,0.06);overflow:hidden;">' +
       '  <img src="' + TEMP_LAYOUT_IMAGES[slug] + '" alt="Layout" style="width:100%;height:auto;display:block;border-radius:6px;">' +
@@ -2239,6 +2169,12 @@ function loadProjectImageBanner(slug, projectName) {
    ========================================================================== */
 var __staticTableState = {};
 
+/* PROJECT_PSF_INFO — Intentionally STATIC project reference data.
+   These are fixed marketing reference price-per-square-foot (psf, Net Saleable
+   Area) figures for each project. They are NOT derived from the current unit
+   inventory and are NOT meant to change with Excel uploads. Keeping them as
+   static project reference values (not database-derived) preserves their
+   intended business meaning. */
 var PROJECT_PSF_INFO = {
   "n-city-commercial": "RM378 psf NSA",
   "vortex-business-park": "RM398 psf NSA",
@@ -2656,177 +2592,6 @@ function renderStaticAssetTable(slug, projectUnits) {
 }
 
 
-function renderProjectHierarchy(slug, projectUnits) {
-  var container = document.getElementById("ledgerContainer-" + slug);
-  var phaseSelect = document.getElementById("filterPhase-" + slug);
-  var typeSelect = document.getElementById("filterType-" + slug);
-  if (!container) return;
-
-  if (phaseSelect && phaseSelect.getAttribute("data-populated") !== "1") {
-    Array.from(new Set(projectUnits.map(function(u) { return u.Phase || "N/A"; }))).sort().forEach(function(phase) {
-      var option = document.createElement("option");
-      option.value = phase;
-      option.textContent = phase;
-      phaseSelect.appendChild(option);
-    });
-    phaseSelect.setAttribute("data-populated", "1");
-  }
-
-  if (typeSelect && typeSelect.getAttribute("data-populated") !== "1") {
-    Array.from(new Set(projectUnits.map(function(u) { return u.Unit_Type || "N/A"; }))).sort().forEach(function(unitType) {
-      var option = document.createElement("option");
-      option.value = unitType;
-      option.textContent = getUnitTypeDisplay(unitType);
-      typeSelect.appendChild(option);
-    });
-    typeSelect.setAttribute("data-populated", "1");
-  }
-
-  function renderFilteredHierarchy() {
-    var filteredUnits = projectUnits;
-    if (phaseSelect && phaseSelect.value) {
-      filteredUnits = filteredUnits.filter(function(u) { return (u.Phase || "N/A") === phaseSelect.value; });
-    }
-    if (typeSelect && typeSelect.value) {
-      filteredUnits = filteredUnits.filter(function(u) { return (u.Unit_Type || "N/A") === typeSelect.value; });
-    }
-    renderProjectHierarchyContent(slug, filteredUnits);
-  }
-
-  if (phaseSelect && phaseSelect.getAttribute("data-bound") !== "1") {
-    phaseSelect.setAttribute("data-bound", "1");
-    phaseSelect.addEventListener("change", renderFilteredHierarchy);
-  }
-  if (typeSelect && typeSelect.getAttribute("data-bound") !== "1") {
-    typeSelect.setAttribute("data-bound", "1");
-    typeSelect.addEventListener("change", renderFilteredHierarchy);
-  }
-
-  renderFilteredHierarchy();
-}
-
-function renderProjectHierarchyContent(slug, projectUnits) {
-  var container = document.getElementById("ledgerContainer-" + slug);
-  if (!container) return;
-  container.innerHTML = "";
-
-  var availableUnits = projectUnits.filter(isDisplayAvailable);
-  var state = getOrInitState("project-" + slug);
-
-  var projKey = "proj:" + slug;
-  if (state[projKey] === undefined) state[projKey] = false;
-  var expanded = state[projKey];
-
-  var cfg = getProjectConfig(slug);
-  var projName = cfg ? cfg.name : slug;
-
-  var header = createGroupHeader(projName, computeAvailableUnits(availableUnits), expanded, "group-header-project", "Project");
-  container.appendChild(header);
-
-  var content = document.createElement("div");
-  content.className = "group-content";
-  content.style.display = expanded ? "block" : "none";
-  container.appendChild(content);
-
-  var childrenRendered = false;
-  var thatSlug = slug;
-  header.addEventListener("click", function() {
-    var now = toggleLevel(state, projKey);
-    if (now) {
-      if (!childrenRendered) {
-        renderProjectPhasesAccordion(content, availableUnits, thatSlug, projName);
-        childrenRendered = true;
-      }
-      content.style.display = "block";
-    } else {
-      content.style.display = "none";
-      for (var k in state) {
-        if (k.indexOf("phase:" + thatSlug + ":") === 0 || k.indexOf("ut:" + thatSlug + ":") === 0) {
-          state[k] = false;
-        }
-      }
-      collapseChildren(content);
-    }
-    var chev = header.querySelector(".group-chevron i");
-    if (chev) chev.className = "fas " + (now ? "fa-chevron-down" : "fa-chevron-right");
-  });
-}
-
-function renderProjectPhasesAccordion(container, units, slug, projName) {
-  var state = getOrInitState("project-" + slug);
-
-  var phaseGroups = groupBy(units, function(u) { return u.Phase || "N/A"; });
-  Object.keys(phaseGroups).sort().forEach(function(phase) {
-    var phaseUnits = phaseGroups[phase];
-    var phaseKey = "phase:" + slug + ":" + phase;
-    if (state[phaseKey] === undefined) state[phaseKey] = false;
-
-    var header = createGroupHeader(phase, computeAvailableUnits(phaseUnits), false, "group-header-type group-indent-1", "Phase");
-    container.appendChild(header);
-
-    var content = document.createElement("div");
-    content.className = "group-content group-indent-1";
-    content.style.display = "none";
-    container.appendChild(content);
-
-    header.addEventListener("click", function() {
-      var now = toggleLevel(state, phaseKey);
-      if (now) {
-        renderProjectUnitTypesAccordion(content, phaseUnits, slug, phase, projName);
-        content.style.display = "block";
-      } else {
-        content.style.display = "none";
-        collapseChildren(content);
-      }
-      var chev = header.querySelector(".group-chevron i");
-      if (chev) chev.className = "fas " + (now ? "fa-chevron-down" : "fa-chevron-right");
-    });
-  });
-}
-
-function renderProjectUnitTypesAccordion(container, units, slug, phase, projName) {
-  var typeGroups = groupBy(units, function(u) { return u.Unit_Type || "N/A"; });
-  var state = getOrInitState("project-" + slug);
-  var rowNum = 0;
-
-  Object.keys(typeGroups).sort().forEach(function(ut) {
-    var utUnits = typeGroups[ut];
-    var utKey = "ut:" + slug + ":" + phase + ":" + ut;
-    if (state[utKey] === undefined) state[utKey] = false;
-
-    var displayValue = ut;
-    if (utUnits.length > 0 && utUnits[0].Unit_Type_Display) {
-      displayValue = utUnits[0].Unit_Type_Display;
-    } else {
-      displayValue = getUnitTypeDisplay(ut);
-    }
-
-    var header = createGroupHeader(displayValue, computeAvailableUnits(utUnits), false, "group-header-ownership", "Unit Type");
-    container.appendChild(header);
-
-    var content = document.createElement("div");
-    content.className = "group-content group-indent-2";
-    content.style.display = "none";
-    container.appendChild(content);
-
-    header.addEventListener("click", function() {
-      var now = toggleLevel(state, utKey);
-      if (now) {
-        var wrapper = document.createElement("div");
-        wrapper.className = "group-table-wrapper";
-        wrapper.appendChild(createUnitsTable(utUnits, rowNum, projName));
-        content.appendChild(wrapper);
-        content.style.display = "block";
-      } else {
-        content.style.display = "none";
-        collapseChildren(content);
-      }
-      var chev = header.querySelector(".group-chevron i");
-      if (chev) chev.className = "fas " + (now ? "fa-chevron-down" : "fa-chevron-right");
-    });
-  });
-}
-
 function renderProjectTotalPriceKPI(slug, projectUnits) {
   var el = document.getElementById("kpi-price-" + slug);
   if (!el) return;
@@ -2886,10 +2651,6 @@ function renderNsipKm1View() {
     '  </div>' +
     '  <div id="staticLedgerContainer-nsip" class="asset-table-container"></div>' +
     '  <div id="staticPagination-nsip" style="display:flex;align-items:center;justify-content:center;gap:12px;margin-top:16px;padding-top:12px;border-top:1px solid var(--border-light);"></div>' +
-    '</div>' +
-    '<div class="card">' +
-    '  <div class="card-header"><span class="card-title"><i class="fas fa-list"></i> AVAILABLE UNIT BY PHASE</span></div>' +
-    '  <div id="ledgerContainer-nsip"></div>' +
     '</div>';
 
   loadProjectImageBanner("nsip", "NSIP");
@@ -2923,7 +2684,6 @@ function renderNsipKm1View() {
       var priceEl = document.getElementById("kpi-price-nsip");
       if (priceEl) priceEl.textContent = formatPrice(computeDisplayedTotalPrice(__nsipSharedData.units));
 
-      try { renderNsipHierarchy(__nsipSharedData.units); } catch(e) { console.error("Hierarchy:", e); }
       try { renderStaticAssetTable("nsip", __nsipSharedData.units); } catch(e) { console.error("Static NSIP table:", e); }
       try { bindAvailableUnitsDownloadButton("nsip", __nsipSharedData.units); } catch(e) { console.error("Bind download:", e); }
       try { renderPsfInfoBox("nsip"); } catch(e) { console.error("PSF info:", e); }
@@ -3138,46 +2898,6 @@ function showNsipUnitModal(unit, svgId) {
   modalEl.style.display = 'flex';
 }
 
-function renderNsipHierarchy(projectUnits) {
-  var container = document.getElementById("ledgerContainer-nsip");
-  if (!container) return;
-
-  var availableUnits = projectUnits.filter(isDisplayAvailable);
-  var state = getOrInitState("project-nsip");
-
-  var projKey = "proj:nsip";
-  if (state[projKey] === undefined) state[projKey] = false;
-
-  var header = createGroupHeader("NCT SMART INDUSTRIAL PARK KM1", computeAvailableUnits(availableUnits), false, "group-header-project", "Project");
-  container.appendChild(header);
-
-  var content = document.createElement("div");
-  content.className = "group-content";
-  content.style.display = "none";
-  container.appendChild(content);
-
-  var childrenRendered = false;
-  header.addEventListener("click", function() {
-    var now = toggleLevel(state, projKey);
-    if (now) {
-      if (!childrenRendered) {
-        renderProjectPhasesAccordion(content, availableUnits, "nsip", "NCT SMART INDUSTRIAL PARK KM1");
-        childrenRendered = true;
-      }
-      content.style.display = "block";
-    } else {
-      content.style.display = "none";
-      for (var k in state) {
-        if (k.indexOf("phase:nsip:") === 0 || k.indexOf("ut:nsip:") === 0) {
-          state[k] = false;
-        }
-      }
-      collapseChildren(content);
-    }
-    var chev = header.querySelector(".group-chevron i");
-    if (chev) chev.className = "fas " + (now ? "fa-chevron-down" : "fa-chevron-right");
-  });
-}
 
 function renderNsipTotalPriceKPI(projectUnits) {
   var el = document.getElementById("kpi-price-nsip");
@@ -3232,10 +2952,6 @@ function renderNcityView() {
     '  </div>' +
     '  <div id="staticLedgerContainer-ncity" class="asset-table-container"></div>' +
     '  <div id="staticPagination-ncity" style="display:flex;align-items:center;justify-content:center;gap:12px;margin-top:16px;padding-top:12px;border-top:1px solid var(--border-light);"></div>' +
-    '</div>' +
-    '<div class="card">' +
-    '  <div class="card-header"><span class="card-title"><i class="fas fa-list"></i> AVAILABLE UNIT BY PHASE</span></div>' +
-    '  <div id="ledgerContainer-ncity"></div>' +
     '</div>';
 
   loadProjectImageBanner("ncity", "N-CITY");
@@ -3260,7 +2976,6 @@ function renderNcityView() {
       var priceEl = document.getElementById("kpi-price-ncity");
       if (priceEl) priceEl.textContent = formatPrice(computeDisplayedTotalPrice(__ncitySharedData.units));
 
-      try { renderNcityHierarchy(__ncitySharedData.units); } catch(e) { console.error("Hierarchy:", e); }
       try { renderStaticAssetTable("ncity", __ncitySharedData.units); } catch(e) { console.error("Static table:", e); }
       try { bindAvailableUnitsDownloadButton("ncity", __ncitySharedData.units); } catch(e) { console.error("Bind download:", e); }
 
@@ -3485,46 +3200,6 @@ function showNcityUnitModal(unit, svgId) {
   modalEl.style.display = 'flex';
 }
 
-function renderNcityHierarchy(projectUnits) {
-  var container = document.getElementById("ledgerContainer-ncity");
-  if (!container) return;
-
-  var availableUnits = projectUnits.filter(isDisplayAvailable);
-  var state = getOrInitState("project-ncity");
-
-  var projKey = "proj:ncity";
-  if (state[projKey] === undefined) state[projKey] = false;
-
-  var header = createGroupHeader("N-CITY", computeAvailableUnits(availableUnits), false, "group-header-project", "Project");
-  container.appendChild(header);
-
-  var content = document.createElement("div");
-  content.className = "group-content";
-  content.style.display = "none";
-  container.appendChild(content);
-
-  var childrenRendered = false;
-  header.addEventListener("click", function() {
-    var now = toggleLevel(state, projKey);
-    if (now) {
-      if (!childrenRendered) {
-        renderProjectPhasesAccordion(content, availableUnits, "ncity", "N-CITY");
-        childrenRendered = true;
-      }
-      content.style.display = "block";
-    } else {
-      content.style.display = "none";
-      for (var k in state) {
-        if (k.indexOf("phase:ncity:") === 0 || k.indexOf("ut:ncity:") === 0) {
-          state[k] = false;
-        }
-      }
-      collapseChildren(content);
-    }
-    var chev = header.querySelector(".group-chevron i");
-    if (chev) chev.className = "fas " + (now ? "fa-chevron-down" : "fa-chevron-right");
-  });
-}
 
 /* ==========================================================================
    MAHKOTA KAMPAR SVG LAYOUT VIEW
@@ -3573,10 +3248,6 @@ function renderMahkotaKamparView() {
     '  </div>' +
     '  <div id="staticLedgerContainer-mahkota" class="asset-table-container"></div>' +
     '  <div id="staticPagination-mahkota" style="display:flex;align-items:center;justify-content:center;gap:12px;margin-top:16px;padding-top:12px;border-top:1px solid var(--border-light);"></div>' +
-    '</div>' +
-    '<div class="card">' +
-    '  <div class="card-header"><span class="card-title"><i class="fas fa-list"></i> AVAILABLE UNIT BY PHASE</span></div>' +
-    '  <div id="ledgerContainer-mahkota"></div>' +
     '</div>';
 
   loadProjectImageBanner("mahkota-kampar", "MAHKOTA KAMPAR");
@@ -3601,7 +3272,6 @@ function renderMahkotaKamparView() {
       var priceEl = document.getElementById("kpi-price-mahkota");
       if (priceEl) priceEl.textContent = formatPrice(computeDisplayedTotalPrice(__mahkotaSharedData.units));
 
-      try { renderMahkotaHierarchy(__mahkotaSharedData.units); } catch(e) { console.error("Hierarchy:", e); }
       try { renderStaticAssetTable("mahkota", __mahkotaSharedData.units); } catch(e) { console.error("Static table:", e); }
       try { bindAvailableUnitsDownloadButton("mahkota", __mahkotaSharedData.units); } catch(e) { console.error("Bind download:", e); }
       try { renderPsfInfoBox("mahkota-kampar"); } catch(e) { console.error("PSF info:", e); }
@@ -3816,46 +3486,6 @@ function showMahkotaUnitModal(unit, svgId) {
   modalEl.style.display = 'flex';
 }
 
-function renderMahkotaHierarchy(projectUnits) {
-  var container = document.getElementById("ledgerContainer-mahkota");
-  if (!container) return;
-
-  var availableUnits = projectUnits.filter(isDisplayAvailable);
-  var state = getOrInitState("project-mahkota");
-
-  var projKey = "proj:mahkota";
-  if (state[projKey] === undefined) state[projKey] = false;
-
-  var header = createGroupHeader("MAHKOTA KAMPAR", computeAvailableUnits(availableUnits), false, "group-header-project", "Project");
-  container.appendChild(header);
-
-  var content = document.createElement("div");
-  content.className = "group-content";
-  content.style.display = "none";
-  container.appendChild(content);
-
-  var childrenRendered = false;
-  header.addEventListener("click", function() {
-    var now = toggleLevel(state, projKey);
-    if (now) {
-      if (!childrenRendered) {
-        renderProjectPhasesAccordion(content, availableUnits, "mahkota", "MAHKOTA KAMPAR");
-        childrenRendered = true;
-      }
-      content.style.display = "block";
-    } else {
-      content.style.display = "none";
-      for (var k in state) {
-        if (k.indexOf("phase:mahkota:") === 0 || k.indexOf("ut:mahkota:") === 0) {
-          state[k] = false;
-        }
-      }
-      collapseChildren(content);
-    }
-    var chev = header.querySelector(".group-chevron i");
-    if (chev) chev.className = "fas " + (now ? "fa-chevron-down" : "fa-chevron-right");
-  });
-}
 
 /* ==========================================================================
    REUSABLE INTERACTIVE SVG ENGINE
@@ -4452,8 +4082,10 @@ function renderIbgCommercialView() {
     "ion-belian-garden-commercial",
     "Commercial",
     function(units) {
+      // Business-rule segmentation: IBE- prefix = Commercial.
+      // Availability (which IBE units are actually available) stays DB-driven.
       return units.filter(function(u) {
-        return (u.Unit_No || "").toString().trim().toUpperCase() === "IBE-E1-03";
+        return (u.Unit_No || "").toString().trim().toUpperCase().indexOf("IBE-") === 0;
       });
     },
     "/Gallery/ION BELIAN GARDEN/IBG_Comm.jpeg",
@@ -4469,10 +4101,10 @@ function renderIbgResidentialView() {
     "ion-belian-garden-residential",
     "Residential",
     function(units) {
+      // Business-rule: IBB prefix = Residential.
+      // Availability (which IBB units are actually available) stays DB-driven.
       return units.filter(function(u) {
-        var unitNo = (u.Unit_No || "").toString().trim().toUpperCase();
-        // Only show IBB-B23-10, exclude all Precinct C units
-        return unitNo === "IBB-B23-10";
+        return (u.Unit_No || "").toString().trim().toUpperCase().indexOf("IBB-") === 0;
       });
     },
     "/Gallery/ION BELIAN GARDEN/IBG_Res.jpg",
@@ -4486,8 +4118,9 @@ function renderIbgResidentialView() {
    N-CITY — Commercial, Rise, Convention Hall Pages
    ========================================================================== */
 
-// School units (Rise International School)
-var NCITY_SCHOOL_UNITS = ["B5-01","B5-02","B5-03","B5-03A","B5-05","B5-06","B5-07","B5-08","B5-09","B5-10"];
+// The 10 N-City Rise International School business units.
+// B5-04 is NOT one of these school units and stays in N-City Commercial.
+var NCITY_RISE_UNITS = ["B5-01","B5-02","B5-03","B5-03A","B5-05","B5-06","B5-07","B5-08","B5-09","B5-10"];
 
 function renderNcityCommercialView() {
   var viewId = "n-city-commercial";
@@ -4551,7 +4184,7 @@ function renderNcityCommercialView() {
       // Filter for this page (exclude school units)
       var filtered = allNcityUnits.filter(function(u) {
         var unitNo = (u.Unit_No || "").toString().trim().toUpperCase();
-        return NCITY_SCHOOL_UNITS.indexOf(unitNo) === -1;
+        return NCITY_RISE_UNITS.indexOf(unitNo) === -1;
       });
 
       renderNcitySubKpi(viewId, filtered);
@@ -4617,7 +4250,7 @@ function renderNcityRiseView() {
     '<div id="rise-layout-wrapper" style="width:100%;display:flex;flex-direction:column;gap:0;box-sizing:border-box;padding:0;margin-bottom:20px;">' +
     '  <div id="rise-layout-header" style="padding:12px 16px;margin-bottom:0;background:#f8fafc;border:1px solid #eef0f4;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,0.06);display:flex;align-items:center;">' +
     '    <span class="card-title" style="flex-shrink:0;"><i class="fas fa-map"></i> LAYOUT PLAN</span>' +
-    '    <span style="margin-left:auto;font-size:14px;font-weight:700;color:#0f2042;white-space:nowrap;">Bal 10 / 122 units</span>' +
+    '    <span id="layoutBalance-' + viewId + '" style="margin-left:auto;font-size:14px;font-weight:700;color:#0f2042;white-space:nowrap;">Bal 0 / 0 units</span>' +
     '  </div>' +
     '  <div id="rise-layout-stage" style="width:100%;background:#000000;border:1px solid #eef0f4;border-radius:10px;padding:12px;box-shadow:0 1px 3px rgba(0,0,0,0.06);overflow:hidden;position:relative;">' +
     '    <img id="rise-layout-img" src="/Gallery/N-CITY/N-City Rise_Layout.png" alt="N-City Rise Layout" style="width:100%;height:auto;display:block;border-radius:6px;transform-origin:center center;">' +
@@ -4753,12 +4386,13 @@ function renderNcityRiseView() {
       // Filter for this page (only school units)
       var filtered = allNcityUnits.filter(function(u) {
         var unitNo = (u.Unit_No || "").toString().trim().toUpperCase();
-        return NCITY_SCHOOL_UNITS.indexOf(unitNo) > -1;
+        return NCITY_RISE_UNITS.indexOf(unitNo) > -1;
       });
 
       renderNcitySubKpi(viewId, filtered);
       renderNcitySubAssetTable(viewId, filtered);
       try { bindAvailableUnitsDownloadButton(viewId, filtered); } catch(e) { console.error("Bind download:", e); }
+      updateLayoutBalanceEl(viewId, filtered);
 
       // Render dedicated N-City Rise SVG with school units only
       renderInteractiveSvg({
