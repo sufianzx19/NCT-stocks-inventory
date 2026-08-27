@@ -150,6 +150,24 @@ def update_unit_record(unit_id: int, data: dict) -> bool:
     return True
 
 
+def create_unit_record(data: dict) -> bool:
+    """Create a new unit record from a field->value map."""
+    columns = []
+    placeholders = []
+    params = []
+    for col, val in data.items():
+        if col == "id":
+            continue
+        columns.append(col)
+        placeholders.append("%s")
+        params.append(val)
+    if not columns:
+        return False
+    query = f"INSERT INTO units_master ({', '.join(columns)}) VALUES ({', '.join(placeholders)})"
+    execute_query(query, tuple(params), fetch=False)
+    return True
+
+
 def delete_unit_record(unit_id: int) -> bool:
     """Delete a unit record by ID."""
     query = "DELETE FROM units_master WHERE id = %s"

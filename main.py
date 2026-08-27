@@ -394,6 +394,11 @@ class DeleteUnitRequest(BaseModel):
     unit_id: int
 
 
+class CreateUnitRequest(BaseModel):
+    email: str
+    data: dict
+
+
 @app.get("/api/admin/units")
 def admin_get_units(email: str = Query("")):
     """Get ALL units raw. nct_admin only."""
@@ -420,6 +425,26 @@ def admin_update_unit(unit_id: int, req: UpdateUnitRequest):
     try:
         svc.update_unit(unit_id, req.data)
         return {"success": True, "message": "Record updated successfully."}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@app.post("/api/admin/units")
+def admin_create_unit(req: CreateUnitRequest):
+    """Create a new unit record. nct_admin only."""
+    if not req.email:
+        return JSONResponse(status_code=401, content={"success": False, "error": "Email required"})
+    user = svc.get_user_by_email_raw(req.email)
+    if not user or user.get("user_type") != "nct_admin":
+        return JSONResponse(status_code=403, content={"success": False, "error": "Access denied"})
+    try:
+        data = req.data or {}
+        unit_no = (data.get("unit_no") or "").strip()
+        status = (data.get("status") or "").strip()
+        if not unit_no or not status:
+            return JSONResponse(status_code=400, content={"success": False, "error": "unit_no and status are required."})
+        svc.create_unit(data)
+        return {"success": True, "message": "Record created successfully."}
     except Exception as e:
         return {"success": False, "error": str(e)}
 
@@ -555,6 +580,7 @@ async def confirm_upload(
 
 # ----- User Management endpoints (nct_admin only) -----
 class CreateUserRequest(BaseModel):
+    admin_email: str
     email: str
     name: str
     user_type: str
@@ -595,11 +621,17 @@ def admin_get_users(email: str = Query("")):
 @app.post("/api/admin/users")
 def admin_create_user(req: CreateUserRequest):
     """Create a new user. nct_admin only."""
-    if not req.email:
+    if not req.admin_email:
         return JSONResponse(status_code=401, content={"success": False, "error": "Email required"})
-    user = svc.get_user_by_email_raw(req.email)
+    user = svc.get_user_by_email_raw(req.admin_email)
     if not user or user.get("user_type") != "nct_admin":
         return JSONResponse(status_code=403, content={"success": False, "error": "Access denied"})
+
+    # Validate the new user's password follows the same policy as reset/change.
+    pw_errors = svc.validate_password(req.password)
+    if pw_errors:
+        return JSONResponse(status_code=400, content={"success": False, "error": pw_errors[0]})
+
     try:
         password_hash = svc.hash_password(req.password)
         data = {
@@ -607,7 +639,7 @@ def admin_create_user(req: CreateUserRequest):
             "user_type": req.user_type,
             "role": req.role,
             "email": req.email,
-            "mobile": req.mobile or "",
+            "mobile": req.mobile or None,
             "password_hash": password_hash,
             "status": req.status,
             "mfa_enabled": req.mfa_enabled,

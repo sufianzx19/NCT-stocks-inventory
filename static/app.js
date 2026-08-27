@@ -4534,8 +4534,9 @@ function renderDataManagementView() {
   var userEmail = sessionStorage.getItem("nct_user_email") || localStorage.getItem("nct_user_email") || "";
   
   panel.innerHTML =
-    '<div class="page-header">' +
+    '<div class="page-header" style="display:flex;justify-content:space-between;align-items:center;">' +
     '  <div><h1>DATA MANAGEMENT</h1><div class="header-sub">Manage all property inventory records stored in the database.</div></div>' +
+    '  <button id="dmCreateBtn" style="padding:8px 18px;background:#f47217;color:white;border:none;border-radius:4px;font-weight:600;cursor:pointer;font-size:13px;">Create New Unit</button>' +
     '</div>' +
     '<div class="card" style="margin-bottom:16px;">' +
     '  <div class="card-body" style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;padding:12px 16px;">' +
@@ -4641,6 +4642,9 @@ function renderDataManagementView() {
       document.getElementById("dmProjectFilter").addEventListener("change", renderTable);
       document.getElementById("dmStatusFilter").addEventListener("change", renderTable);
 
+      var createBtn = document.getElementById("dmCreateBtn");
+      if (createBtn) createBtn.addEventListener("click", function() { openDmCreateForm(); });
+
       renderTable();
     })
     .catch(function(err) {
@@ -4659,7 +4663,6 @@ function openDmEditForm(unit, allUnits) {
   var formHtml = '<div class="page-header"><div><h1>Edit Unit</h1><div class="header-sub">ID: ' + unit.id + '</div></div></div>';
   formHtml += '<div class="card"><div class="card-body" style="padding:16px;">';
   formHtml += '<form id="dmEditForm" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">';
-  var NULLABLE_FIELDS = {"contract_amt": true, "spa_date": true, "sale_date": true};
   var REQUIRED_FIELDS = {"status": true, "unit_no": true};
   var STATUS_OPTIONS = ["Available", "Signed", "Sold", "Registered", "Not Available"];
 
@@ -4704,10 +4707,9 @@ function openDmEditForm(unit, allUnits) {
       var raw = inp.value;
       if (REQUIRED_FIELDS[name]) {
         formData[name] = raw.trim();
-      } else if (NULLABLE_FIELDS[name]) {
-        formData[name] = raw.trim() === "" ? null : raw;
       } else {
-        formData[name] = raw;
+        // Optional field: blank -> null so DATE/DECIMAL columns never receive ''.
+        formData[name] = raw.trim() === "" ? null : raw;
       }
     });
 
@@ -4738,6 +4740,103 @@ function openDmEditForm(unit, allUnits) {
     })
     .catch(function(err) {
       var alertEl = document.getElementById("dmEditAlert");
+      if (alertEl) alertEl.innerHTML = '<div style="padding:10px 14px;background:#fee2e2;border:1px solid #dc2626;border-radius:4px;color:#991b1b;font-size:13px;"><i class="fas fa-exclamation-circle" style="margin-right:6px;"></i>Error: ' + err.message + '</div>';
+    });
+  });
+}
+
+function openDmCreateForm() {
+  var panel = document.getElementById("view-data-management");
+  if (!panel) return;
+  var userEmail = sessionStorage.getItem("nct_user_email") || localStorage.getItem("nct_user_email") || "";
+
+  // All editable units_master columns. Only unit_no and status are required.
+  var columns = [
+    "status", "project", "phase_name", "block_name", "unit_no", "hsd_hsm_no",
+    "lot_pt_no", "identity_no", "identity_no_foreign", "owner_name",
+    "purchaser_name_foreign", "unit_address", "contract_amt", "spa_date",
+    "sale_date", "unit_type", "vp_billing_date", "vp_letter_date", "unit_layout",
+    "master_title_geran_no", "built_up_area", "land_area", "list_price",
+    "launch_date", "sub_product"
+  ];
+  var STATUS_OPTIONS = ["Available", "Signed", "Sold", "Registered", "Not Available"];
+
+  var formHtml =
+    '<div class="page-header"><div><h1>Create New Unit</h1><div class="header-sub">Add a new inventory record. Only Unit No. and Status are required.</div></div></div>' +
+    '<div class="card"><div class="card-body" style="padding:16px;">' +
+    '<form id="dmCreateForm" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">';
+
+  columns.forEach(function(f) {
+    var displayLabel = f.replace(/_/g, " ").replace(/\b\w/g, function(l) { return l.toUpperCase(); });
+    var requiredMark = (f === "unit_no" || f === "status") ? ' <span style="color:#dc2626;">*</span>' : '';
+    formHtml += '<div style="display:flex;flex-direction:column;gap:4px;">';
+    formHtml += '<label style="font-size:11px;font-weight:600;color:#5e6778;text-transform:uppercase;">' + displayLabel + requiredMark + '</label>';
+    if (f === "unit_address") {
+      formHtml += '<textarea name="' + f + '" style="padding:6px 8px;border:1px solid #d1d5db;border-radius:4px;font-size:12px;min-height:60px;"></textarea>';
+    } else if (f === "status") {
+      formHtml += '<select name="' + f + '" style="padding:6px 8px;border:1px solid #d1d5db;border-radius:4px;font-size:12px;">';
+      formHtml += '<option value="">-- Select --</option>';
+      STATUS_OPTIONS.forEach(function(opt) { formHtml += '<option value="' + opt + '">' + opt + '</option>'; });
+      formHtml += '</select>';
+    } else {
+      formHtml += '<input type="text" name="' + f + '" style="padding:6px 8px;border:1px solid #d1d5db;border-radius:4px;font-size:12px;">';
+    }
+    formHtml += '</div>';
+  });
+  formHtml += '</form>';
+  formHtml += '<div id="dmCreateAlert" style="margin-top:12px;"></div>';
+  formHtml += '<div style="display:flex;gap:12px;justify-content:flex-end;margin-top:16px;padding-top:12px;border-top:1px solid #eef0f4;">';
+  formHtml += '<button type="button" id="dmCreateSaveBtn" style="padding:8px 20px;background:#f47217;color:white;border:none;border-radius:4px;font-weight:600;cursor:pointer;font-size:13px;">Save</button>';
+  formHtml += '<button type="button" id="dmCreateCancelBtn" style="padding:8px 20px;background:#ffffff;color:#1a1d23;border:1px solid #d1d5db;border-radius:4px;font-weight:600;cursor:pointer;font-size:13px;">Cancel</button>';
+  formHtml += '</div></div></div>';
+
+  panel.innerHTML = formHtml;
+
+  document.getElementById("dmCreateCancelBtn").addEventListener("click", function() { renderDataManagementView(); });
+  document.getElementById("dmCreateSaveBtn").addEventListener("click", function() {
+    var form = document.getElementById("dmCreateForm");
+    if (!form) return;
+    var formData = {};
+    var inputs = form.querySelectorAll("input, textarea, select");
+    inputs.forEach(function(inp) {
+      var name = inp.getAttribute("name");
+      if (!name) return;
+      var raw = inp.value;
+      if (name === "unit_no" || name === "status") {
+        formData[name] = raw.trim();
+      } else {
+        // Optional field: blank -> null so DATE/DECIMAL columns never receive ''.
+        formData[name] = raw.trim() === "" ? null : raw;
+      }
+    });
+
+    // Only unit_no and status are required.
+    var statusVal = (formData.status || "").toString().trim();
+    var unitNoVal = (formData.unit_no || "").toString().trim();
+    if (!statusVal || !unitNoVal) {
+      var alertEl = document.getElementById("dmCreateAlert");
+      if (alertEl) alertEl.innerHTML = '<div style="padding:10px 14px;background:#fee2e2;border:1px solid #dc2626;border-radius:4px;color:#991b1b;font-size:13px;"><i class="fas fa-exclamation-circle" style="margin-right:6px;"></i>Status and Unit Number are required.</div>';
+      return;
+    }
+
+    fetch("/api/admin/units", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({email: userEmail, data: formData})
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(json) {
+      if (json.success) {
+        var alertEl = document.getElementById("dmCreateAlert");
+        if (alertEl) alertEl.innerHTML = '<div style="padding:10px 14px;background:#d1fae5;border:1px solid #10b981;border-radius:4px;color:#065f46;font-size:13px;font-weight:500;"><i class="fas fa-check-circle" style="margin-right:6px;"></i>' + (json.message || "Record created successfully.") + '</div>';
+        setTimeout(function() { renderDataManagementView(); }, 1000);
+      } else {
+        var alertEl = document.getElementById("dmCreateAlert");
+        if (alertEl) alertEl.innerHTML = '<div style="padding:10px 14px;background:#fee2e2;border:1px solid #dc2626;border-radius:4px;color:#991b1b;font-size:13px;"><i class="fas fa-exclamation-circle" style="margin-right:6px;"></i>' + (json.error || "Creation failed.") + '</div>';
+      }
+    })
+    .catch(function(err) {
+      var alertEl = document.getElementById("dmCreateAlert");
       if (alertEl) alertEl.innerHTML = '<div style="padding:10px 14px;background:#fee2e2;border:1px solid #dc2626;border-radius:4px;color:#991b1b;font-size:13px;"><i class="fas fa-exclamation-circle" style="margin-right:6px;"></i>Error: ' + err.message + '</div>';
     });
   });
@@ -5639,7 +5738,7 @@ function renderCreateUserView() {
       method: "POST",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({
-        email: userEmail,
+        admin_email: userEmail,
         name: formData.name,
         email: formData.email,
         mobile: formData.mobile || "",

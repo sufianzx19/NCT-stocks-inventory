@@ -457,9 +457,43 @@ def get_all_units_raw() -> list:
     return repo.get_units_master_all()
 
 
+# DATE columns in units_master reject the empty string '' (MySQL error 1292).
+# NUMERIC/DECIMAL columns likewise should not receive ''.
+# For these columns, blank input must be converted to NULL before INSERT/UPDATE.
+_UNIT_DATE_FIELDS = {"spa_date", "sale_date", "vp_billing_date", "vp_letter_date", "launch_date"}
+_UNIT_NUMERIC_FIELDS = {"contract_amt", "built_up_area", "land_area", "list_price"}
+
+
+def _clean_unit_data(data: dict) -> dict:
+    """
+    Normalize an edit/create payload to values the units_master schema accepts.
+
+    Blank strings are converted to None for DATE and NUMERIC columns (MySQL rejects
+    '' for those typed columns). Optional text fields may remain '' since their
+    VARCHAR/TEXT columns accept empty strings.
+    """
+    cleaned = {}
+    for col, val in data.items():
+        if col in ("id", "created_at"):
+            continue
+        if isinstance(val, str) and val.strip() == "":
+            if col in _UNIT_DATE_FIELDS or col in _UNIT_NUMERIC_FIELDS:
+                cleaned[col] = None
+            else:
+                cleaned[col] = ""
+        else:
+            cleaned[col] = val
+    return cleaned
+
+
 def update_unit(unit_id: int, data: dict) -> bool:
     """Update a unit record. Only nct_admin allowed (checked in API)."""
-    return repo.update_unit_record(unit_id, data)
+    return repo.update_unit_record(unit_id, _clean_unit_data(data))
+
+
+def create_unit(data: dict) -> bool:
+    """Create a new unit record. Only nct_admin allowed (checked in API)."""
+    return repo.create_unit_record(_clean_unit_data(data))
 
 
 def delete_unit(unit_id: int) -> bool:
